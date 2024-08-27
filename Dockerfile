@@ -25,10 +25,10 @@ COPY . .
 RUN npx prisma generate
 
 
-RUN npx nest build
+RUN pnpm run build
 
 # Expose the port that the application listens on
 EXPOSE 8000
 
 # Run the application
-CMD ["pnpm", "start:prod"]
+CMD ["pnpm","run","start:prod"]
