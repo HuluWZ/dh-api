@@ -15,7 +15,6 @@ WORKDIR /usr/src/app
 
 # Copy package.json and pnpm-lock.yaml before installing dependencies
 COPY package.json pnpm-lock.yaml ./
-
 # Install dependencies
 RUN pnpm install --prod --frozen-lockfile
 
@@ -26,7 +25,7 @@ COPY . .
 RUN npx prisma generate
 
 
-RUN pnpm build
+RUN npx nest build
 
 # Expose the port that the application listens on
 EXPOSE 8000
