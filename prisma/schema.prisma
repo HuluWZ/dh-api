@@ -14,14 +14,15 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  firstName String
-  lastName  String
-  email     String   @unique
-  phone     String   @unique
-  password  String
-  isActive  Boolean  @default(true)
-  profile   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  firstName  String?
+  lastName   String?
+  email      String?  @unique
+  phone      String   @unique
+  isActive   Boolean  @default(false)
+  profile    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  otpCode      String?
+  otpExpiresAt DateTime?
 }

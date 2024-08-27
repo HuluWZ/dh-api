@@ -1,47 +1,87 @@
 import {
-  Body,
   Controller,
   Post,
-  Put,
-  Headers,
+  Body,
+  HttpCode,
+  HttpStatus,
+  BadRequestException,
   UnauthorizedException,
-  Param,
+  NotFoundException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { LoginDto } from './dto/login.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { SendOtpDto } from './dto/send-otp.dto';
+import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
+import { User } from '@prisma/client';
 
-@ApiTags('Auth')
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.register(createUserDto);
-  }
-
-  @Post('login')
-  async login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
-  }
-
-  @ApiBearerAuth()
-  @Put('update/:id')
-  async updateUser(
-    @Headers('Authorization') authorization: string,
-    @Param('id') id: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
-    const token = authorization?.split(' ')[1];
-    const decoded = await this.authService.verifyToken(token);
-
-    if (!decoded || decoded.sub !== id) {
-      throw new UnauthorizedException('Invalid token');
+  @Post('send-otp')
+  @ApiOperation({ summary: 'Send OTP to phone number' })
+  @ApiResponse({ status: 200, description: 'OTP sent successfully.' })
+  @ApiResponse({ status: 400, description: 'Invalid phone number' })
+  async sendOtp(@Body() sendOtpDto: SendOtpDto): Promise<{ message: string }> {
+    try {
+      await this.authService.sendOtp(sendOtpDto);
+      return { message: 'OTP sent successfully' };
+    } catch {
+      throw new BadRequestException('Invalid phone number');
     }
+  }
 
-    return this.authService.updateUser(Number(id), updateUserDto);
+  @Post('verify-otp')
+  @ApiOperation({ summary: 'Verify OTP and get access token' })
+  @ApiResponse({
+    status: 200,
+    description: 'OTP verified and token issued',
+    type: Object,
+  })
+  @ApiResponse({ status: 401, description: 'Invalid OTP or inactive account' })
+  async verifyOtp(
+    @Body() verifyOtpDto: VerifyOtpDto,
+  ): Promise<{ accessToken: string; isActive: boolean }> {
+    try {
+      const result = await this.authService.verifyOtp(verifyOtpDto);
+      return {
+        accessToken: result.accessToken,
+        isActive: result.isActive,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw new UnauthorizedException('Invalid OTP or inactive account');
+      } else if (error instanceof NotFoundException) {
+        throw new NotFoundException('User not found');
+      }
+      throw new InternalServerErrorException('An unexpected error occurred');
+    }
+  }
+
+  @Post('complete-profile')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Complete user profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully',
+    type: CompleteProfileDto,
+  })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async completeProfile(
+    @Body() completeProfileDto: CompleteProfileDto,
+  ): Promise<{ message: string; user: User }> {
+    try {
+      const updatedUser =
+        await this.authService.completeProfile(completeProfileDto);
+      return { message: 'Profile updated successfully', user: updatedUser };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('User not found');
+      }
+      throw new InternalServerErrorException('An unexpected error occurred');
+    }
   }
 }

@@ -8,7 +8,7 @@ export class PrismaService
 {
   constructor() {
     super({
-      log: ['query', 'info', 'warn', 'error'], // Enable logging for Prisma queries and errors
+      log: ['info', 'warn', 'error'], // Enable logging for Prisma queries and errors
     });
   }
 

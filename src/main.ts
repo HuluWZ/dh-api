@@ -18,10 +18,10 @@ async function bootstrap() {
     .setDescription('The DH API description')
     .setVersion('0.1')
     .build();
-
+  const port = process.env.PORT || 3000;
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-
-  await app.listen(3000);
+  console.log(`   Server is running on port ${port}   🚀`);
+  await app.listen(port);
 }
 bootstrap();
