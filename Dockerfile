@@ -25,8 +25,11 @@ COPY . .
 # Run Prisma generate command
 RUN npx prisma generate
 
+
+RUN pnpm build
+
 # Expose the port that the application listens on
 EXPOSE 8000
 
 # Run the application
-CMD ["pnpm", "start"]
+CMD ["pnpm", "start:prod"]
