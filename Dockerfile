@@ -23,7 +23,7 @@ RUN pnpm install --prod --frozen-lockfile
 COPY . .
 
 # Run Prisma generate command
-RUN pnpm exec prisma generate
+RUN npx prisma generate
 
 # Expose the port that the application listens on
 EXPOSE 8000
