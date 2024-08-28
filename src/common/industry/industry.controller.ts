@@ -35,7 +35,7 @@ export class IndustryController {
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update Industry' })
+  @ApiOperation({ summary: 'Update Industry By ID' })
   update(
     @Param('id') id: string,
     @Body() updateIndustryDto: UpdateIndustryDto,
