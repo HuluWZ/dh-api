@@ -16,7 +16,7 @@ import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import { User } from '@prisma/client';
 
-@ApiTags('auth')
+@ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

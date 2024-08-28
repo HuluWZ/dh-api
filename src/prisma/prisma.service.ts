@@ -9,6 +9,11 @@ export class PrismaService
   constructor() {
     super({
       log: ['info', 'warn', 'error'], // Enable logging for Prisma queries and errors
+      datasources: {
+        db: {
+          url: process.env.DATABASE_URL, // Use the DATABASE_URL environment variable to connect to the database
+        },
+      },
     });
   }
 
