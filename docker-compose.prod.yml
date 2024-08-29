@@ -1,17 +1,23 @@
+version: '3.8'
+
 services:
   server:
-    build:
-      context: .
     environment:
-      NODE_ENV: ${NODE_ENV}
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:5432/${POSTGRES_DB} # Using service name 'db' as host
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
     ports:
       - 8000:8000
     depends_on:
       db:
         condition: service_healthy
     env_file:
-      - .env
+      - .env.production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+    restart: always
 
   db:
     image: postgres:16.4-alpine
@@ -25,14 +31,17 @@ services:
     ports:
       - 5432:5432
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER}" ]
+      test: [ "CMD", "pg_isready" ]
       interval: 10s
       timeout: 5s
       retries: 5
     env_file:
-      - .env
+      - .env.production
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
 volumes:
   db-data:
-
-
