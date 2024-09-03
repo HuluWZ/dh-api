@@ -21,7 +21,7 @@ export class MinioService {
       accessKey: this.minioConfig.accessKey,
       secretKey: this.minioConfig.secretKey,
     });
-    this.initializeBuckets();
+    // this.initializeBuckets();
   }
 
   private async initializeBuckets() {
@@ -39,6 +39,18 @@ export class MinioService {
     }
   }
 
+  private async initializeBucket(bucket: string) {
+    try {
+      const exists = await this.minioClient.bucketExists(bucket);
+      if (!exists) {
+        await this.minioClient.makeBucket(bucket, 'us-east-1'); // Adjust region if necessary
+        this.logger.log(`Bucket ${bucket} created successfully.`);
+      }
+    } catch (err) {
+      this.logger.error(`Failed to create bucket ${bucket}`, err.stack);
+    }
+  }
+
   async uploadFile(
     file: Express.Multer.File,
     bucketName: FileBucket,
@@ -48,6 +60,7 @@ export class MinioService {
     const metaData = {
       'Content-Type': file.mimetype,
     };
+    await this.initializeBucket(bucketName);
     await this.minioClient.putObject(
       bucketName,
       fileName,

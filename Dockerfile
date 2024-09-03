@@ -29,7 +29,7 @@ RUN corepack use pnpm@${PNPM_VERSION}
 # Create a stage for installing production dependecies.
 FROM base as deps
 
-COPY . .
+# COPY . .
 
 # Download dependencies as a separate step to take advantage of Docker's caching.
 # Leverage a cache mount to /root/.local/share/pnpm/store to speed up subsequent builds.
