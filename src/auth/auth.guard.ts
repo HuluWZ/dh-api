@@ -4,31 +4,31 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class AuthGuard implements CanActivate {
   constructor(
-    private readonly jwtService: JwtService,
     private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
   ) {}
-
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const [type, token] = (request.headers.authorization || '').split(' ');
-    if (type !== 'Bearer' || !token) {
-      throw new UnauthorizedException('Invalid token or authorization format');
+    const { authorization }: any = request.headers;
+    if (!authorization || authorization.trim() === '') {
+      throw new UnauthorizedException('Please provide token');
     }
-
-    try {
-      const payload = await this.authService.verifyToken(token);
-      const user = await this.authService.getProfileById(payload.sub);
-      request.user = user;
-    } catch (e: any) {
-      throw new UnauthorizedException('Invalid token ', e);
+    const [bearer, token] = authorization.split(' ');
+    if (bearer.toLowerCase() !== 'bearer' || !token) {
+      throw new UnauthorizedException('Invalid token');
     }
-
+    const resp = await this.authService.validateToken(token);
+    if (!resp) {
+      throw new UnauthorizedException('Unauthorized Access');
+    }
+    const user = await this.authService.getMe(+resp.sub);
+    request.user = user;
     return true;
   }
 }

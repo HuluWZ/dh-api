@@ -48,13 +48,11 @@ export class MinioController {
     @UploadedFile() file: Express.Multer.File,
     @Body('bucketName') bucketName: string,
   ) {
-    console.log({ bucketName });
     if (bucketName !== 'public' && bucketName !== 'private') {
       throw new BadRequestException(
         'Invalid bucket name. Must be either "public" or "private".',
       );
     }
-    console.log({ file });
     const url = await this.minioService.uploadFile(file, bucketName);
 
     return { url, message: 'File uploaded successfully' };

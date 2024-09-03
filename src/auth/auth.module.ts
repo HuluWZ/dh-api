@@ -17,5 +17,6 @@ import { OtpService } from './otp/otp.service';
   ],
   providers: [AuthService, OtpService],
   controllers: [AuthController],
+  exports: [AuthService],
 })
 export class AuthModule {}
