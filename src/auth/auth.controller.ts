@@ -12,8 +12,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { User } from '@prisma/client';
