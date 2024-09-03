@@ -3,7 +3,8 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CommonModule } from './common/common.module';
 import { ConfigAppModule } from './config/config.module';
-import { FileUploadModule } from './minio/minio.module';
+import { MinioModule } from './minio/minio.module';
+import { OrgModule } from './org/org.module';
 
 @Module({
   imports: [
@@ -11,7 +12,8 @@ import { FileUploadModule } from './minio/minio.module';
     AuthModule,
     PrismaModule,
     CommonModule,
-    FileUploadModule,
+    MinioModule,
+    OrgModule,
   ],
 })
 export class AppModule {}

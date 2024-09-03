@@ -1,14 +1,11 @@
 import {
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpService } from './otp/otp.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
@@ -19,10 +16,7 @@ export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly otpService: OtpService,
-    @Inject(forwardRef(() => JwtService))
     private readonly authJwtService: JwtService,
-    @Inject(forwardRef(() => JwtService))
-    private readonly refreshJwtService: JwtService,
   ) {}
   async sendOtp(sendOtpDto: SendOtpDto): Promise<void> {
     const formattedPhone = formatPhone(sendOtpDto.phone);
@@ -56,14 +50,13 @@ export class AuthService {
     const payload = { phone: verifyUser.phone, sub: verifyUser.id };
     const accessToken = this.authJwtService.sign(payload);
 
-    return { accessToken,user:verifyUser, isActive: true };
+    return { accessToken, user: verifyUser, isActive: true };
   }
 
   async completeProfile(
     id: number,
     completeProfileDto: CompleteProfileDto,
   ): Promise<User> {
-    console.log({ id, completeProfileDto });
     const { firstName, lastName, email } = completeProfileDto;
     const updatedUser = await this.prisma.user.update({
       where: { id },
@@ -84,7 +77,7 @@ export class AuthService {
   async getAllUsers(): Promise<User[]> {
     return this.prisma.user.findMany();
   }
-  async getMe(id: number): Promise<User> { 
+  async getMe(id: number): Promise<User> {
     return this.prisma.user.findUnique({ where: { id } });
   }
   async validateToken(token: string): Promise<any> {

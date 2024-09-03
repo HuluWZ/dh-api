@@ -12,17 +12,17 @@ import {
   Body,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { MinioService } from './minio.service';
 import { Response } from 'express';
 import { MimeType } from 'mime-type';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileBucket } from './file/file.constants';
-import { MinioClientService } from './minio.service';
 
 const mime = MimeType();
 @ApiTags('File Upload')
 @Controller('minio')
 export class MinioController {
-  constructor(private readonly minioService: MinioClientService) {}
+  constructor(private readonly minioService: MinioService) {}
 
   @Post('upload')
   @ApiOperation({ summary: 'Upload Single File' })
@@ -48,13 +48,11 @@ export class MinioController {
     @UploadedFile() file: Express.Multer.File,
     @Body('bucketName') bucketName: string,
   ) {
-    console.log({ bucketName });
     if (bucketName !== 'public' && bucketName !== 'private') {
       throw new BadRequestException(
         'Invalid bucket name. Must be either "public" or "private".',
       );
     }
-    console.log({ file });
     const url = await this.minioService.uploadFile(file, bucketName);
 
     return { url, message: 'File uploaded successfully' };

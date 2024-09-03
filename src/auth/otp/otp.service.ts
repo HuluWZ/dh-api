@@ -40,7 +40,6 @@ export class OtpService {
     const user = await this.prisma.user.findUnique({
       where: { phone },
     });
-    console.log({ user, phone, otpCode });
     if (!user || user.otpCode !== otpCode || user.otpExpiresAt < new Date()) {
       throw new Error('Invalid or expired OTP');
     }

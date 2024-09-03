@@ -12,8 +12,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { User } from '@prisma/client';
@@ -67,7 +66,6 @@ export class AuthController {
     @Body() completeProfileDto: CompleteProfileDto,
   ): Promise<{ message: string; user: User }> {
     try {
-      console.log(request.user, 'req.user');
       const id = request.user.id;
       const updatedUser = await this.authService.completeProfile(
         id,
@@ -108,9 +106,8 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get My profile' })
   @ApiBearerAuth()
-  async getMe(@Req() request): Promise<{user: User }> {
+  async getMe(@Req() request): Promise<{ user: User }> {
     try {
-      console.log(request.user, 'req.user');
       const id = request.user.id;
       const updatedUser = await this.authService.getMe(id);
       return { user: updatedUser };
