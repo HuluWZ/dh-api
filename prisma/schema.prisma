@@ -14,31 +14,48 @@ datasource db {
 }
 
 model User {
-  id           Int       @id @default(autoincrement())
-  firstName    String?
-  lastName     String?
-  email        String?   @unique
-  phone        String    @unique
-  isActive     Boolean   @default(false)
-  profile      String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  otpCode      String?
-  otpExpiresAt DateTime?
+  id            Int       @id @default(autoincrement())
+  firstName     String?
+  lastName      String?
+  email         String?   @unique
+  phone         String    @unique
+  isActive      Boolean   @default(false)
+  profile       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  otpCode       String?
+  otpExpiresAt  DateTime?
+  organizations Org[]
 }
 
 model Industry {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  isActive  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  isActive      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organizations Org[]
 }
 
 model Region {
-  id        Int      @id @default(autoincrement())
-  name      String   @unique
-  isActive  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  name          String   @unique
+  isActive      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  organizations Org[]
+}
+
+model Org {
+  id         Int      @id @default(autoincrement())
+  name       String
+  ownerId    Int
+  industryId Int
+  regionId   Int
+  logo       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  owner      User?    @relation(fields: [ownerId], references: [id])
+  industry   Industry @relation(fields: [industryId], references: [id])
+  region     Region   @relation(fields: [regionId], references: [id])
 }
