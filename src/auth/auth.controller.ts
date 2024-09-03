@@ -2,19 +2,23 @@ import {
   Controller,
   Post,
   Body,
-  HttpCode,
-  HttpStatus,
   BadRequestException,
   UnauthorizedException,
   NotFoundException,
   InternalServerErrorException,
+  Get,
+  Param,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
-import { ApiTags, ApiResponse, ApiOperation } from '@nestjs/swagger';
+import { formatPhone } from 'phone-formater-eth';
 import { User } from '@prisma/client';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from './auth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -23,8 +27,6 @@ export class AuthController {
 
   @Post('send-otp')
   @ApiOperation({ summary: 'Send OTP to phone number' })
-  @ApiResponse({ status: 200, description: 'OTP sent successfully.' })
-  @ApiResponse({ status: 400, description: 'Invalid phone number' })
   async sendOtp(@Body() sendOtpDto: SendOtpDto): Promise<{ message: string }> {
     try {
       await this.authService.sendOtp(sendOtpDto);
@@ -36,19 +38,14 @@ export class AuthController {
 
   @Post('verify-otp')
   @ApiOperation({ summary: 'Verify OTP and get access token' })
-  @ApiResponse({
-    status: 200,
-    description: 'OTP verified and token issued',
-    type: Object,
-  })
-  @ApiResponse({ status: 401, description: 'Invalid OTP or inactive account' })
   async verifyOtp(
     @Body() verifyOtpDto: VerifyOtpDto,
-  ): Promise<{ accessToken: string; isActive: boolean }> {
+  ): Promise<{ accessToken: string; user: User; isActive: boolean }> {
     try {
       const result = await this.authService.verifyOtp(verifyOtpDto);
       return {
         accessToken: result.accessToken,
+        user: result.user,
         isActive: result.isActive,
       };
     } catch (error) {
@@ -62,21 +59,61 @@ export class AuthController {
   }
 
   @Post('complete-profile')
-  @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Complete user profile' })
-  @ApiResponse({
-    status: 200,
-    description: 'Profile updated successfully',
-    type: CompleteProfileDto,
-  })
-  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiBearerAuth()
   async completeProfile(
+    @Req() request,
     @Body() completeProfileDto: CompleteProfileDto,
   ): Promise<{ message: string; user: User }> {
     try {
-      const updatedUser =
-        await this.authService.completeProfile(completeProfileDto);
+      console.log(request.user, 'req.user');
+      const id = request.user.id;
+      const updatedUser = await this.authService.completeProfile(
+        id,
+        completeProfileDto,
+      );
       return { message: 'Profile updated successfully', user: updatedUser };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('User not found');
+      }
+      throw new InternalServerErrorException('An unexpected error occurred');
+    }
+  }
+
+  @Get('users')
+  @ApiOperation({ summary: 'Get all users' })
+  async getAllUsers(): Promise<User[]> {
+    return this.authService.getAllUsers();
+  }
+  @Get('user/:phone')
+  @ApiOperation({ summary: 'Get user by phone number' })
+  async getUserByPhone(@Param('phone') phone: string): Promise<User> {
+    try {
+      const formattedPhone = formatPhone(phone);
+      if (formattedPhone === 'INVALID_PHONE_NUMBER') {
+        throw new Error(`Invalid phone number : ${phone}`);
+      }
+
+      return this.authService.getUserByPhone(phone);
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new NotFoundException('User not found');
+      }
+      throw new InternalServerErrorException('An unexpected error occurred');
+    }
+  }
+  @Get('get/me')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get My profile' })
+  @ApiBearerAuth()
+  async getMe(@Req() request): Promise<{user: User }> {
+    try {
+      console.log(request.user, 'req.user');
+      const id = request.user.id;
+      const updatedUser = await this.authService.getMe(id);
+      return { user: updatedUser };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw new NotFoundException('User not found');

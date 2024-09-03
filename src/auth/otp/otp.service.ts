@@ -37,22 +37,19 @@ export class OtpService {
   }
 
   async verifyOtp(phone: string, otpCode: string) {
-    const formattedPhone = formatPhone(phone);
     const user = await this.prisma.user.findUnique({
-      where: { phone: formattedPhone },
+      where: { phone },
     });
-
+    console.log({ user, phone, otpCode });
     if (!user || user.otpCode !== otpCode || user.otpExpiresAt < new Date()) {
       throw new Error('Invalid or expired OTP');
     }
 
-    if (!user.isActive) {
-      await this.prisma.user.update({
-        where: { phone: formattedPhone },
-        data: { isActive: true, otpCode: null, otpExpiresAt: null },
-      });
-    }
+    const updatedUser = await this.prisma.user.update({
+      where: { phone },
+      data: { isActive: true, otpCode: null, otpExpiresAt: null },
+    });
 
-    return user;
+    return updatedUser;
   }
 }

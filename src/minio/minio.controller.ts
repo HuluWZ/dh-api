@@ -12,17 +12,17 @@ import {
   Body,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
-import { MinioService } from './minio.service';
 import { Response } from 'express';
 import { MimeType } from 'mime-type';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileBucket } from './file/file.constants';
+import { MinioClientService } from './minio.service';
 
 const mime = MimeType();
 @ApiTags('File Upload')
 @Controller('minio')
 export class MinioController {
-  constructor(private readonly minioService: MinioService) {}
+  constructor(private readonly minioService: MinioClientService) {}
 
   @Post('upload')
   @ApiOperation({ summary: 'Upload Single File' })

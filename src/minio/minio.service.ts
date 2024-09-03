@@ -1,26 +1,29 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Client } from 'minio';
 import { FileBucket } from './file/file.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { Express } from 'express';
+import { MinioService } from 'nestjs-minio-client';
 
 @Injectable()
-export class MinioService {
-  private minioClient: Client;
+export class MinioClientService {
   private readonly minioConfig: any;
   private readonly logger = new Logger(MinioService.name);
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly minioService: MinioService,
+  ) {
     this.minioConfig = this.configService.get('minio');
 
-    this.minioClient = new Client({
-      endPoint: this.minioConfig.endPoint,
-      port: this.minioConfig.port,
-      useSSL: this.minioConfig.useSSL,
-      accessKey: this.minioConfig.accessKey,
-      secretKey: this.minioConfig.secretKey,
-    });
+    // this.minioClient = new Client({
+    //   endPoint: this.minioConfig.endPoint,
+    //   port: this.minioConfig.port,
+    //   useSSL: this.minioConfig.useSSL,
+    //   accessKey: this.minioConfig.accessKey,
+    //   secretKey: this.minioConfig.secretKey,
+    // });
+    // this.initializeBuckets();
     // this.initializeBuckets();
   }
 
@@ -28,26 +31,14 @@ export class MinioService {
     const buckets = ['public', 'private'];
     for (const bucket of buckets) {
       try {
-        const exists = await this.minioClient.bucketExists(bucket);
+        const exists = await this.minioService.client.bucketExists(bucket);
         if (!exists) {
-          await this.minioClient.makeBucket(bucket, 'us-east-1'); // Adjust region if necessary
+          await this.minioService.client.makeBucket(bucket, 'us-east-1'); // Adjust region if necessary
           this.logger.log(`Bucket ${bucket} created successfully.`);
         }
       } catch (err) {
         this.logger.error(`Failed to create bucket ${bucket}`, err.stack);
       }
-    }
-  }
-
-  private async initializeBucket(bucket: string) {
-    try {
-      const exists = await this.minioClient.bucketExists(bucket);
-      if (!exists) {
-        await this.minioClient.makeBucket(bucket, 'us-east-1'); // Adjust region if necessary
-        this.logger.log(`Bucket ${bucket} created successfully.`);
-      }
-    } catch (err) {
-      this.logger.error(`Failed to create bucket ${bucket}`, err.stack);
     }
   }
 
@@ -57,23 +48,17 @@ export class MinioService {
   ): Promise<string> {
     const extension = file.originalname.split('.').pop();
     const fileName = `${uuidv4()}.${extension}`;
-    const metaData = {
-      'Content-Type': file.mimetype,
-    };
-    await this.initializeBucket(bucketName);
-    await this.minioClient.putObject(
-      bucketName,
-      fileName,
-      file.buffer,
-      file.size,
-      metaData,
-    );
+    // const metaData = {
+    //   'Content-Type': file.mimetype,
+    // };
+
+    await this.minioService.client.putObject(bucketName, fileName, file.buffer);
 
     return fileName;
   }
 
   async deleteFile(bucketName: FileBucket, objectName: string): Promise<void> {
-    return this.minioClient.removeObject(bucketName, objectName);
+    return this.minioService.client.removeObject(bucketName, objectName);
   }
 
   getFileUrl(bucketName: FileBucket, fileName: string): string {
