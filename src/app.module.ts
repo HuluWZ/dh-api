@@ -12,8 +12,8 @@ import { OrgModule } from './org/org.module';
     AuthModule,
     PrismaModule,
     CommonModule,
-    MinioModule,
     OrgModule,
+    MinioModule,
   ],
 })
 export class AppModule {}
