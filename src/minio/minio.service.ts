@@ -21,7 +21,7 @@ export class MinioService {
       accessKey: this.minioConfig.accessKey,
       secretKey: this.minioConfig.secretKey,
     });
-    this.initializeBuckets();
+    // this.initializeBuckets();
   }
 
   private async initializeBuckets() {

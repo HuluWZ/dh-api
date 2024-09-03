@@ -13,8 +13,8 @@ export class PrismaService
       log: ['info', 'warn', 'error'],
       datasources: {
         db: {
-          url: `postgresql://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`, // Use the DATABASE_URL environment variable to connect to the database
-          // url: process.env.DATABASE_URL, // Use the DATABASE_URL environment variable to connect to the database
+          // url: `postgresql://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`, // Use the DATABASE_URL environment variable to connect to the database
+          url: process.env.DATABASE_URL, // Use the DATABASE_URL environment variable to connect to the database
         },
       },
     });
