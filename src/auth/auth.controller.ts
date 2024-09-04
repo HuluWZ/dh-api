@@ -89,6 +89,7 @@ export class AuthController {
   @Get('search')
   @ApiOperation({ summary: 'Search Users' })
   @UseGuards(AuthGuard)
+  @ApiBearerAuth()
   async searchOrgs(@Query('search') search: string) {
     return this.authService.searchUser(search);
   }
