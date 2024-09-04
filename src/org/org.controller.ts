@@ -8,6 +8,7 @@ import {
   Patch,
   Get,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { OrgService } from './org.service';
 import { CreateOrgDto, UpdateOrgDto } from './dto/org.dto';
@@ -78,7 +79,12 @@ export class OrgController {
   async getAll() {
     return this.orgService.getAllOrgs();
   }
-
+  @Get('search')
+  @ApiOperation({ summary: 'Search Organization' })
+  @UseGuards(AuthGuard)
+  async searchOrgs(@Query('search') search: string) {
+    return this.orgService.searchOrg(search);
+  }
   @Get('my')
   @ApiOperation({ summary: 'Get My Organization' })
   @UseGuards(AuthGuard)

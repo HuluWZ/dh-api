@@ -99,4 +99,15 @@ export class OrgService {
       },
     });
   }
+  async searchOrg(name: string) {
+    return this.prisma.org.findMany({
+      where: {
+        OR: [
+          { name: { contains: name, mode: 'insensitive' } },
+          { region: { name: { contains: name, mode: 'insensitive' } } },
+          { industry: { name: { contains: name, mode: 'insensitive' } } },
+        ],
+      },
+    });
+  }
 }

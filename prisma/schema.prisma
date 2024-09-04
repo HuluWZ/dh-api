@@ -14,18 +14,20 @@ datasource db {
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   firstName     String?
   lastName      String?
-  email         String?   @unique
-  phone         String    @unique
-  isActive      Boolean   @default(false)
+  email         String?     @unique
+  phone         String      @unique
+  isActive      Boolean     @default(false)
   profile       String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   otpCode       String?
   otpExpiresAt  DateTime?
   organizations Org[]
+  orgInvite     OrgInvite[] @relation(name: "Invitee")
+  OrgInvite     OrgInvite[] @relation(name: "InviteOwner")
 }
 
 model Industry {
@@ -47,15 +49,35 @@ model Region {
 }
 
 model Org {
-  id         Int      @id @default(autoincrement())
+  id         Int         @id @default(autoincrement())
   name       String
   ownerId    Int
   industryId Int
   regionId   Int
   logo       String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  owner      User?    @relation(fields: [ownerId], references: [id])
-  industry   Industry @relation(fields: [industryId], references: [id])
-  region     Region   @relation(fields: [regionId], references: [id])
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  owner      User?       @relation(fields: [ownerId], references: [id])
+  industry   Industry    @relation(fields: [industryId], references: [id])
+  region     Region      @relation(fields: [regionId], references: [id])
+  orgInvite  OrgInvite[]
+}
+
+model OrgInvite {
+  id        Int             @id @default(autoincrement())
+  orgId     Int
+  ownerId   Int
+  inviteeId Int
+  status    OrgInviteStatus @default(Pending)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  owner     User            @relation(name: "InviteOwner", fields: [ownerId], references: [id])
+  invitee   User            @relation(name: "Invitee", fields: [inviteeId], references: [id])
+  org       Org             @relation(fields: [orgId], references: [id])
+}
+
+enum OrgInviteStatus {
+  Pending
+  Approved
+  Rejected
 }

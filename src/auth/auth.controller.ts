@@ -10,6 +10,7 @@ import {
   Param,
   UseGuards,
   Req,
+  Query,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
@@ -85,6 +86,13 @@ export class AuthController {
   async getAllUsers(): Promise<User[]> {
     return this.authService.getAllUsers();
   }
+  @Get('search')
+  @ApiOperation({ summary: 'Search Users' })
+  @UseGuards(AuthGuard)
+  async searchOrgs(@Query('search') search: string) {
+    return this.authService.searchUser(search);
+  }
+
   @Get('user/:phone')
   @ApiOperation({ summary: 'Get user by phone number' })
   async getUserByPhone(@Param('phone') phone: string): Promise<User> {
