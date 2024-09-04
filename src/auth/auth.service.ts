@@ -80,6 +80,18 @@ export class AuthService {
   async getMe(id: number): Promise<User> {
     return this.prisma.user.findUnique({ where: { id } });
   }
+  async searchUser(name: string) {
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: name, mode: 'insensitive' } },
+          { lastName: { contains: name, mode: 'insensitive' } },
+          { phone: { contains: name, mode: 'insensitive' } },
+          { email: { contains: name, mode: 'insensitive' } },
+        ],
+      },
+    });
+  }
   async validateToken(token: string): Promise<any> {
     try {
       const decoded = this.authJwtService.verify(token);

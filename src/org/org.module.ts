@@ -9,5 +9,6 @@ import { JwtModule } from '@nestjs/jwt';
   imports: [AuthModule, JwtModule, MinioModule],
   controllers: [OrgController],
   providers: [OrgService],
+  exports: [OrgService],
 })
 export class OrgModule {}

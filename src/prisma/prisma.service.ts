@@ -8,7 +8,7 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor(private readonly configService: ConfigService) {
-    const dbConfig = configService.get('database');
+    // const dbConfig = configService.get('database');
     super({
       log: ['info', 'warn', 'error'],
       datasources: {

@@ -5,6 +5,7 @@ import { CommonModule } from './common/common.module';
 import { ConfigAppModule } from './config/config.module';
 import { MinioModule } from './minio/minio.module';
 import { OrgModule } from './org/org.module';
+import { OrgInviteModule } from './org-invite/org-invite.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { OrgModule } from './org/org.module';
     PrismaModule,
     CommonModule,
     OrgModule,
+    OrgInviteModule,
     MinioModule,
   ],
 })
