@@ -16,7 +16,7 @@ import { CreateOrgInviteDto, UpdateOrgInviteDto } from './dto/org-invite.dto';
 import { OrgInviteGuard } from './org-invite.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
 
-@ApiTags('Org Invite')
+@ApiTags('Org Invitation')
 @ApiBearerAuth()
 @Controller('org-invite')
 export class OrgInviteController {
