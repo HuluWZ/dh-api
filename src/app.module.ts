@@ -6,6 +6,7 @@ import { ConfigAppModule } from './config/config.module';
 import { MinioModule } from './minio/minio.module';
 import { OrgModule } from './org/org.module';
 import { OrgInviteModule } from './org-invite/org-invite.module';
+import { OrgMemberModule } from './org-member/org-member.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { OrgInviteModule } from './org-invite/org-invite.module';
     CommonModule,
     OrgModule,
     OrgInviteModule,
+    OrgMemberModule,
     MinioModule,
   ],
 })
