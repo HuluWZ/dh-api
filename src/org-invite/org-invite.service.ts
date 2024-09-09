@@ -4,25 +4,29 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
-import { CreateOrgInviteDto, UpdateOrgInviteDto } from './dto/org-invite.dto';
+import { UpdateOrgInviteDto } from './dto/org-invite.dto';
+import { OrgService } from 'src/org/org.service';
 
 @Injectable()
 export class OrgInviteService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly orgService: OrgService,
+  ) {}
 
-  async isAlreadyInvitationExists(createOrgInviteDto: CreateOrgInviteDto) {
+  async isAlreadyInvitationExists(orgId: number, inviteeId: number) {
     return this.prisma.orgInvite.findFirst({
       where: {
-        orgId: createOrgInviteDto.orgId,
-        inviteeId: createOrgInviteDto.inviteeId,
+        orgId,
+        inviteeId,
         status: { not: 'Pending' },
       },
     });
   }
 
-  async createInvite(createOrgInviteDto: CreateOrgInviteDto, ownerId: number) {
+  async createInvite(orgId: number, inviteeId: number, ownerId: number) {
     return this.prisma.orgInvite.create({
-      data: { ...createOrgInviteDto, ownerId },
+      data: { orgId, inviteeId, ownerId },
     });
   }
 
@@ -53,23 +57,55 @@ export class OrgInviteService {
       where: { id },
       include: {
         invitee: { select: { firstName: true, lastName: true, phone: true } },
+        org: {
+          select: {
+            name: true,
+            industry: { select: { name: true } },
+            region: { select: { name: true } },
+          },
+        },
       },
     });
   }
-
-  async getMyInvites(ownerId: number) {
-    return this.prisma.orgInvite.findMany({
-      where: { ownerId },
+  async getInviteByOrgId(orgId: number) {
+    const org = await this.orgService.getOne(orgId);
+    const invites = await this.prisma.orgInvite.findMany({
+      where: { orgId },
       include: {
-        invitee: { select: { firstName: true, lastName: true, phone: true } },
+        invitee: {
+          select: { id: true, firstName: true, lastName: true, phone: true },
+        },
       },
     });
+    return {
+      ...org,
+      invites,
+    };
+  }
+
+  async getMyInvites(ownerId: number) {
+    const myOrgs = await this.orgService.getMyOrgs(ownerId);
+    const data = await Promise.all(
+      myOrgs.map(async (org) => {
+        const invites = await this.prisma.orgInvite.findMany({
+          where: { orgId: org.id },
+          include: {
+            invitee: {
+              select: { firstName: true, lastName: true, phone: true },
+            },
+          },
+        });
+        return { ...org, invites };
+      }),
+    );
+    return data;
   }
 
   async getMyInvitees(inviteeId: number) {
     return this.prisma.orgInvite.findMany({
       where: { inviteeId },
       include: {
+        org: { select: { id: true, name: true } },
         invitee: { select: { firstName: true, lastName: true, phone: true } },
       },
     });
