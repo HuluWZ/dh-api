@@ -41,10 +41,8 @@ export class OrgMemberController {
     if (orgs.length && !orgs.includes(orgId)) {
       throw new UnauthorizedException('You are not the owner of the Org');
     }
-    const isAlreadyMemberExists = this.orgMemberService.isAlreadyMemberExists(
-      orgId,
-      memberId,
-    );
+    const isAlreadyMemberExists =
+      await this.orgMemberService.isAlreadyMemberExists(orgId, memberId);
     if (isAlreadyMemberExists) {
       throw new UnauthorizedException(
         'Member already exists. Try to update or remove member!',
@@ -69,10 +67,8 @@ export class OrgMemberController {
         'Only Owner can update the member status or role',
       );
     }
-    const isAlreadyMemberExists = this.orgMemberService.isAlreadyMemberExists(
-      +orgId,
-      +memberId,
-    );
+    const isAlreadyMemberExists =
+      await this.orgMemberService.isAlreadyMemberExists(+orgId, +memberId);
     if (!isAlreadyMemberExists) {
       throw new NotFoundException('No Member found under Org!');
     }
@@ -84,24 +80,6 @@ export class OrgMemberController {
     );
     return { message: 'Member Role updated successfully', member };
   }
-  @Get(':orgId/:memberId')
-  @ApiOperation({ summary: 'Get Member Data By Org Id & Member Id' })
-  @UseGuards(AuthGuard)
-  async getMemberData(
-    @Param('orgId') orgId: string,
-    @Param('memberId') memberId: string,
-  ) {
-    const member = await this.orgMemberService.getOrgMembers(+orgId, +memberId);
-    return { member };
-  }
-
-  @Get(':orgId')
-  @ApiOperation({ summary: 'Get All Members By Org Id' })
-  @UseGuards(AuthGuard)
-  async getAllMemberByOrgId(@Param('orgId') orgId: string) {
-    const members = await this.orgMemberService.getOrgAllMembers(+orgId);
-    return { members };
-  }
 
   @Get('my/members')
   @ApiOperation({ summary: 'Get My Orgs With Members' })
@@ -110,6 +88,28 @@ export class OrgMemberController {
     const ownerId = req.user.id;
     const myOrgs = await this.orgMemberService.getMyOrgMembers(+ownerId);
     return { myOrgs };
+  }
+
+  @Get(':orgId/:memberId')
+  @ApiOperation({ summary: 'Get Member Data By Org Id & Member Id' })
+  @UseGuards(AuthGuard)
+  async getMemberData(
+    @Param('orgId') orgId: string,
+    @Param('memberId') memberId: string,
+  ) {
+    const orgMembers = await this.orgMemberService.getOrgMembers(
+      +orgId,
+      +memberId,
+    );
+    return { orgMembers };
+  }
+
+  @Get(':orgId')
+  @ApiOperation({ summary: 'Get All Members By Org Id' })
+  @UseGuards(AuthGuard)
+  async getAllMemberByOrgId(@Param('orgId') orgId: string) {
+    const orgMembers = await this.orgMemberService.getOrgAllMembers(+orgId);
+    return { orgMembers };
   }
 
   @Delete(':orgId/:memberId')

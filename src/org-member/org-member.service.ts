@@ -5,10 +5,14 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 import { CreateOrgMemberDto, UpdateOrgMemberDto } from './dto/org-member.dto';
+import { OrgService } from 'src/org/org.service';
 
 @Injectable()
 export class OrgMemberService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly orgService: OrgService,
+  ) {}
   async isAlreadyMemberExists(orgId: number, memberId: number) {
     return this.prisma.orgMember.findFirst({
       where: {
@@ -23,51 +27,56 @@ export class OrgMemberService {
     });
   }
   async getOrgMembers(orgId: number, memberId: number) {
-    return this.prisma.orgMember.findMany({
+    return this.prisma.orgMember.findFirst({
       where: { orgId, memberId },
       include: {
-        member: { select: { firstName: true, lastName: true, phone: true } },
         org: {
           select: {
             name: true,
             industry: { select: { name: true } },
             region: { select: { name: true } },
           },
+        },
+        member: {
+          select: { id: true, firstName: true, lastName: true, phone: true },
         },
       },
     });
   }
 
   async getOrgAllMembers(orgId: number) {
-    return this.prisma.orgMember.findMany({
+    const org = await this.orgService.getOne(orgId);
+    const members = await this.prisma.orgMember.findMany({
       where: { orgId },
       include: {
         member: { select: { firstName: true, lastName: true, phone: true } },
-        org: {
-          select: {
-            name: true,
-            industry: { select: { name: true } },
-            region: { select: { name: true } },
-          },
-        },
       },
     });
+    return { ...org, members };
   }
 
   async getMyOrgMembers(ownerId: number) {
-    return this.prisma.orgMember.findMany({
-      where: { org: { ownerId: ownerId } },
-      include: {
-        org: {
-          select: { name: true },
+    const myOrgs = await this.orgService.getMyOrgs(ownerId);
+    const data = await Promise.all(
+      myOrgs.map(async (org) => {
+        const members = await this.prisma.orgMember.findMany({
+          where: { orgId: org.id },
           include: {
-            industry: { select: { name: true } },
-            region: { select: { name: true } },
+            member: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
           },
-        },
-        member: { select: { firstName: true, lastName: true, phone: true } },
-      },
-    });
+        });
+        return { ...org, members };
+      }),
+    );
+
+    return data;
   }
 
   async updateMember(

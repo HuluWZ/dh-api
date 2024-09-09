@@ -14,11 +14,9 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { MinioService } from './minio.service';
 import { Response } from 'express';
-import { MimeType } from 'mime-type';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { FileBucket } from './file/file.constants';
 
-const mime = MimeType();
 @ApiTags('File Upload')
 @Controller('minio')
 export class MinioController {
@@ -85,9 +83,8 @@ export class MinioController {
     @Res() res: Response,
   ) {
     const file = this.minioService.getFileUrl(bucketName, fileName);
-    const mimeType = mime.lookup(fileName);
 
-    res.setHeader('Content-Type', mimeType || 'application/octet-stream');
+    res.setHeader('Content-Type', 'application/octet-stream');
     res.send(file);
   }
 
