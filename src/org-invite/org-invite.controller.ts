@@ -14,10 +14,11 @@ import { OrgInviteService } from './org-invite.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UpdateOrgInviteDto } from './dto/org-invite.dto';
 import { OrgInviteGuard } from './org-invite.guard';
-import { AuthGuard } from 'src/auth/auth.guard';
 import { OrgMemberService } from 'src/org-member/org-member.service';
 import { OrgMemberStatus } from 'src/org-member/dto/org-member.dto';
 import { OrgInviteStatus } from '@prisma/client';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { OrgService } from 'src/org/org.service';
 
 @ApiTags('Org Join Invitation')
 @ApiBearerAuth()
@@ -26,6 +27,7 @@ export class OrgInviteController {
   constructor(
     private orgInviteService: OrgInviteService,
     private orgMemberService: OrgMemberService,
+    private orgService: OrgService,
   ) {}
 
   @Post(':orgId')
@@ -40,10 +42,11 @@ export class OrgInviteController {
         'Invitation already exists. Wait Until Org Owner Approves it!',
       );
     }
+    const org = await this.orgService.getOne(+orgId);
     const invite = await this.orgInviteService.createInvite(
       +orgId,
       +inviteeId,
-      +isAlreadyInvitationExists.ownerId,
+      +org.ownerId,
     );
     return { message: 'Invitation created successfully', invite };
   }
