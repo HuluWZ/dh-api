@@ -9,5 +9,6 @@ import { OrgModule } from 'src/org/org.module';
   imports: [AuthModule, JwtModule, OrgModule],
   controllers: [OrgMemberController],
   providers: [OrgMemberService],
+  exports: [OrgMemberService],
 })
 export class OrgMemberModule {}

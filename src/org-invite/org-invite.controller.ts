@@ -12,47 +12,44 @@ import {
 } from '@nestjs/common';
 import { OrgInviteService } from './org-invite.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateOrgInviteDto, UpdateOrgInviteDto } from './dto/org-invite.dto';
+import { UpdateOrgInviteDto } from './dto/org-invite.dto';
 import { OrgInviteGuard } from './org-invite.guard';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { OrgMemberService } from 'src/org-member/org-member.service';
+import { OrgMemberStatus } from 'src/org-member/dto/org-member.dto';
+import { OrgInviteStatus } from '@prisma/client';
 
-@ApiTags('Org Invitation')
+@ApiTags('Org Join Invitation')
 @ApiBearerAuth()
 @Controller('org-invite')
 export class OrgInviteController {
-  constructor(private orgInviteService: OrgInviteService) {}
+  constructor(
+    private orgInviteService: OrgInviteService,
+    private orgMemberService: OrgMemberService,
+  ) {}
 
-  @Post()
-  @ApiOperation({ summary: 'Create Org Invite' })
-  @UseGuards(AuthGuard, OrgInviteGuard)
-  async createOrgInvite(
-    @Body() createOrgInviteDto: CreateOrgInviteDto,
-    @Req() req: any,
-  ) {
-    const ownerId: number = req.user.id;
-    const orgs = req.orgs as number[];
-    if (createOrgInviteDto.inviteeId === ownerId) {
-      throw new UnauthorizedException("Owner can't Invite themselves");
-    }
-    if (orgs.length && !orgs.includes(createOrgInviteDto.orgId)) {
-      throw new UnauthorizedException('You are not the owner of the Org');
-    }
+  @Post(':orgId')
+  @ApiOperation({ summary: 'Create Org  Join Invite' })
+  @UseGuards(AuthGuard)
+  async createOrgInvite(@Param('orgId') orgId: string, @Req() req: any) {
+    const inviteeId: number = req.user.id;
     const isAlreadyInvitationExists =
-      this.orgInviteService.isAlreadyInvitationExists(createOrgInviteDto);
+      await this.orgInviteService.isAlreadyInvitationExists(+orgId, inviteeId);
     if (isAlreadyInvitationExists) {
       throw new UnauthorizedException(
-        'Invitation already exists. Try to update the status!',
+        'Invitation already exists. Wait Until Org Owner Approves it!',
       );
     }
     const invite = await this.orgInviteService.createInvite(
-      createOrgInviteDto,
-      ownerId,
+      +orgId,
+      +inviteeId,
+      +isAlreadyInvitationExists.ownerId,
     );
     return { message: 'Invitation created successfully', invite };
   }
 
   @Patch(':id')
-  @ApiOperation({ summary: 'Update Org Invite' })
+  @ApiOperation({ summary: 'Update Org Join Invite Status' })
   @UseGuards(AuthGuard, OrgInviteGuard)
   async updateOrgInvite(
     @Param('id') id: string,
@@ -60,31 +57,49 @@ export class OrgInviteController {
     @Req() req: any,
   ) {
     const orgs = req.orgs as number[];
-    if (orgs.length && !orgs.includes(+id)) {
+    const getInvite = await this.orgInviteService.getInvite(+id);
+
+    if (orgs.length && !orgs.includes(+getInvite.orgId)) {
       throw new UnauthorizedException('Only Owner can update the invitation');
     }
     const invite = await this.orgInviteService.updateInvite(
       +id,
       updateOrgInvite,
     );
+    if (updateOrgInvite.status === OrgInviteStatus.Approved) {
+      await this.orgMemberService.addMember({
+        memberId: +getInvite.inviteeId,
+        orgId: +getInvite.orgId,
+        role: OrgMemberStatus.Member,
+      });
+      //  create transaction
+    }
+
     return { message: 'Invitation updated successfully', invite };
   }
   @Get()
-  @ApiOperation({ summary: 'Get All Invitation' })
+  @ApiOperation({ summary: 'Get All Join Invitation' })
   @UseGuards(AuthGuard)
   async getAll() {
     return this.orgInviteService.getAllInvite();
   }
+  @Get(':orgId')
+  @ApiOperation({ summary: 'Get Org Join Invite By orgId' })
+  @UseGuards(AuthGuard)
+  async getOrgInviteByOrgId(@Param('orgId') orgId: string) {
+    const invite = await this.orgInviteService.getInviteByOrgId(+orgId);
+    return { invite };
+  }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get Org Invite By Id' })
+  @ApiOperation({ summary: 'Get Org Join Invite By Id' })
   @UseGuards(AuthGuard)
   async getOrgInviteById(@Param('id') id: string) {
     const invite = await this.orgInviteService.getInvite(+id);
     return { invite };
   }
   @Get('my/invites')
-  @ApiOperation({ summary: 'Get My  Org Invites' })
+  @ApiOperation({ summary: 'Get My Orgs Join Invites' })
   @UseGuards(AuthGuard)
   async getMyOrgInvites(@Req() req: any) {
     const ownerId = req.user.id;
@@ -92,16 +107,16 @@ export class OrgInviteController {
     return { invite };
   }
   @Get('my/invitees')
-  @ApiOperation({ summary: 'Get My  Org Invitees' })
+  @ApiOperation({ summary: 'Get My Org Join Invitees' })
   @UseGuards(OrgInviteGuard)
   @UseGuards(AuthGuard)
   async getMyOrgInvitees(@Req() req: any) {
-    const ownerId = req.user.id;
-    const invite = await this.orgInviteService.getMyInvitees(+ownerId);
+    const inviteeId = req.user.id;
+    const invite = await this.orgInviteService.getMyInvitees(+inviteeId);
     return { invite };
   }
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete Org Invite By Id' })
+  @ApiOperation({ summary: 'Delete Org Join Invite By Id' })
   @UseGuards(AuthGuard, OrgInviteGuard)
   async deleteOrgInvite(@Param('id') id: string, @Req() req: any) {
     const ownerId = req.user.id as number;

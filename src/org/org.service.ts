@@ -38,6 +38,7 @@ export class OrgService {
     const organization = await this.prisma.org.findUnique({
       where: { id },
       include: {
+        owner: { select: { firstName: true, lastName: true, phone: true } },
         industry: { select: { name: true, isActive: true } },
         region: { select: { name: true, isActive: true } },
       },
