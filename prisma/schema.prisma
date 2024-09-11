@@ -63,6 +63,7 @@ model Org {
   region     Region      @relation(fields: [regionId], references: [id])
   orgInvite  OrgInvite[]
   OrgMember  OrgMember[]
+  OrgGroup   OrgGroup[]
 }
 
 model OrgInvite {
@@ -101,4 +102,13 @@ enum OrgMemberStatus {
   Member
   Admin
   Owner
+}
+
+model OrgGroup {
+  id        Int      @id @default(autoincrement())
+  name      String
+  orgId     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  org       Org      @relation(fields: [orgId], references: [id])
 }
