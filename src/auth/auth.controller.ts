@@ -127,4 +127,10 @@ export class AuthController {
       throw new InternalServerErrorException('An unexpected error occurred');
     }
   }
+  @Get('user/find/:phone')
+  @ApiOperation({ summary: 'Check If User Exist By Phone Number' })
+  async checkIfUserExist(@Param('phone') phone: string) {
+    const formattedPhone = formatPhone(phone);
+    return this.authService.checkIfUserExistByPhone(formattedPhone);
+  }
 }

@@ -101,4 +101,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid token');
     }
   }
+  async checkIfUserExistByPhone(phone: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { phone, isActive: true },
+    });
+    return !!user;
+  }
 }
