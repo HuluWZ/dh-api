@@ -15,9 +15,9 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateOrgGroupDto, UpdateOrgGroupDto } from './dto/org-group.dto';
 import { OrgGroupService } from './org-group.service';
-import { OrgMemberGuard } from 'src/org-member/org-member.guard';
+import { OrgGroupGuard } from './org-group.guard';
 
-@ApiTags('Org Group')
+@ApiTags('Org Groups')
 @ApiBearerAuth()
 @Controller('org-group')
 export class OrgGroupController {
@@ -25,7 +25,7 @@ export class OrgGroupController {
 
   @Post()
   @ApiOperation({ summary: 'Create Org Group' })
-  @UseGuards(AuthGuard, OrgMemberGuard)
+  @UseGuards(AuthGuard, OrgGroupGuard)
   async createOrgMember(
     @Body() creCreateOrgGroupDto: CreateOrgGroupDto,
     @Req() req: any,
@@ -47,7 +47,7 @@ export class OrgGroupController {
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update Org Group' })
-  @UseGuards(AuthGuard, OrgMemberGuard)
+  @UseGuards(AuthGuard, OrgGroupGuard)
   async updateOrgGroup(
     @Param('id') id: string,
     @Body() updateOrgGroupDto: UpdateOrgGroupDto,
@@ -110,7 +110,7 @@ export class OrgGroupController {
   }
   @Delete(':id')
   @ApiOperation({ summary: 'Delete Org Group' })
-  @UseGuards(AuthGuard, OrgMemberGuard)
+  @UseGuards(AuthGuard, OrgGroupGuard)
   async deleteOrgInvite(@Param('id') id: string, @Req() req: any) {
     const orgs = req.orgs as number[];
     const orgGroup = await this.orgGroupService.getGroup(+id);
