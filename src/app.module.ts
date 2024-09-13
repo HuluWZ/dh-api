@@ -8,6 +8,7 @@ import { OrgModule } from './org/org.module';
 import { OrgInviteModule } from './org-invite/org-invite.module';
 import { OrgMemberModule } from './org-member/org-member.module';
 import { OrgGroupModule } from './org-group/org-group.module';
+import { OrgGroupMembersModule } from './org-group-members/org-group-members.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { OrgGroupModule } from './org-group/org-group.module';
     OrgMemberModule,
     OrgGroupModule,
     MinioModule,
+    OrgGroupMembersModule,
   ],
 })
 export class AppModule {}
