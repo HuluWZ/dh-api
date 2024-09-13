@@ -7,6 +7,7 @@ import { MinioModule } from './minio/minio.module';
 import { OrgModule } from './org/org.module';
 import { OrgInviteModule } from './org-invite/org-invite.module';
 import { OrgMemberModule } from './org-member/org-member.module';
+import { OrgGroupModule } from './org-group/org-group.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { OrgMemberModule } from './org-member/org-member.module';
     OrgModule,
     OrgInviteModule,
     OrgMemberModule,
+    OrgGroupModule,
     MinioModule,
   ],
 })
