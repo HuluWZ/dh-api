@@ -34,8 +34,8 @@ export class OrgService {
     });
   }
 
-  async getOne(id: number): Promise<Org> {
-    const organization = await this.prisma.org.findUnique({
+  async getOne(id: number) {
+    const org = await this.prisma.org.findUnique({
       where: { id },
       include: {
         owner: { select: { firstName: true, lastName: true, phone: true } },
@@ -43,12 +43,35 @@ export class OrgService {
         region: { select: { name: true, isActive: true } },
       },
     });
-
-    if (!organization) {
-      throw new NotFoundException(`Organization with ID ${id} not found`);
+    if (!org) {
+      throw new NotFoundException(`Org with ID ${id} not found`);
     }
-
-    return organization;
+    const members = await this.prisma.orgMember.findMany({
+      where: { orgId: id },
+      include: {
+        member: {
+          select: { firstName: true, lastName: true, phone: true },
+        },
+      },
+    });
+    const groups = await this.prisma.orgGroup.findMany({
+      where: { orgId: id },
+      include: {
+        OrgGroupMember: {
+          include: {
+            member: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
+          },
+        },
+      },
+    });
+    return { ...org, members, groups };
   }
 
   async getMyOrgs(ownerId: number): Promise<Org[]> {

@@ -33,6 +33,20 @@ export class OrgGroupService {
     const org = await this.orgService.getOne(orgId);
     const groups = await this.prisma.orgGroup.findMany({
       where: { orgId },
+      include: {
+        OrgGroupMember: {
+          include: {
+            member: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
+          },
+        },
+      },
     });
     return { ...org, groups };
   }
