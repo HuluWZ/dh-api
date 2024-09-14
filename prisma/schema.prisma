@@ -14,21 +14,22 @@ datasource db {
 }
 
 model User {
-  id            Int         @id @default(autoincrement())
-  firstName     String?
-  lastName      String?
-  email         String?     @unique
-  phone         String      @unique
-  isActive      Boolean     @default(false)
-  profile       String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  otpCode       String?
-  otpExpiresAt  DateTime?
-  organizations Org[]
-  orgInvite     OrgInvite[] @relation(name: "Invitee")
-  OrgInvite     OrgInvite[] @relation(name: "InviteOwner")
-  orgMember     OrgMember[]
+  id             Int              @id @default(autoincrement())
+  firstName      String?
+  lastName       String?
+  email          String?          @unique
+  phone          String           @unique
+  isActive       Boolean          @default(false)
+  profile        String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  otpCode        String?
+  otpExpiresAt   DateTime?
+  organizations  Org[]
+  orgInvite      OrgInvite[]      @relation(name: "Invitee")
+  OrgInvite      OrgInvite[]      @relation(name: "InviteOwner")
+  orgMember      OrgMember[]
+  OrgGroupMember OrgGroupMember[]
 }
 
 model Industry {
@@ -105,10 +106,23 @@ enum OrgMemberStatus {
 }
 
 model OrgGroup {
-  id        Int      @id @default(autoincrement())
-  name      String
-  orgId     Int
+  id             Int              @id @default(autoincrement())
+  name           String
+  orgId          Int
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  org            Org              @relation(fields: [orgId], references: [id])
+  OrgGroupMember OrgGroupMember[]
+}
+
+model OrgGroupMember {
+  groupId   Int
+  memberId  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  org       Org      @relation(fields: [orgId], references: [id])
+  group     OrgGroup @relation(fields: [groupId], references: [id])
+  member    User     @relation(fields: [memberId], references: [id])
+
+  @@unique([groupId, memberId])
+  @@index([groupId, memberId])
 }
