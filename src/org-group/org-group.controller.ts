@@ -84,7 +84,7 @@ export class OrgGroupController {
     return { group };
   }
 
-  @Get(':orgId')
+  @Get('/org/:orgId')
   @ApiOperation({ summary: 'Get Org Groups' })
   @UseGuards(AuthGuard)
   async getAllGroupsByOrgId(@Param('orgId') orgId: string) {
