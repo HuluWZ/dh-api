@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { formatPhone } from 'phone-formater-eth'; // Phone number validation library
 
@@ -41,7 +41,7 @@ export class OtpService {
       where: { phone },
     });
     if (!user || user.otpCode !== otpCode || user.otpExpiresAt < new Date()) {
-      throw new Error('Invalid or expired OTP');
+      throw new UnauthorizedException('Invalid or expired OTP');
     }
 
     const updatedUser = await this.prisma.user.update({
