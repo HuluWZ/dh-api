@@ -27,7 +27,7 @@ export class AuthController {
 
   @Post('send-otp')
   @ApiOperation({ summary: 'Send OTP to phone number' })
-  async sendOtp(@Body() sendOtpDto: SendOtpDto): Promise<{ message: string }> {
+  async sendOtp(@Body() sendOtpDto: SendOtpDto) {
     try {
       await this.authService.sendOtp(sendOtpDto);
       return { message: 'OTP sent successfully' };
@@ -38,24 +38,14 @@ export class AuthController {
 
   @Post('verify-otp')
   @ApiOperation({ summary: 'Verify OTP and get access token' })
-  async verifyOtp(
-    @Body() verifyOtpDto: VerifyOtpDto,
-  ): Promise<{ accessToken: string; user: User; isActive: boolean }> {
-    try {
-      const result = await this.authService.verifyOtp(verifyOtpDto);
-      return {
-        accessToken: result.accessToken,
-        user: result.user,
-        isActive: result.isActive,
-      };
-    } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw new UnauthorizedException('Invalid OTP or inactive account');
-      } else if (error instanceof NotFoundException) {
-        throw new NotFoundException('User not found');
-      }
-      throw new InternalServerErrorException('An unexpected error occurred');
-    }
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    const result = await this.authService.verifyOtp(verifyOtpDto);
+    return {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: result.user,
+      isActive: result.isActive,
+    };
   }
 
   @Post('complete-profile')
@@ -65,25 +55,18 @@ export class AuthController {
   async completeProfile(
     @Req() request,
     @Body() completeProfileDto: CompleteProfileDto,
-  ): Promise<{ message: string; user: User }> {
-    try {
-      const id = request.user.id;
-      const updatedUser = await this.authService.completeProfile(
-        id,
-        completeProfileDto,
-      );
-      return { message: 'Profile updated successfully', user: updatedUser };
-    } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException('User not found');
-      }
-      throw new InternalServerErrorException('An unexpected error occurred');
-    }
+  ) {
+    const id = request.user.id;
+    const updatedUser = await this.authService.completeProfile(
+      id,
+      completeProfileDto,
+    );
+    return { message: 'Profile updated successfully', user: updatedUser };
   }
 
   @Get('users')
   @ApiOperation({ summary: 'Get all users' })
-  async getAllUsers(): Promise<User[]> {
+  async getAllUsers() {
     return this.authService.getAllUsers();
   }
   @Get('search')
@@ -96,7 +79,7 @@ export class AuthController {
 
   @Get('user/:phone')
   @ApiOperation({ summary: 'Get user by phone number' })
-  async getUserByPhone(@Param('phone') phone: string): Promise<User> {
+  async getUserByPhone(@Param('phone') phone: string) {
     try {
       const formattedPhone = formatPhone(phone);
       if (formattedPhone === 'INVALID_PHONE_NUMBER') {
@@ -115,7 +98,7 @@ export class AuthController {
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get My profile' })
   @ApiBearerAuth()
-  async getMe(@Req() request): Promise<{ user: User }> {
+  async getMe(@Req() request) {
     try {
       const id = request.user.id;
       const updatedUser = await this.authService.getMe(id);
@@ -127,6 +110,18 @@ export class AuthController {
       throw new InternalServerErrorException('An unexpected error occurred');
     }
   }
+  @Get('/logout')
+  @ApiOperation({ summary: 'Logout' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async logOut(@Req() request) {
+    const user: User = request.user;
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    return { message: 'User logged out successfully!' };
+  }
+
   @Get('user/find/:phone')
   @ApiOperation({ summary: 'Check If User Exist By Phone Number' })
   async checkIfUserExist(@Param('phone') phone: string) {
