@@ -44,7 +44,10 @@ export class AuthService {
     }
 
     // Generate JWT token with phone and id as payload
-    const accessToken = await this.generateAccessToken(verifyUser.id);
+    const accessToken = await this.generateAccessToken(
+      verifyUser.id,
+      verifyUser.phone,
+    );
     const refreshToken = await this.generateRefreshToken(verifyUser.id);
     return { accessToken, refreshToken, user: verifyUser, isActive: true };
   }
@@ -106,8 +109,8 @@ export class AuthService {
     });
     return !!user;
   }
-  async generateAccessToken(userId: number) {
-    const payload = { sub: userId };
+  async generateAccessToken(userId: number, phone: string) {
+    const payload = { sub: userId, phone };
     return this.authJwtService.sign(payload);
   }
 
