@@ -23,6 +23,20 @@ export class OrgGroupService {
   async getGroup(id: number) {
     return this.prisma.orgGroup.findFirst({
       where: { id },
+      include: {
+        OrgGroupMember: {
+          include: {
+            member: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
   async getAllGroups() {

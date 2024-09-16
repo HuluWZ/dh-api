@@ -7,6 +7,7 @@ import {
 import { OrgMemberService } from 'src/org-member/org-member.service';
 import { OrgService } from 'src/org/org.service';
 import { OrgGroupService } from 'src/org-group/org-group.service';
+import { CreateOrgGroupMemberDto } from './dto/org-group-members.dto';
 
 @Injectable()
 export class OrgGroupMembersGuard implements CanActivate {
@@ -17,7 +18,7 @@ export class OrgGroupMembersGuard implements CanActivate {
   ) {}
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const createOrgGroupMemberDto = request.body;
+    const createOrgGroupMemberDto: CreateOrgGroupMemberDto = request.body;
     if (!request.user) {
       throw new UnauthorizedException('Invalid User');
     }
