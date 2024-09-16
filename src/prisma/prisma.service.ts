@@ -8,13 +8,13 @@ export class PrismaService
   implements OnModuleInit, OnModuleDestroy
 {
   constructor(private readonly configService: ConfigService) {
-    const dbConfig = configService.get('database');
+    // const dbConfig = configService.get('database');
     super({
       log: ['info', 'warn', 'error'],
       datasources: {
         db: {
-          url: `postgresql://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`, // Use the DATABASE_URL environment variable to connect to the database
-          // url: process.env.DATABASE_URL, // Use the DATABASE_URL environment variable to connect to the database
+          // url: `postgresql://${dbConfig.username}:${dbConfig.password}@${dbConfig.host}:${dbConfig.port}/${dbConfig.database}`, // Use the DATABASE_URL environment variable to connect to the database
+          url: process.env.DATABASE_URL, // Use the DATABASE_URL environment variable to connect to the database
         },
       },
     });

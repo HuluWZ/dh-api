@@ -6,7 +6,7 @@ import { PrismaExceptionFilter } from './common/prisma-exception/prisma-exceptio
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-
+  app.enableCors();
   app.useGlobalFilters(new PrismaExceptionFilter());
 
   app.useGlobalPipes(
@@ -16,15 +16,15 @@ async function bootstrap() {
     }),
   );
   const config = new DocumentBuilder()
-    .setTitle('DH')
-    .addBearerAuth()
+    .setTitle('DH API')
     .setDescription('The DH API description')
     .setVersion('0.1')
+    .addBearerAuth()
     .build();
   const port = process.env.PORT || 3000;
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  console.log(`   Server is running on port ${port}   🚀`);
   await app.listen(port);
+  console.log(`   Server is running on port ${port}   🚀`);
 }
 bootstrap();

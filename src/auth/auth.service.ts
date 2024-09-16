@@ -1,28 +1,21 @@
 import {
-  forwardRef,
-  Inject,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpService } from './otp/otp.service';
-import { SendOtpDto } from './dto/send-otp.dto';
-import { VerifyOtpDto } from './dto/verify-otp.dto';
+import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
-import { User } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly otpService: OtpService,
-    @Inject(forwardRef(() => JwtService))
     private readonly authJwtService: JwtService,
-    @Inject(forwardRef(() => JwtService))
-    private readonly refreshJwtService: JwtService,
   ) {}
   async sendOtp(sendOtpDto: SendOtpDto): Promise<void> {
     const formattedPhone = formatPhone(sendOtpDto.phone);
@@ -33,19 +26,15 @@ export class AuthService {
     await this.otpService.sendOtp(formattedPhone);
   }
 
-  async verifyOtp(
-    verifyOtpDto: VerifyOtpDto,
-  ): Promise<{ accessToken: string; isActive: boolean }> {
+  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
     const formattedPhone = formatPhone(verifyOtpDto.phone);
     const user = await this.prisma.user.findUnique({
       where: { phone: formattedPhone },
     });
 
     if (!user) {
-      // If the user doesn't exist, redirect to profile completion
       throw new NotFoundException('User not found');
     }
-    console.log({ verifyOtpDto, user });
     const verifyUser = await this.otpService.verifyOtp(
       formattedPhone,
       verifyOtpDto.otpCode,
@@ -55,19 +44,81 @@ export class AuthService {
     }
 
     // Generate JWT token with phone and id as payload
-    const payload = { phone: verifyUser.phone, user_id: verifyUser.id };
-    const accessToken = this.authJwtService.sign(payload);
-
-    return { accessToken, isActive: true };
+    const accessToken = await this.generateAccessToken(
+      verifyUser.id,
+      verifyUser.phone,
+    );
+    const refreshToken = await this.generateRefreshToken(verifyUser.id);
+    return { accessToken, refreshToken, user: verifyUser, isActive: true };
   }
 
-  async completeProfile(completeProfileDto: CompleteProfileDto): Promise<User> {
-    const { phone, firstName, lastName, email } = completeProfileDto;
-    const formattedPhone = formatPhone(phone);
+  async completeProfile(id: number, completeProfileDto: CompleteProfileDto) {
+    const { firstName, lastName, email } = completeProfileDto;
     const updatedUser = await this.prisma.user.update({
-      where: { phone: formattedPhone },
+      where: { id },
       data: { firstName, lastName, email },
     });
     return updatedUser;
+  }
+
+  async getUserByPhone(phone: string) {
+    const formattedPhone = formatPhone(phone);
+    const user = await this.prisma.user.findUnique({
+      where: { phone: formattedPhone },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return user;
+  }
+
+  async getAllUsers() {
+    return this.prisma.user.findMany();
+  }
+
+  async getMe(id: number) {
+    return this.prisma.user.findUnique({ where: { id } });
+  }
+
+  async searchUser(name: string) {
+    return this.prisma.user.findMany({
+      where: {
+        OR: [
+          { firstName: { contains: name, mode: 'insensitive' } },
+          { lastName: { contains: name, mode: 'insensitive' } },
+          { phone: { contains: name, mode: 'insensitive' } },
+          { email: { contains: name, mode: 'insensitive' } },
+        ],
+      },
+    });
+  }
+
+  async validateToken(token: string) {
+    try {
+      const decoded = this.authJwtService.verify(token);
+      return decoded;
+    } catch (e: any) {
+      console.error(e);
+      throw new UnauthorizedException('Invalid token');
+    }
+  }
+
+  async checkIfUserExistByPhone(phone: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { phone, isActive: true },
+    });
+    return !!user;
+  }
+  async generateAccessToken(userId: number, phone: string) {
+    const payload = { sub: userId, phone };
+    return this.authJwtService.sign(payload);
+  }
+
+  async generateRefreshToken(userId: number) {
+    const payload = { sub: userId };
+    return this.authJwtService.sign(payload, {
+      secret: process.env.REFRESH_JWT_SECRET,
+      expiresIn: process.env.REFRESH_JWT_EXPIRATION,
+    });
   }
 }
