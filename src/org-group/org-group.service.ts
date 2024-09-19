@@ -24,6 +24,7 @@ export class OrgGroupService {
     return this.prisma.orgGroup.findFirst({
       where: { id },
       include: {
+        org: true,
         OrgGroupMember: {
           include: {
             member: {

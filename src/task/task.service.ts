@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 
@@ -102,9 +102,6 @@ export class TaskService {
 
   async updateTask(taskId: number, updateTask: UpdateTaskDto) {
     const task = await this.getTaskById(taskId);
-    if (!task) {
-      return new NotFoundException('Task not found');
-    }
     const { assignedTo, ...update } = updateTask;
     const existingAssignees = task.TaskAsignee.map(
       (assignee) => assignee.memberId,
