@@ -30,6 +30,8 @@ model User {
   OrgInvite      OrgInvite[]      @relation(name: "InviteOwner")
   orgMember      OrgMember[]
   OrgGroupMember OrgGroupMember[]
+  OrgGroupAdmin  OrgGroupAdmin[]
+  TaskAsignee    TaskAsignee[]
 }
 
 model Industry {
@@ -113,6 +115,7 @@ model OrgGroup {
   updatedAt      DateTime         @updatedAt
   org            Org              @relation(fields: [orgId], references: [id])
   OrgGroupMember OrgGroupMember[]
+  OrgGroupAdmin  OrgGroupAdmin[]
 }
 
 model OrgGroupMember {
@@ -125,4 +128,60 @@ model OrgGroupMember {
 
   @@unique([groupId, memberId])
   @@index([groupId, memberId])
+}
+
+model OrgGroupAdmin {
+  groupId   Int
+  memberId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  group     OrgGroup @relation(fields: [groupId], references: [id])
+  member    User     @relation(fields: [memberId], references: [id])
+
+  @@unique([groupId, memberId])
+  @@index([groupId, memberId])
+}
+
+enum TaskPriority {
+  Urgent
+  High
+  Medium
+  Low
+  NoPriority
+}
+
+enum TaskStatus {
+  Backlog
+  Todo
+  InProgress
+  AwaitingReview
+  InReview
+  Done
+}
+
+model Task {
+  id          Int           @id @default(autoincrement())
+  name        String
+  desc        String?
+  deadline    DateTime?
+  priority    TaskPriority? @default(NoPriority)
+  status      TaskStatus?   @default(Todo)
+  groupId     Int
+  monitoredBy Int?
+  createdBy   Int
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  TaskAsignee TaskAsignee[]
+}
+
+model TaskAsignee {
+  taskId    Int
+  memberId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      Task     @relation(fields: [taskId], references: [id])
+  member    User     @relation(fields: [memberId], references: [id])
+
+  @@unique([taskId, memberId])
+  @@index([taskId, memberId])
 }

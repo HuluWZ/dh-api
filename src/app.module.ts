@@ -9,6 +9,7 @@ import { OrgInviteModule } from './org-invite/org-invite.module';
 import { OrgMemberModule } from './org-member/org-member.module';
 import { OrgGroupModule } from './org-group/org-group.module';
 import { OrgGroupMembersModule } from './org-group-members/org-group-members.module';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { OrgGroupMembersModule } from './org-group-members/org-group-members.mod
     OrgGroupModule,
     MinioModule,
     OrgGroupMembersModule,
+    TaskModule,
   ],
 })
 export class AppModule {}
