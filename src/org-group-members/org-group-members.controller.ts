@@ -12,11 +12,11 @@ import {
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateOrgGroupMemberDto } from './dto/org-group-members.dto';
-// import { OrgGroupMembersGuard } from './org-group-members.guard';
 import { OrgGroupMembersService } from './org-group-members.service';
 import { OrgGroupMembersGuard } from './org-group-members.guard';
 import { OrgGroupGuard } from 'src/org-group/org-group.guard';
 import { OrgMemberService } from 'src/org-member/org-member.service';
+import { AddOrgMemberToAdminForGroupGuard } from './org-group-admin.guard';
 
 @ApiTags('Org Group Members')
 @ApiBearerAuth()
@@ -54,6 +54,27 @@ export class OrgGroupMembersController {
     );
     return { message: 'Member  Added To Org  Group successfully', member };
   }
+  @Post('add/group-admin')
+  @ApiOperation({ summary: 'Add Member As Group Admin' })
+  @UseGuards(AuthGuard, AddOrgMemberToAdminForGroupGuard)
+  async makeOrgMemberAdmin(
+    @Body() createOrgGroupMemberDto: CreateOrgGroupMemberDto,
+  ) {
+    const isAlreadyGroupAdminRoleExists =
+      await this.orgGroupMemberService.isAlreadyGroupAdminRoleExists(
+        createOrgGroupMemberDto,
+      );
+    if (isAlreadyGroupAdminRoleExists) {
+      throw new UnauthorizedException('Member already have admin role!');
+    }
+    const member = await this.orgGroupMemberService.addOrgMemberAdmin(
+      createOrgGroupMemberDto,
+    );
+    return {
+      message: 'Admin Role Added for Group Member',
+      member,
+    };
+  }
 
   @Delete(':groupId/:memberId')
   @ApiOperation({ summary: 'Remove Member from Org  Group' })
@@ -82,5 +103,28 @@ export class OrgGroupMembersController {
     }
     await this.orgGroupMemberService.removeGroupMember(groupId, memberId);
     return { message: 'Member Removed from Org Group successfully' };
+  }
+
+  @Delete('remove/group-admin/:groupId/:memberId')
+  @ApiOperation({ summary: 'Remove Org Group Admin' })
+  @UseGuards(AuthGuard, AddOrgMemberToAdminForGroupGuard)
+  async removeGroupAdmin(
+    @Param('groupId') groupId: number,
+    @Param('memberId') memberId: number,
+  ) {
+    const isAlreadyGroupAdminRoleExists =
+      await this.orgGroupMemberService.isAlreadyGroupAdminRoleExists({
+        groupId,
+        memberId,
+      });
+    if (!isAlreadyGroupAdminRoleExists) {
+      throw new NotFoundException(
+        'Members Must have Admin Role To Be Removed!',
+      );
+    }
+    await this.orgGroupMemberService.removeGroupMember(groupId, memberId);
+    return {
+      message: 'Role Admin Removed From Member  successfully',
+    };
   }
 }
