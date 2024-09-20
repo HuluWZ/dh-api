@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
+import { FilterTaskDto } from './dto/filter-task.dto';
 
 @Injectable()
 export class TaskService {
@@ -50,8 +51,38 @@ export class TaskService {
     });
   }
 
-  async getAllTasks() {
+  async getTaskByGroupId(groupId: number, filterTaskDto: FilterTaskDto) {
+    const { status, priority } = filterTaskDto;
+    const where = {
+      ...(status && { status }),
+      ...(priority && { priority }),
+      groupId,
+    };
+
     return this.prisma.task.findMany({
+      where,
+      include: {
+        TaskAsignee: {
+          select: {
+            memberId: true,
+            member: {
+              select: { firstName: true, lastName: true, phone: true },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async getAllTasks(filterTaskDto: FilterTaskDto) {
+    const { status, priority } = filterTaskDto;
+    const where = {
+      ...(status && { status }),
+      ...(priority && { priority }),
+    };
+
+    return this.prisma.task.findMany({
+      where,
       include: {
         TaskAsignee: {
           select: {

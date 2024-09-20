@@ -10,13 +10,20 @@ import {
   NotFoundException,
   Get,
   Patch,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { TaskService } from './task.service';
 import { TaskGuard } from './task.guard';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { OrgGroupService } from 'src/org-group/org-group.service';
+import { FilterTaskDto } from './dto/filter-task.dto';
 
 @ApiTags('Task')
 @ApiBearerAuth()
@@ -38,11 +45,19 @@ export class TaskController {
     const orgGroup = await this.orgGroupService.getGroup(createTaskDto.groupId);
     const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
     if (
-      orgGroup &&
-      !members.includes(createdBy || orgGroup.org.ownerId === createdBy)
+      (orgGroup && members.length > 0 && members.includes(createdBy)) ||
+      orgGroup.org.ownerId !== createdBy
     ) {
       throw new UnauthorizedException(
         'You are not the member or owner of the group',
+      );
+    }
+    const invalidMembers = createTaskDto.assignedTo.filter(
+      (memberId) => !members.includes(memberId),
+    );
+    if (invalidMembers.length > 0) {
+      throw new UnauthorizedException(
+        'Invalid Members in assignedTo, Please check the members',
       );
     }
     const task = await this.taskService.createTask(createTaskDto, createdBy);
@@ -65,8 +80,8 @@ export class TaskController {
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
     const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
     if (
-      orgGroup &&
-      !members.includes(userId || orgGroup.org.ownerId === userId)
+      (orgGroup && members.length > 0 && members.includes(userId)) ||
+      orgGroup.org.ownerId !== userId
     ) {
       throw new UnauthorizedException(
         'You are not the member or owner of the group',
@@ -87,16 +102,33 @@ export class TaskController {
     };
   }
   @Get()
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({ name: 'priority', required: false, type: String })
   @ApiOperation({ summary: 'Get All Tasks' })
   @UseGuards(AuthGuard, TaskGuard)
-  async getAll() {
-    return this.taskService.getAllTasks();
+  async getAll(@Query() filterTaskDto: FilterTaskDto) {
+    return this.taskService.getAllTasks(filterTaskDto);
   }
   @Get(':id')
   @ApiOperation({ summary: 'Get Task By Id' })
   @UseGuards(AuthGuard, TaskGuard)
   async getTaskById(@Param('id') id: string) {
     const task = await this.taskService.getTaskById(+id);
+    return { task };
+  }
+  @Get('group/:groupId')
+  @ApiQuery({ name: 'status', required: false, type: String })
+  @ApiQuery({ name: 'priority', required: false, type: String })
+  @ApiOperation({ summary: 'Get Task By Group' })
+  @UseGuards(AuthGuard, TaskGuard)
+  async getTaskByGroup(
+    @Param('groupId') groupId: string,
+    @Query() filterTaskDto: FilterTaskDto,
+  ) {
+    const task = await this.taskService.getTaskByGroupId(
+      +groupId,
+      filterTaskDto,
+    );
     return { task };
   }
 
@@ -130,11 +162,17 @@ export class TaskController {
     if (!task) {
       throw new NotFoundException('Task Not Found');
     }
-    if (task.createdBy !== userId) {
+    const orgGroup = await this.orgGroupService.getGroup(task.groupId);
+    const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
+    if (
+      (orgGroup && members.length > 0 && members.includes(userId)) ||
+      orgGroup.org.ownerId !== userId
+    ) {
       throw new UnauthorizedException(
-        'Only Task Creator and Group Admin can update the Task',
+        'Only Task Creator or Group Members and Admin can update the Task',
       );
     }
+
     const updatedTask = await this.taskService.updateTask(id, updateTaskDto);
     return { message: 'Task Updated successfully', task: updatedTask };
   }
