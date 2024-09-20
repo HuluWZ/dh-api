@@ -4,9 +4,10 @@ import { TaskController } from './task.controller';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
 import { OrgModule } from 'src/org/org.module';
+import { OrgGroupModule } from 'src/org-group/org-group.module';
 
 @Module({
-  imports: [AuthModule, JwtModule, OrgModule],
+  imports: [AuthModule, JwtModule, OrgModule, OrgGroupModule],
   controllers: [TaskController],
   providers: [TaskService],
   exports: [TaskService],

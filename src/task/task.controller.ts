@@ -16,12 +16,16 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { TaskService } from './task.service';
 import { TaskGuard } from './task.guard';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
+import { OrgGroupService } from 'src/org-group/org-group.service';
 
 @ApiTags('Task')
 @ApiBearerAuth()
 @Controller('tasks')
 export class TaskController {
-  constructor(private readonly taskService: TaskService) {}
+  constructor(
+    private readonly taskService: TaskService,
+    private readonly orgGroupService: OrgGroupService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create Task' })
@@ -31,7 +35,16 @@ export class TaskController {
     @Req() req: any,
   ) {
     const createdBy = req.user.id;
-
+    const orgGroup = await this.orgGroupService.getGroup(createTaskDto.groupId);
+    const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
+    if (
+      orgGroup &&
+      !members.includes(createdBy || orgGroup.org.ownerId === createdBy)
+    ) {
+      throw new UnauthorizedException(
+        'You are not the member or owner of the group',
+      );
+    }
     const task = await this.taskService.createTask(createTaskDto, createdBy);
     return { message: 'Task Created successfully', task };
   }
@@ -43,10 +56,23 @@ export class TaskController {
     @Param('taskId') taskId: number,
     @Param('memberId') memberId: number,
   ) {
+    const userId = req.user.id;
+
     const task = await this.taskService.getTaskById(taskId);
     if (!task) {
       throw new NotFoundException('Task Not Found');
     }
+    const orgGroup = await this.orgGroupService.getGroup(task.groupId);
+    const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
+    if (
+      orgGroup &&
+      !members.includes(userId || orgGroup.org.ownerId === userId)
+    ) {
+      throw new UnauthorizedException(
+        'You are not the member or owner of the group',
+      );
+    }
+
     const isAlreadyTaskAssigned = await this.taskService.isAlreadyTaskAssigned(
       taskId,
       memberId,

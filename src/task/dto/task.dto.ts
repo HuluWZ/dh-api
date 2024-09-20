@@ -1,11 +1,13 @@
 import {
+  ArrayNotEmpty,
+  IsArray,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
-  MinLength,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export enum TaskPriority {
   Urgent = 'Urgent',
@@ -77,9 +79,18 @@ export class CreateTaskDto {
     example: '[2,4]',
     description: 'Task Assignee User IDs',
   })
-  @IsNotEmpty()
-  @IsNumber()
-  @MinLength(1)
+  @IsArray()
+  @ArrayNotEmpty()
+  @Transform(({ value }) => {
+    if (typeof value === 'string') {
+      try {
+        return JSON.parse(value);
+      } catch {
+        return [];
+      }
+    }
+    return value;
+  })
   assignedTo: number[];
 
   @ApiProperty({
