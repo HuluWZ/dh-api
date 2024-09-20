@@ -7,3 +7,11 @@ export default () => ({
     REFRESH_JWT_EXPIRATION: process.env.REFRESH_JWT_EXPIRATION,
   },
 });
+
+export type authConfigType = {
+  ACCESS_JWT_SECRET: string;
+  AUTH_JWT_SECRET: string;
+  REFRESH_JWT_SECRET: string;
+  AUTH_JWT_EXPIRATION: string;
+  REFRESH_JWT_EXPIRATION: string;
+};

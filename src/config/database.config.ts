@@ -1,9 +1,18 @@
 export default () => ({
   database: {
-    host: process.env.POSTGRES_HOST,
-    port: parseInt(process.env.POSTGRES_PORT, 10),
-    username: process.env.POSTGRES_USER,
-    password: process.env.POSTGRES_PASSWORD,
-    database: process.env.POSTGRES_DB,
+    HOST: process.env.POSTGRES_HOST,
+    PORT: parseInt(process.env.POSTGRES_PORT, 10),
+    USERNAME: process.env.POSTGRES_USER,
+    PASSWORD: process.env.POSTGRES_PASSWORD,
+    DATABASE: process.env.POSTGRES_DB,
+    URL: process.env.DATABASE_URL,
   },
 });
+export type databaseConfigType = {
+  HOST: string;
+  PORT: number;
+  USERNAME: string;
+  PASSWORD: string;
+  DATABASE: string;
+  URL: string;
+};
