@@ -1,11 +1,21 @@
 export default () => ({
   minio: {
-    endPoint: process.env.MINIO_ENDPOINT || 'localhost',
-    port: parseInt(process.env.MINIO_PORT, 10) || 9000,
-    useSSL: process.env.MINIO_USE_SSL === 'true',
-    accessKey: process.env.MINIO_ROOT_USER || 'minio',
-    secretKey: process.env.MINIO_ROOT_PASSWORD || 'minio123',
-    publicBucket: process.env.MINIO_PUBLIC_BUCKET || 'public',
-    privateBucket: process.env.MINIO_PRIVATE_BUCKET || 'private',
+    ENDPOINT: process.env.MINIO_ENDPOINT,
+    PORT: parseInt(process.env.MINIO_PORT, 10),
+    USE_SSL: process.env.MINIO_USE_SSL === 'true',
+    ACCESS_KEY: process.env.MINIO_ROOT_USER,
+    SECRET_KEY: process.env.MINIO_ROOT_PASSWORD,
+    PUBLIC_BUCKET: process.env.MINIO_PUBLIC_BUCKET,
+    PRIVATE_BUCKET: process.env.MINIO_PRIVATE_BUCKET,
   },
 });
+
+export type minioConfigType = {
+  ENDPOINT: string;
+  PORT: number;
+  USE_SSL: boolean;
+  ACCESS_KEY: string;
+  SECRET_KEY: string;
+  PUBLIC_BUCKET: string;
+  PRIVATE_BUCKET: string;
+};

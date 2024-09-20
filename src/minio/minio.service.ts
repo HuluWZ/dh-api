@@ -4,6 +4,7 @@ import { FileBucket } from './file/file.constants';
 import { v4 as uuidv4 } from 'uuid';
 import { ConfigService } from '@nestjs/config';
 import { Express } from 'express';
+import { minioConfigType } from 'src/config/minio.config';
 
 @Injectable()
 export class MinioService {
@@ -12,14 +13,14 @@ export class MinioService {
   private readonly logger = new Logger(MinioService.name);
 
   constructor(private readonly configService: ConfigService) {
-    this.minioConfig = this.configService.get('minio');
+    this.minioConfig = this.configService.get<minioConfigType>('minio');
 
     this.minioClient = new Client({
-      endPoint: this.minioConfig.endPoint,
-      port: this.minioConfig.port,
-      useSSL: this.minioConfig.useSSL,
-      accessKey: this.minioConfig.accessKey,
-      secretKey: this.minioConfig.secretKey,
+      endPoint: this.minioConfig.ENDPOINT,
+      port: this.minioConfig.PORT,
+      useSSL: this.minioConfig.USE_SSL,
+      accessKey: this.minioConfig.ACCESS_KEY,
+      secretKey: this.minioConfig.SECRET_KEY,
     });
     // this.initializeBuckets();
   }
