@@ -76,11 +76,11 @@ export class OrgGroupController {
     return { message: 'Org Group updated successfully', group };
   }
   @Get('my-groups')
-  @ApiOperation({ summary: 'Get All My Org Groups' })
+  @ApiOperation({ summary: 'Get All My Groups' })
   @UseGuards(AuthGuard)
   async getAllOrgGroups(@Req() req: any) {
     const ownerId: number = req.user.id;
-    const groups = await this.orgGroupService.getMyOrgMembers(ownerId);
+    const groups = await this.orgGroupService.getMyGroupMembers(ownerId);
     return { groups };
   }
 
