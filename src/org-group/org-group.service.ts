@@ -67,23 +67,20 @@ export class OrgGroupService {
   }
 
   async getMyGroupMembers(memberId: number) {
-    return await this.prisma.orgGroup.findMany({
-      where: { OrgGroupMember: { some: { memberId } } },
+    return await this.prisma.orgGroupMember.findMany({
+      where: { OR: [{ memberId }, { group: { org: { ownerId: memberId } } }] },
       include: {
-        OrgGroupMember: {
-          include: {
-            group: {
+        group: {
+          select: {
+            id: true,
+            name: true,
+            org: {
               select: {
                 id: true,
                 name: true,
-                org: {
-                  select: {
-                    id: true,
-                    name: true,
-                    industry: { select: { name: true } },
-                    region: { select: { name: true } },
-                  },
-                },
+                industry: { select: { name: true } },
+                region: { select: { name: true } },
+                ownerId: true,
               },
             },
           },
