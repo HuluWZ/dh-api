@@ -1,11 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { FilterTaskDto } from './dto/filter-task.dto';
+import { OrgGroupService } from 'src/org-group/org-group.service';
 
 @Injectable()
 export class TaskService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly orgGroupService: OrgGroupService,
+  ) {}
 
   async isAlreadyTaskAssigned(taskId: number, memberId: number) {
     return this.prisma.taskAsignee.findFirst({
@@ -133,7 +137,19 @@ export class TaskService {
 
   async updateTask(taskId: number, updateTask: UpdateTaskDto) {
     const task = await this.getTaskById(taskId);
-    const { assignedTo, ...update } = updateTask;
+    const { assignedTo, groupId, ...update } = updateTask;
+    const orgGroup = await this.orgGroupService.getGroup(task.groupId);
+    const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
+
+    const invalidMembers = updateTask.assignedTo.filter(
+      (memberId) => !members.includes(memberId),
+    );
+    if (invalidMembers.length > 0) {
+      throw new UnauthorizedException(
+        'Invalid Members in assignedTo, Please check the members',
+      );
+    }
+
     const existingAssignees = task.TaskAsignee.map(
       (assignee) => assignee.memberId,
     );
