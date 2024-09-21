@@ -66,18 +66,30 @@ export class OrgGroupService {
     return { ...org, groups };
   }
 
-  async getMyOrgMembers(ownerId: number) {
-    const myOrgs = await this.orgService.getMyOrgs(ownerId);
-    const data = await Promise.all(
-      myOrgs.map(async (org) => {
-        const groups = await this.prisma.orgGroup.findMany({
-          where: { orgId: org.id },
-        });
-        return { ...org, groups };
-      }),
-    );
-
-    return data;
+  async getMyGroupMembers(memberId: number) {
+    return await this.prisma.orgGroup.findMany({
+      where: { OrgGroupMember: { some: { memberId } } },
+      include: {
+        OrgGroupMember: {
+          include: {
+            group: {
+              select: {
+                id: true,
+                name: true,
+                org: {
+                  select: {
+                    id: true,
+                    name: true,
+                    industry: { select: { name: true } },
+                    region: { select: { name: true } },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   async updateGroup(id: number, updateOrgGroupDto: UpdateOrgGroupDto) {
