@@ -75,6 +75,14 @@ export class OrgGroupController {
     );
     return { message: 'Org Group updated successfully', group };
   }
+  @Get('my-groups')
+  @ApiOperation({ summary: 'Get All My Org Groups' })
+  @UseGuards(AuthGuard)
+  async getAllOrgGroups(@Req() req: any) {
+    const ownerId: number = req.user.id;
+    const groups = await this.orgGroupService.getMyOrgMembers(ownerId);
+    return { groups };
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get Group By Id' })
@@ -100,14 +108,6 @@ export class OrgGroupController {
     return { groups };
   }
 
-  @Get('my-groups')
-  @ApiOperation({ summary: 'Get All My Org Groups' })
-  @UseGuards(AuthGuard)
-  async getAllOrgGroups(@Req() req: any) {
-    const ownerId: number = req.user.id;
-    const groups = await this.orgGroupService.getMyOrgMembers(ownerId);
-    return { groups };
-  }
   @Delete(':id')
   @ApiOperation({ summary: 'Delete Org Group' })
   @UseGuards(AuthGuard, OrgGroupGuard)
