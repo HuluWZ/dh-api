@@ -181,6 +181,11 @@ export class TaskController {
   @ApiOperation({ summary: 'Remove  Task' })
   @UseGuards(AuthGuard, TaskGuard)
   async removeTask(@Param('id') id: number) {
+    const task = await this.taskService.getTaskById(id);
+    if (!task) {
+      throw new NotFoundException('Task Not Found');
+    }
+
     await this.taskService.removeTask(id);
     return {
       message: 'Task Removed successfully',
@@ -197,7 +202,10 @@ export class TaskController {
     if (!task) {
       throw new NotFoundException('Task Not Found');
     }
-
+    const members = task.TaskAsignee.map((assignee) => assignee.memberId);
+    if (!members.includes(memberId)) {
+      throw new UnauthorizedException('Member Not Assigned to Task');
+    }
     await this.taskService.removeTaskAssign(id, memberId);
     return {
       message: 'Member Removed From Assigned Task successfully',
