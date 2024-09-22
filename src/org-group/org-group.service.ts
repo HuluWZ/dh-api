@@ -67,8 +67,8 @@ export class OrgGroupService {
   }
 
   async getMyGroupMembers(memberId: number) {
-    return await this.prisma.orgGroupMember.findMany({
-      where: { OR: [{ memberId }, { group: { org: { ownerId: memberId } } }] },
+    const orgGroupMembers = await this.prisma.orgGroupMember.findMany({
+      where: { memberId },
       include: {
         group: {
           select: {
@@ -87,6 +87,25 @@ export class OrgGroupService {
         },
       },
     });
+    const groups = orgGroupMembers.map((member) => member.group);
+    const myOrgIds = (await this.orgService.getMyOrgs(memberId)).map(
+      (org) => org.id,
+    );
+    const myGroups = await this.prisma.orgGroup.findMany({
+      where: { orgId: { in: myOrgIds } },
+      include: {
+        org: {
+          select: {
+            id: true,
+            name: true,
+            industry: { select: { name: true } },
+            region: { select: { name: true } },
+            ownerId: true,
+          },
+        },
+      },
+    });
+    return { groups, myGroups };
   }
 
   async updateGroup(id: number, updateOrgGroupDto: UpdateOrgGroupDto) {
