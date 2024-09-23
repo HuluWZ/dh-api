@@ -6,6 +6,14 @@ export class CreateOrgGroupDto {
   @IsString()
   name: string;
 
+  @ApiProperty({
+    example: 'Green Or RGB Code',
+    description: 'Org Group Theme or Color',
+  })
+  @IsString()
+  @IsOptional()
+  color?: string;
+
   @ApiProperty({ example: 1, description: 'Org Id' })
   @IsInt()
   orgId: number;
@@ -16,4 +24,12 @@ export class UpdateOrgGroupDto {
   @IsString()
   @IsOptional()
   name: string;
+
+  @ApiProperty({
+    example: 'Green Or RGB Code',
+    description: 'Org Group Theme or Color',
+  })
+  @IsString()
+  @IsOptional()
+  color?: string;
 }

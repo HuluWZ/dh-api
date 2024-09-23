@@ -110,6 +110,7 @@ enum OrgMemberStatus {
 model OrgGroup {
   id             Int              @id @default(autoincrement())
   name           String
+  color          String?
   orgId          Int
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
