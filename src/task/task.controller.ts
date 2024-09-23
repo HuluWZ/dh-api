@@ -49,8 +49,10 @@ export class TaskController {
     const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
     const members = data.members.map((member) => member.memberId);
     if (
-      (members.length > 0 && !members.includes(createdBy)) ||
-      (orgGroup && orgGroup.org.ownerId !== createdBy)
+      !(
+        (members.length > 0 && members.includes(createdBy)) ||
+        (orgGroup && orgGroup.org.ownerId === createdBy)
+      )
     ) {
       throw new UnauthorizedException(
         'You are not the member or owner of the group',
@@ -84,10 +86,11 @@ export class TaskController {
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
     const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
     const members = data.members.map((member) => member.memberId);
-    if (
-      (members.length > 0 && !members.includes(userId)) ||
-      (orgGroup && orgGroup.org.ownerId !== userId)
-    ) {
+    console.log({ members, orgGroup, userId });
+    const isMember = members.includes(memberId);
+    const isOwner = orgGroup.org.ownerId === userId;
+    console.log({ isMember, isOwner, is: !isMember && !isOwner });
+    if (!isMember && !isOwner) {
       throw new UnauthorizedException(
         'You are not the member or owner of the group',
       );
@@ -171,8 +174,10 @@ export class TaskController {
     const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
     const members = data.members.map((member) => member.memberId);
     if (
-      (members.length > 0 && !members.includes(userId)) ||
-      (orgGroup && orgGroup.org.ownerId !== userId)
+      !(
+        (members.length > 0 && members.includes(userId)) ||
+        (orgGroup && orgGroup.org.ownerId === userId)
+      )
     ) {
       throw new UnauthorizedException(
         'Only Task Creator or Group Members and Admin can update the Task',
