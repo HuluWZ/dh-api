@@ -90,7 +90,7 @@ export class OrgController {
   @UseGuards(AuthGuard)
   async getMyOrgs(@Req() req) {
     const ownerId = req.user.id;
-    return this.orgService.getMyOrgs(+ownerId);
+    return this.orgService.getAllMyOrgs(+ownerId);
   }
 
   @Get(':id')

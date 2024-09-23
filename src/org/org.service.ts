@@ -75,6 +75,15 @@ export class OrgService {
   }
 
   async getMyOrgs(ownerId: number): Promise<Org[]> {
+    return this.prisma.org.findMany({
+      where: { ownerId },
+      include: {
+        industry: { select: { name: true, isActive: true } },
+        region: { select: { name: true, isActive: true } },
+      },
+    });
+  }
+  async getAllMyOrgs(ownerId: number) {
     const myOrgs = await this.prisma.org.findMany({
       where: { ownerId },
       include: {
@@ -93,7 +102,23 @@ export class OrgService {
         },
       },
     });
-    return { ...myOrgs, ...myMembers.map((member) => member.org) };
+    // Map myOrgs to add isOwner field with value true
+    const myOrgsWithIsOwner = myOrgs.map((org) => ({
+      ...org,
+      isOwner: true,
+    }));
+
+    // Map myMembers to add isOwner field with value false
+    const myMembersWithIsOwner = myMembers.map((member) => ({
+      ...member.org,
+      isOwner: false,
+    }));
+
+    // Merge the arrays
+    const mergedOrgs = [...myOrgsWithIsOwner, ...myMembersWithIsOwner];
+
+    // Return the merged array
+    return mergedOrgs;
   }
 
   async deleteOrg(id: number, ownerId: number): Promise<Org> {
