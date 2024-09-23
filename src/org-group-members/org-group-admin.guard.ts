@@ -25,21 +25,20 @@ export class AddOrgMemberToAdminForGroupGuard implements CanActivate {
     const resp = request.user;
     const orgs = await this.orgService.getMyOrgs(+resp.id);
 
-    const orgMember = await this.orgMemberService.getOrgMember(
-      createOrgGroupMemberDto.memberId,
-    );
-    if (!orgMember.length) {
-      throw new UnauthorizedException('Invalid Member');
-    }
     const orgGroup = await this.orgGroupService.getGroup(
       createOrgGroupMemberDto.groupId,
     );
     if (!orgGroup) {
       throw new UnauthorizedException('Invalid Org Group');
     }
-    if (!orgMember.map((org) => org.orgId).includes(orgGroup.orgId)) {
-      throw new UnauthorizedException('Invalid Org Data');
+    const orgMember = await this.orgMemberService.getOrgMember(
+      createOrgGroupMemberDto.memberId,
+      orgGroup.orgId,
+    );
+    if (!orgMember) {
+      throw new UnauthorizedException('Invalid Member');
     }
+
     request.orgs = orgs.length ? orgs.map((org) => org.id) : [];
     if (!request.orgs.includes(orgGroup.orgId)) {
       throw new UnauthorizedException('Only Org Owner  or remove Admin');

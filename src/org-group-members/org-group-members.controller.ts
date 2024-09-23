@@ -17,6 +17,7 @@ import { OrgGroupMembersGuard } from './org-group-members.guard';
 import { OrgGroupGuard } from 'src/org-group/org-group.guard';
 import { OrgMemberService } from 'src/org-member/org-member.service';
 import { AddOrgMemberToAdminForGroupGuard } from './org-group-admin.guard';
+import { OrgGroupService } from 'src/org-group/org-group.service';
 
 @ApiTags('Org Group Members')
 @ApiBearerAuth()
@@ -25,6 +26,7 @@ export class OrgGroupMembersController {
   constructor(
     private readonly orgGroupMemberService: OrgGroupMembersService,
     private readonly orgMemberService: OrgMemberService,
+    private readonly orgGroupService: OrgGroupService,
   ) {}
 
   @Post()
@@ -92,6 +94,21 @@ export class OrgGroupMembersController {
       });
     if (!isAlreadyGroupMemberExists) {
       throw new NotFoundException('Member not found in the Group');
+    }
+    const orgGroup = await this.orgGroupService.getGroup(groupId);
+    if (!orgGroup) {
+      throw new UnauthorizedException('Invalid Org Group');
+    }
+
+    const orgMember = await this.orgMemberService.getOrgMember(
+      memberId,
+      orgGroup.orgId,
+    );
+    if (!orgMember) {
+      throw new NotFoundException('Invalid Member');
+    }
+    if (!orgs.includes(orgMember.orgId)) {
+      throw new UnauthorizedException('Invalid Org Data');
     }
     await this.orgGroupMemberService.removeGroupMember(groupId, memberId);
     return { message: 'Member Removed from Org Group successfully' };
