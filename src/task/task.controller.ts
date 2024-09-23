@@ -38,7 +38,7 @@ export class TaskController {
 
   @Post()
   @ApiOperation({ summary: 'Create Task' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async addOrgMemberToGroup(
     @Body() createTaskDto: CreateTaskDto,
     @Req() req: any,
@@ -70,7 +70,7 @@ export class TaskController {
   }
   @Post('assign/:taskId/:memberId')
   @ApiOperation({ summary: 'Assign Member Task' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async AssignTask(
     @Req() req: any,
     @Param('taskId') taskId: number,
@@ -113,13 +113,13 @@ export class TaskController {
   @ApiQuery({ name: 'status', required: false, type: String })
   @ApiQuery({ name: 'priority', required: false, type: String })
   @ApiOperation({ summary: 'Get All Tasks' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async getAll(@Query() filterTaskDto: FilterTaskDto) {
     return this.taskService.getAllTasks(filterTaskDto);
   }
   @Get(':id')
   @ApiOperation({ summary: 'Get Task By Id' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async getTaskById(@Param('id') id: string) {
     const task = await this.taskService.getTaskById(+id);
     return { task };
@@ -128,7 +128,7 @@ export class TaskController {
   @ApiQuery({ name: 'status', required: false, type: String })
   @ApiQuery({ name: 'priority', required: false, type: String })
   @ApiOperation({ summary: 'Get Task By Group' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async getTaskByGroup(
     @Param('groupId') groupId: string,
     @Query() filterTaskDto: FilterTaskDto,
@@ -142,15 +142,15 @@ export class TaskController {
 
   @Get('my/assigned')
   @ApiOperation({ summary: 'Get My Assigned Tasks' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async getMyTasks(@Req() req: any) {
     const memberId: number = req.user.id;
     const myAssigned = await this.taskService.getMyAssignedTasks(memberId);
-    return { myAssigned };
+    return { myAssigned: myAssigned.map((task) => task.task) };
   }
   @Get('my/created')
   @ApiOperation({ summary: 'Get Tasks I Created' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async getTasksCreatedByMe(@Req() req: any) {
     const memberId: number = req.user.id;
     const tasks = await this.taskService.getMyCreatedTasks(memberId);
@@ -159,7 +159,7 @@ export class TaskController {
 
   @Patch('update/:id')
   @ApiOperation({ summary: 'Update Task By Id' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async updateTask(
     @Req() req: any,
     @Body() updateTaskDto: UpdateTaskDto,
@@ -190,7 +190,7 @@ export class TaskController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Remove  Task' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async removeTask(@Param('id') id: number) {
     const task = await this.taskService.getTaskById(id);
     if (!task) {
@@ -204,7 +204,7 @@ export class TaskController {
   }
   @Delete(':id/assign/:memberId')
   @ApiOperation({ summary: 'Remove Task Assigned From User' })
-  @UseGuards(AuthGuard, TaskGuard)
+  @UseGuards(AuthGuard)
   async removeTaskAssigned(
     @Param('id') id: number,
     @Param('memberId') memberId: number,
