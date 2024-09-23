@@ -28,7 +28,7 @@ export class AddOrgMemberToAdminForGroupGuard implements CanActivate {
     const orgMember = await this.orgMemberService.getOrgMember(
       createOrgGroupMemberDto.memberId,
     );
-    if (!orgMember) {
+    if (!orgMember.length) {
       throw new UnauthorizedException('Invalid Member');
     }
     const orgGroup = await this.orgGroupService.getGroup(
@@ -37,7 +37,7 @@ export class AddOrgMemberToAdminForGroupGuard implements CanActivate {
     if (!orgGroup) {
       throw new UnauthorizedException('Invalid Org Group');
     }
-    if (orgGroup.orgId !== orgMember.orgId) {
+    if (!orgMember.map((org) => org.orgId).includes(orgGroup.orgId)) {
       throw new UnauthorizedException('Invalid Org Data');
     }
     request.orgs = orgs.length ? orgs.map((org) => org.id) : [];

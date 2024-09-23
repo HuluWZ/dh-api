@@ -93,14 +93,6 @@ export class OrgGroupMembersController {
     if (!isAlreadyGroupMemberExists) {
       throw new NotFoundException('Member not found in the Group');
     }
-    const orgMember = await this.orgMemberService.getOrgMember(memberId);
-
-    if (!orgMember) {
-      throw new NotFoundException('Invalid Member');
-    }
-    if (!orgs.includes(orgMember.orgId)) {
-      throw new UnauthorizedException('Invalid Org Data');
-    }
     await this.orgGroupMemberService.removeGroupMember(groupId, memberId);
     return { message: 'Member Removed from Org Group successfully' };
   }
