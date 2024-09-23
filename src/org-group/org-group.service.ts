@@ -25,6 +25,18 @@ export class OrgGroupService {
       where: { id },
       include: {
         org: true,
+        OrgGroupMember: {
+          include: {
+            member: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
+          },
+        },
       },
     });
   }
