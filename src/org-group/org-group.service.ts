@@ -76,9 +76,8 @@ export class OrgGroupService {
       },
     });
     const groups = orgGroupMembers.map((member) => member.group);
-    const myOrgIds = (await this.orgService.getMyOrgs(memberId)).map(
-      (org) => org.id,
-    );
+    const myOrgs = await this.orgService.getMyOrgs(memberId);
+    const myOrgIds = myOrgs.map((org) => org.id);
     const myGroups = await this.prisma.orgGroup.findMany({
       where: { orgId: { in: myOrgIds } },
       include: {
