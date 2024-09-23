@@ -3,12 +3,14 @@ import { PrismaService } from 'src/prisma';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { FilterTaskDto } from './dto/filter-task.dto';
 import { OrgGroupService } from 'src/org-group/org-group.service';
+import { OrgMemberService } from 'src/org-member/org-member.service';
 
 @Injectable()
 export class TaskService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly orgGroupService: OrgGroupService,
+    private readonly orgMemberService: OrgMemberService,
   ) {}
 
   async isAlreadyTaskAssigned(taskId: number, memberId: number) {
@@ -139,7 +141,8 @@ export class TaskService {
     const task = await this.getTaskById(taskId);
     const { assignedTo, groupId, ...update } = updateTask;
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
-    const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
+    const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
+    const members = data.members.map((member) => member.memberId);
 
     const invalidMembers = updateTask.assignedTo.filter(
       (memberId) => !members.includes(memberId),

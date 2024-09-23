@@ -24,6 +24,8 @@ import { TaskGuard } from './task.guard';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { OrgGroupService } from 'src/org-group/org-group.service';
 import { FilterTaskDto } from './dto/filter-task.dto';
+import { OrgMember } from '@prisma/client';
+import { OrgMemberService } from 'src/org-member/org-member.service';
 
 @ApiTags('Task')
 @ApiBearerAuth()
@@ -32,6 +34,7 @@ export class TaskController {
   constructor(
     private readonly taskService: TaskService,
     private readonly orgGroupService: OrgGroupService,
+    private readonly orgMemberService: OrgMemberService,
   ) {}
 
   @Post()
@@ -43,7 +46,8 @@ export class TaskController {
   ) {
     const createdBy: number = req.user.id;
     const orgGroup = await this.orgGroupService.getGroup(createTaskDto.groupId);
-    const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
+    const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
+    const members = data.members.map((member) => member.memberId);
     if (
       (members.length > 0 && !members.includes(createdBy)) ||
       (orgGroup && orgGroup.org.ownerId !== createdBy)
@@ -78,7 +82,8 @@ export class TaskController {
       throw new NotFoundException('Task Not Found');
     }
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
-    const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
+    const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
+    const members = data.members.map((member) => member.memberId);
     if (
       (members.length > 0 && !members.includes(userId)) ||
       (orgGroup && orgGroup.org.ownerId !== userId)
@@ -163,7 +168,8 @@ export class TaskController {
       throw new NotFoundException('Task Not Found');
     }
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
-    const members = orgGroup.OrgGroupMember.map((member) => member.memberId);
+    const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
+    const members = data.members.map((member) => member.memberId);
     if (
       (members.length > 0 && !members.includes(userId)) ||
       (orgGroup && orgGroup.org.ownerId !== userId)
