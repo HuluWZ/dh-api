@@ -75,13 +75,25 @@ export class OrgService {
   }
 
   async getMyOrgs(ownerId: number): Promise<Org[]> {
-    return this.prisma.org.findMany({
+    const myOrgs = await this.prisma.org.findMany({
       where: { ownerId },
       include: {
         industry: { select: { name: true, isActive: true } },
         region: { select: { name: true, isActive: true } },
       },
     });
+    const myMembers = await this.prisma.orgMember.findMany({
+      where: { memberId: ownerId },
+      include: {
+        org: {
+          include: {
+            industry: { select: { name: true, isActive: true } },
+            region: { select: { name: true, isActive: true } },
+          },
+        },
+      },
+    });
+    return { ...myOrgs, ...myMembers.map((member) => member.org) };
   }
 
   async deleteOrg(id: number, ownerId: number): Promise<Org> {

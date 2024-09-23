@@ -24,7 +24,6 @@ import { TaskGuard } from './task.guard';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
 import { OrgGroupService } from 'src/org-group/org-group.service';
 import { FilterTaskDto } from './dto/filter-task.dto';
-import { OrgMember } from '@prisma/client';
 import { OrgMemberService } from 'src/org-member/org-member.service';
 
 @ApiTags('Task')
@@ -86,11 +85,12 @@ export class TaskController {
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
     const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
     const members = data.members.map((member) => member.memberId);
-    console.log({ members, orgGroup, userId });
-    const isMember = members.includes(memberId);
-    const isOwner = orgGroup.org.ownerId === userId;
-    console.log({ isMember, isOwner, is: !isMember && !isOwner });
-    if (!isMember && !isOwner) {
+    if (
+      !(
+        (members.length > 0 && members.includes(userId)) ||
+        (orgGroup && orgGroup.org.ownerId === userId)
+      )
+    ) {
       throw new UnauthorizedException(
         'You are not the member or owner of the group',
       );
