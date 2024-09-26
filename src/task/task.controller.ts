@@ -45,21 +45,48 @@ export class TaskController {
   ) {
     const createdBy: number = req.user.id;
     const orgGroup = await this.orgGroupService.getGroup(createTaskDto.groupId);
-    const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
-    const members = data.members.map((member) => member.memberId);
-    if (
-      !(
-        (members.length > 0 && members.includes(createdBy)) ||
-        (orgGroup && orgGroup.org.ownerId === createdBy)
-      )
-    ) {
-      throw new UnauthorizedException(
-        'You are not the member or owner of the group',
+    if (!orgGroup) {
+      throw new NotFoundException('Group Not Found');
+    }
+    let members = [];
+    let groupMembers = [];
+    if (orgGroup.orgId) {
+      const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
+      members = data.members.map((member) => member.memberId);
+      if (
+        !(
+          (members.length > 0 && members.includes(createdBy)) ||
+          (orgGroup && orgGroup.org.ownerId === createdBy) ||
+          (orgGroup && orgGroup.personal.id === createdBy)
+        )
+      ) {
+        throw new UnauthorizedException(
+          'You are not the member or owner of the group',
+        );
+      }
+    } else {
+      groupMembers = orgGroup.OrgGroupMember.map((member) => member.memberId);
+      if (
+        !(
+          (groupMembers.length > 0 && groupMembers.includes(createdBy)) ||
+          (orgGroup && orgGroup.personal.id === createdBy)
+        )
+      ) {
+        throw new UnauthorizedException(
+          'You are not the member or owner of the group',
+        );
+      }
+    }
+    let invalidMembers = [];
+    if (orgGroup.orgId) {
+      invalidMembers = createTaskDto.assignedTo.filter(
+        (memberId) => !members.includes(memberId),
+      );
+    } else {
+      invalidMembers = createTaskDto.assignedTo.filter(
+        (memberId) => !groupMembers.includes(memberId),
       );
     }
-    const invalidMembers = createTaskDto.assignedTo.filter(
-      (memberId) => !members.includes(memberId),
-    );
     if (invalidMembers.length > 0) {
       throw new UnauthorizedException(
         'Invalid Members in assignedTo, Please check the members',
@@ -76,24 +103,41 @@ export class TaskController {
     @Param('taskId') taskId: number,
     @Param('memberId') memberId: number,
   ) {
-    const userId: number = req.user.id;
+    const createdBy: number = req.user.id;
 
     const task = await this.taskService.getTaskById(taskId);
     if (!task) {
       throw new NotFoundException('Task Not Found');
     }
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
-    const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
-    const members = data.members.map((member) => member.memberId);
-    if (
-      !(
-        (members.length > 0 && members.includes(userId)) ||
-        (orgGroup && orgGroup.org.ownerId === userId)
-      )
-    ) {
-      throw new UnauthorizedException(
-        'You are not the member or owner of the group',
-      );
+    let members = [];
+    let groupMembers = [];
+    if (orgGroup.orgId) {
+      const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
+      members = data.members.map((member) => member.memberId);
+      if (
+        !(
+          (members.length > 0 && members.includes(createdBy)) ||
+          (orgGroup && orgGroup.org.ownerId === createdBy) ||
+          (orgGroup && orgGroup.personal.id === createdBy)
+        )
+      ) {
+        throw new UnauthorizedException(
+          'You are not the member or owner of the group',
+        );
+      }
+    } else {
+      groupMembers = orgGroup.OrgGroupMember.map((member) => member.memberId);
+      if (
+        !(
+          (groupMembers.length > 0 && groupMembers.includes(createdBy)) ||
+          (orgGroup && orgGroup.personal.id === createdBy)
+        )
+      ) {
+        throw new UnauthorizedException(
+          'You are not the member or owner of the group',
+        );
+      }
     }
 
     const isAlreadyTaskAssigned = await this.taskService.isAlreadyTaskAssigned(
@@ -165,26 +209,47 @@ export class TaskController {
     @Body() updateTaskDto: UpdateTaskDto,
     @Param('id') id: number,
   ) {
-    const userId: number = req.user.id;
+    const createdBy: number = req.user.id;
     const task = await this.taskService.getTaskById(id);
     if (!task) {
       throw new NotFoundException('Task Not Found');
     }
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
-    const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
-    const members = data.members.map((member) => member.memberId);
-    if (
-      !(
-        (members.length > 0 && members.includes(userId)) ||
-        (orgGroup && orgGroup.org.ownerId === userId)
-      )
-    ) {
-      throw new UnauthorizedException(
-        'Only Task Creator or Group Members and Admin can update the Task',
-      );
+    let members = [];
+    let groupMembers = [];
+    if (orgGroup.orgId) {
+      const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
+      members = data.members.map((member) => member.memberId);
+      if (
+        !(
+          (members.length > 0 && members.includes(createdBy)) ||
+          (orgGroup && orgGroup.org.ownerId === createdBy) ||
+          (orgGroup && orgGroup.personal.id === createdBy)
+        )
+      ) {
+        throw new UnauthorizedException(
+          'You are not the member or owner of the group to Update',
+        );
+      }
+    } else {
+      groupMembers = orgGroup.OrgGroupMember.map((member) => member.memberId);
+      if (
+        !(
+          (groupMembers.length > 0 && groupMembers.includes(createdBy)) ||
+          (orgGroup && orgGroup.personal.id === createdBy)
+        )
+      ) {
+        throw new UnauthorizedException(
+          'You are not the member or owner of the group to Update',
+        );
+      }
     }
 
-    const updatedTask = await this.taskService.updateTask(id, updateTaskDto);
+    const updatedTask = await this.taskService.updateTask(
+      id,
+      updateTaskDto,
+      createdBy,
+    );
     return { message: 'Task Updated successfully', task: updatedTask };
   }
 

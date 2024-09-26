@@ -14,10 +14,16 @@ export class OrgGroupService {
     return this.prisma.orgGroup.findFirst({ where: { ...orgGroup } });
   }
 
-  async addOrgGroup(createOrgGroupDto: CreateOrgGroupDto) {
-    return this.prisma.orgGroup.create({
-      data: { ...createOrgGroupDto },
-    });
+  async addOrgGroup(createOrgGroupDto: CreateOrgGroupDto, userId?: number) {
+    if (createOrgGroupDto.orgId) {
+      return this.prisma.orgGroup.create({
+        data: { ...createOrgGroupDto },
+      });
+    } else {
+      return this.prisma.orgGroup.create({
+        data: { ...createOrgGroupDto, createdBy: userId },
+      });
+    }
   }
 
   async getGroup(id: number) {
@@ -25,6 +31,7 @@ export class OrgGroupService {
       where: { id },
       include: {
         org: true,
+        personal: true,
         OrgGroupMember: {
           include: {
             member: {
@@ -41,7 +48,9 @@ export class OrgGroupService {
     });
   }
   async getAllGroups() {
-    return this.prisma.orgGroup.findMany({ include: { org: true } });
+    return this.prisma.orgGroup.findMany({
+      include: { org: true, personal: true },
+    });
   }
 
   async getOrgAllGroups(orgId: number) {
@@ -107,6 +116,23 @@ export class OrgGroupService {
     return { groups, myGroups };
   }
 
+  async getMyPersonalGroups(memberId: number) {
+    const myPersonalGroups = await this.prisma.orgGroup.findMany({
+      where: { createdBy: memberId },
+      include: {
+        personal: true,
+      },
+    });
+    const personalGroups = await this.prisma.orgGroupMember.findMany({
+      where: { memberId },
+      include: {
+        group: {
+          select: { id: true, name: true, personal: true },
+        },
+      },
+    });
+    return { myPersonalGroups, personalGroups };
+  }
   async updateGroup(id: number, updateOrgGroupDto: UpdateOrgGroupDto) {
     return this.prisma.orgGroup.update({
       where: { id },

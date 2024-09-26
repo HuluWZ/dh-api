@@ -17,10 +17,6 @@ export class TaskGuard implements CanActivate {
     const resp = request.user;
     const orgs = await this.orgService.getMyOrgs(+resp.id);
 
-    if (!orgs.length) {
-      throw new UnauthorizedException("User isn't member of Org Data");
-    }
-
     request.orgs = orgs.length ? orgs.map((org) => org.id) : [];
     request.user = resp;
     return true;

@@ -1,5 +1,5 @@
 import {
-  ArrayNotEmpty,
+  ArrayMinSize,
   IsArray,
   IsEnum,
   IsNotEmpty,
@@ -80,7 +80,8 @@ export class CreateTaskDto {
     description: 'Task Assignee User IDs',
   })
   @IsArray()
-  @ArrayNotEmpty()
+  @ArrayMinSize(0)
+  @IsOptional()
   @Transform(({ value }) => {
     if (typeof value === 'string') {
       try {

@@ -25,12 +25,15 @@ export class TaskService {
       data: { ...taskData, createdBy },
     });
     if (task) {
-      const assignes = await this.prisma.taskAsignee.createMany({
-        data: assignedTo.map((memberId) => ({
-          taskId: task.id,
-          memberId,
-        })),
-      });
+      let assignes;
+      if (assignedTo.length) {
+        assignes = await this.prisma.taskAsignee.createMany({
+          data: assignedTo.map((memberId) => ({
+            taskId: task.id,
+            memberId,
+          })),
+        });
+      }
       return { ...task, assignee: assignes };
     }
   }
@@ -137,16 +140,53 @@ export class TaskService {
     });
   }
 
-  async updateTask(taskId: number, updateTask: UpdateTaskDto) {
+  async updateTask(
+    taskId: number,
+    updateTask: UpdateTaskDto,
+    createdBy: number,
+  ) {
     const task = await this.getTaskById(taskId);
     const { assignedTo, groupId, ...update } = updateTask;
     const orgGroup = await this.orgGroupService.getGroup(task.groupId);
-    const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
-    const members = data.members.map((member) => member.memberId);
-
-    const invalidMembers = updateTask.assignedTo.filter(
-      (memberId) => !members.includes(memberId),
-    );
+    let members = [];
+    let groupMembers = [];
+    if (orgGroup.orgId) {
+      const data = await this.orgMemberService.getOrgAllMembers(orgGroup.orgId);
+      members = data.members.map((member) => member.memberId);
+      if (
+        !(
+          (members.length > 0 && members.includes(createdBy)) ||
+          (orgGroup && orgGroup.org.ownerId === createdBy) ||
+          (orgGroup && orgGroup.personal.id === createdBy)
+        )
+      ) {
+        throw new UnauthorizedException(
+          'You are not the member or owner of the group to Update',
+        );
+      }
+    } else {
+      groupMembers = orgGroup.OrgGroupMember.map((member) => member.memberId);
+      if (
+        !(
+          (groupMembers.length > 0 && groupMembers.includes(createdBy)) ||
+          (orgGroup && orgGroup.personal.id === createdBy)
+        )
+      ) {
+        throw new UnauthorizedException(
+          'You are not the member or owner of the group to Update',
+        );
+      }
+    }
+    let invalidMembers;
+    if (orgGroup.orgId) {
+      invalidMembers = updateTask.assignedTo.filter(
+        (memberId) => !members.includes(memberId),
+      );
+    } else {
+      invalidMembers = updateTask.assignedTo.filter(
+        (memberId) => !groupMembers.includes(memberId),
+      );
+    }
     if (invalidMembers.length > 0) {
       throw new UnauthorizedException(
         'Invalid Members in assignedTo, Please check the members',
