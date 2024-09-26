@@ -31,7 +31,11 @@ export class OrgGroupController {
     @Req() req: any,
   ) {
     const orgs = req.orgs as number[];
-    if (orgs.length && !orgs.includes(creCreateOrgGroupDto.orgId)) {
+    const userId = req.user.id;
+    if (
+      creCreateOrgGroupDto.orgId &&
+      !orgs.includes(creCreateOrgGroupDto.orgId)
+    ) {
       throw new UnauthorizedException('You are not the owner of the Org');
     }
     const isAlreadyGroupExists =
@@ -41,7 +45,15 @@ export class OrgGroupController {
         'Member already exists. Try to update or remove member!',
       );
     }
-    const group = await this.orgGroupService.addOrgGroup(creCreateOrgGroupDto);
+    let group;
+    if (creCreateOrgGroupDto.orgId) {
+      group = await this.orgGroupService.addOrgGroup(creCreateOrgGroupDto);
+    } else {
+      group = await this.orgGroupService.addOrgGroup(
+        creCreateOrgGroupDto,
+        userId,
+      );
+    }
     return { message: 'Group Added To Org successfully', group };
   }
 
@@ -82,6 +94,14 @@ export class OrgGroupController {
     const ownerId: number = req.user.id;
     const groups = await this.orgGroupService.getMyGroupMembers(ownerId);
     return { groups };
+  }
+  @Get('my-personal-groups')
+  @ApiOperation({ summary: 'Get All My Personal Groups' })
+  @UseGuards(AuthGuard)
+  async getAllPersonalOrgGroups(@Req() req: any) {
+    const ownerId: number = req.user.id;
+    const mygroups = await this.orgGroupService.getMyPersonalGroups(ownerId);
+    return { mygroups };
   }
 
   @Get(':id')

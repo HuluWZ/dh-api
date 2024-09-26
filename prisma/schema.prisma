@@ -32,6 +32,7 @@ model User {
   OrgGroupMember OrgGroupMember[]
   OrgGroupAdmin  OrgGroupAdmin[]
   TaskAsignee    TaskAsignee[]
+  OrgGroup       OrgGroup[]
 }
 
 model Industry {
@@ -111,10 +112,12 @@ model OrgGroup {
   id             Int              @id @default(autoincrement())
   name           String
   color          String?
-  orgId          Int
+  orgId          Int?
+  createdBy      Int?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  org            Org              @relation(fields: [orgId], references: [id])
+  org            Org?             @relation(fields: [orgId], references: [id])
+  personal       User?            @relation(fields: [createdBy], references: [id])
   OrgGroupMember OrgGroupMember[]
   OrgGroupAdmin  OrgGroupAdmin[]
 }

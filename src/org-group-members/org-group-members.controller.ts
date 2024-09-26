@@ -39,7 +39,7 @@ export class OrgGroupMembersController {
     const orgs: number[] = req.orgs;
     const orgId = req.orgId;
 
-    if (!orgs.includes(orgId)) {
+    if (orgId && !orgs.includes(orgId)) {
       throw new UnauthorizedException('Invalid Org Data');
     }
     const isAlreadyGroupMemberExists =
@@ -87,6 +87,7 @@ export class OrgGroupMembersController {
     @Req() req: any,
   ) {
     const orgs: number[] = req.orgs;
+    const userId: number = req.user.id;
     const isAlreadyGroupMemberExists =
       await this.orgGroupMemberService.isAlreadyGroupMemberExists({
         groupId,
@@ -100,15 +101,22 @@ export class OrgGroupMembersController {
       throw new UnauthorizedException('Invalid Org Group');
     }
 
-    const orgMember = await this.orgMemberService.getOrgMember(
-      memberId,
-      orgGroup.orgId,
-    );
-    if (!orgMember) {
-      throw new NotFoundException('Invalid Member');
-    }
-    if (!orgs.includes(orgMember.orgId)) {
-      throw new UnauthorizedException('Invalid Org Data');
+    if (orgGroup.orgId) {
+      const orgMember = await this.orgMemberService.getOrgMember(
+        memberId,
+        orgGroup.orgId,
+      );
+      if (!orgMember) {
+        throw new NotFoundException('Invalid Member');
+      }
+      if (!orgs.includes(orgMember.orgId)) {
+        throw new UnauthorizedException('Invalid Org Data');
+      }
+    } else {
+      const group = await this.orgGroupService.getGroup(groupId);
+      if (group.createdBy !== userId) {
+        throw new UnauthorizedException('Only Owner Can Remove Member');
+      }
     }
     await this.orgGroupMemberService.removeGroupMember(groupId, memberId);
     return { message: 'Member Removed from Org Group successfully' };

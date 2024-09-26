@@ -15,8 +15,9 @@ export class CreateOrgGroupDto {
   color?: string;
 
   @ApiProperty({ example: 1, description: 'Org Id' })
+  @IsOptional()
   @IsInt()
-  orgId: number;
+  orgId?: number;
 }
 
 export class UpdateOrgGroupDto {
