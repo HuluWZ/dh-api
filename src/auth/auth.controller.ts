@@ -94,6 +94,16 @@ export class AuthController {
       throw new InternalServerErrorException('An unexpected error occurred');
     }
   }
+  @Get('user/:userName')
+  @ApiOperation({ summary: 'Get user by userName' })
+  async getUserByUsername(@Param('userName') userName: string) {
+    const user = await this.authService.getUserByUsername(userName);
+    if (!user) {
+      throw new NotFoundException(`No User found under @${userName}`);
+    }
+    return this.authService.getUserByUsername(userName);
+  }
+
   @Get('get/me')
   @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Get My profile' })

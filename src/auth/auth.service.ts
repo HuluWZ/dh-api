@@ -9,6 +9,7 @@ import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +17,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly otpService: OtpService,
     private readonly authJwtService: JwtService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
   async sendOtp(sendOtpDto: SendOtpDto): Promise<void> {
     const formattedPhone = formatPhone(sendOtpDto.phone);
@@ -53,10 +55,19 @@ export class AuthService {
   }
 
   async completeProfile(id: number, completeProfileDto: CompleteProfileDto) {
-    const { firstName, lastName, email } = completeProfileDto;
+    const { file, ...profileDto } = completeProfileDto;
+    if (!file) {
+      throw new NotFoundException('Logo file is required');
+    }
+    const url = await this.cloudinaryService.uploadFile(file);
+    const userName = await this.generateUsername(completeProfileDto);
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: { firstName, lastName, email },
+      data: {
+        ...profileDto,
+        profile: url,
+        userName,
+      },
     });
     return updatedUser;
   }
@@ -70,6 +81,20 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     return user;
+  }
+
+  async getUserByUsername(userName: string) {
+    return this.prisma.user.findUnique({
+      where: { userName },
+    });
+  }
+  async generateUsername(completeProfile: CompleteProfileDto) {
+    const userName = `${completeProfile.firstName}${completeProfile.middleName}${completeProfile.lastName}`;
+    const user = await this.getUserByUsername(userName);
+    if (user) {
+      return `${userName}.${Math.floor(Math.random() * 10000)}`;
+    }
+    return userName;
   }
 
   async getAllUsers() {

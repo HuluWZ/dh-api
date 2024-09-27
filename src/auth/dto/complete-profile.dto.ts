@@ -7,6 +7,11 @@ export class CompleteProfileDto {
   @IsString()
   firstName: string;
 
+  @ApiProperty({ example: 'A', description: 'Middle Name' })
+  @IsNotEmpty()
+  @IsString()
+  middleName: string;
+
   @ApiProperty({ example: 'Doe', description: 'Last Name' })
   @IsNotEmpty()
   @IsString()
@@ -20,4 +25,12 @@ export class CompleteProfileDto {
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  @ApiProperty({
+    type: 'string',
+    format: 'binary',
+    description: 'Logo file',
+    required: true,
+  })
+  file?: any;
 }
