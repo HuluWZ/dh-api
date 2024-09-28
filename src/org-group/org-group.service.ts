@@ -96,7 +96,9 @@ export class OrgGroupService {
         },
       },
     });
-    const groups = orgGroupMembers.map((member) => member.group);
+    const groups = orgGroupMembers
+      .map((member) => member.group)
+      .filter((group) => group.org);
     const myOrgs = await this.orgService.getMyOrgs(memberId);
     const myOrgIds = myOrgs.map((org) => org.id);
     const myGroups = await this.prisma.orgGroup.findMany({
@@ -123,7 +125,7 @@ export class OrgGroupService {
         personal: true,
       },
     });
-    const personalGroups = await this.prisma.orgGroupMember.findMany({
+    const personal = await this.prisma.orgGroupMember.findMany({
       where: { memberId },
       include: {
         group: {
@@ -131,6 +133,10 @@ export class OrgGroupService {
         },
       },
     });
+    const personalGroups = personal
+      .map((member) => member.group)
+      .filter((group) => group.personal);
+
     return { myPersonalGroups, personalGroups };
   }
   async updateGroup(id: number, updateOrgGroupDto: UpdateOrgGroupDto) {
