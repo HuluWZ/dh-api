@@ -4,7 +4,7 @@ export const DOC_ALLOWED_TYPES = [
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ];
-export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
+export const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
 export const MAX_DOC_SIZE = 10 * 1024 * 1024; // 10MB
 
 export type FileBucket = 'public' | 'private';

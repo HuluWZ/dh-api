@@ -10,6 +10,8 @@ import { OrgMemberModule } from './org-member/org-member.module';
 import { OrgGroupModule } from './org-group/org-group.module';
 import { OrgGroupMembersModule } from './org-group-members/org-group-members.module';
 import { TaskModule } from './task/task.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -24,6 +26,8 @@ import { TaskModule } from './task/task.module';
     MinioModule,
     OrgGroupMembersModule,
     TaskModule,
+    CloudinaryModule,
+    AdminModule,
   ],
 })
 export class AppModule {}

@@ -21,9 +21,8 @@ export class FileInterceptor implements NestInterceptor {
     const file = request.file;
 
     if (!file) {
-      throw new BadRequestException('No file uploaded');
+      return next.handle();
     }
-
     const isImage = IMAGE_ALLOWED_TYPES.includes(file.mimetype);
     const isDocument = DOC_ALLOWED_TYPES.includes(file.mimetype);
 

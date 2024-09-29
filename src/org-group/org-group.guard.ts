@@ -15,6 +15,9 @@ export class OrgGroupGuard implements CanActivate {
       throw new UnauthorizedException('Invalid User');
     }
     const resp = request.user;
+    if (resp.profile && resp.isVerified === false) {
+      throw new UnauthorizedException('User is not verified');
+    }
     const orgs = await this.orgService.getMyOrgs(+resp.id);
     request.orgs = orgs.length ? orgs.map((org) => org.id) : [];
     return true;

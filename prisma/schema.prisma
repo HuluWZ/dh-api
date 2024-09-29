@@ -15,11 +15,14 @@ datasource db {
 
 model User {
   id             Int              @id @default(autoincrement())
+  userName       String?          @unique
   firstName      String?
+  middleName     String?
   lastName       String?
   email          String?          @unique
   phone          String           @unique
   isActive       Boolean          @default(false)
+  isVerified     Boolean          @default(false)
   profile        String?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -33,6 +36,7 @@ model User {
   OrgGroupAdmin  OrgGroupAdmin[]
   TaskAsignee    TaskAsignee[]
   OrgGroup       OrgGroup[]
+  UserAdmin      UserAdmin[]
 }
 
 model Industry {
@@ -188,4 +192,11 @@ model TaskAsignee {
 
   @@unique([taskId, memberId])
   @@index([taskId, memberId])
+}
+
+model UserAdmin {
+  userId    Int      @unique
+  admin     User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

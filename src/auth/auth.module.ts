@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { OtpService } from './otp/otp.service';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { OtpService } from './otp/otp.service';
       signOptions: { expiresIn: process.env.REFRESH_JWT_EXPIRATION },
     }),
   ],
-  providers: [AuthService, OtpService],
+  providers: [AuthService, OtpService, CloudinaryService],
   controllers: [AuthController],
   exports: [AuthService],
 })
