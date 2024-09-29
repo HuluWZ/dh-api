@@ -11,14 +11,23 @@ import {
   UseGuards,
   Req,
   Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { User } from '@prisma/client';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from './auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -49,17 +58,21 @@ export class AuthController {
   }
 
   @Post('complete-profile')
-  @UseGuards(AuthGuard)
   @ApiOperation({ summary: 'Complete user profile' })
   @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file')) // Apply the FileInterceptor
   async completeProfile(
     @Req() request,
     @Body() completeProfileDto: CompleteProfileDto,
+    @UploadedFile() file?: Express.Multer.File, // Get the uploaded file
   ) {
     const id = request.user.id;
     const updatedUser = await this.authService.completeProfile(
       id,
       completeProfileDto,
+      file,
     );
     return { message: 'Profile updated successfully', user: updatedUser };
   }

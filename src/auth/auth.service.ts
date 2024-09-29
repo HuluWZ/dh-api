@@ -54,17 +54,20 @@ export class AuthService {
     return { accessToken, refreshToken, user: verifyUser, isActive: true };
   }
 
-  async completeProfile(id: number, completeProfileDto: CompleteProfileDto) {
-    const { file, ...profileDto } = completeProfileDto;
-    if (!file) {
-      throw new NotFoundException('Logo file is required');
+  async completeProfile(
+    id: number,
+    completeProfileDto: CompleteProfileDto,
+    file?: Express.Multer.File,
+  ) {
+    let url = null;
+    if (file) {
+      url = await this.cloudinaryService.uploadFile(file);
     }
-    const url = await this.cloudinaryService.uploadFile(file);
     const userName = await this.generateUsername(completeProfileDto);
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: {
-        ...profileDto,
+        ...completeProfileDto,
         profile: url,
         userName,
       },

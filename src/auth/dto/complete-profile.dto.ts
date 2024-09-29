@@ -27,10 +27,11 @@ export class CompleteProfileDto {
   email?: string;
 
   @ApiProperty({
+    description: 'Profile Picture',
     type: 'string',
     format: 'binary',
-    description: 'Logo file',
-    required: true,
+    required: false,
   })
-  file?: any;
+  @IsOptional()
+  file?: Express.Multer.File;
 }

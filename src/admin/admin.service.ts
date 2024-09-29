@@ -15,6 +15,13 @@ export class AdminService {
     });
   }
 
+  async approveProfile(userId: number) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { isVerified: true },
+    });
+  }
+
   async getAllAdmins() {
     return this.prisma.userAdmin.findMany({ include: { admin: true } });
   }
