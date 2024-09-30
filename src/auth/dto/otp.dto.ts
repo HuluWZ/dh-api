@@ -19,4 +19,9 @@ export class VerifyOtpDto {
   @IsString()
   @Length(4, 4)
   otpCode: string;
+
+  @ApiProperty({ example: '1234', description: 'Device ID' })
+  @IsNotEmpty()
+  @IsString()
+  deviceId: string;
 }

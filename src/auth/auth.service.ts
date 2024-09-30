@@ -10,6 +10,7 @@ import { formatPhone } from 'phone-formater-eth';
 import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { DeviceService } from 'src/common/device/device.service';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +19,7 @@ export class AuthService {
     private readonly otpService: OtpService,
     private readonly authJwtService: JwtService,
     private readonly cloudinaryService: CloudinaryService,
+    private readonly deviceService: DeviceService,
   ) {}
   async sendOtp(sendOtpDto: SendOtpDto): Promise<void> {
     const formattedPhone = formatPhone(sendOtpDto.phone);
@@ -50,6 +52,10 @@ export class AuthService {
       verifyUser.id,
       verifyUser.phone,
     );
+    await this.deviceService.create({
+      userId: verifyUser.id,
+      deviceId: verifyOtpDto.deviceId,
+    });
     const refreshToken = await this.generateRefreshToken(verifyUser.id);
     return { accessToken, refreshToken, user: verifyUser, isActive: true };
   }

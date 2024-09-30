@@ -12,8 +12,6 @@ import { OrgGroupMembersModule } from './org-group-members/org-group-members.mod
 import { TaskModule } from './task/task.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { AdminModule } from './admin/admin.module';
-import { NotificationController } from './notification/notification.controller';
-import { NotificationService } from './notification/notification.service';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
@@ -33,7 +31,7 @@ import { NotificationModule } from './notification/notification.module';
     AdminModule,
     NotificationModule,
   ],
-  controllers: [NotificationController],
-  providers: [NotificationService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

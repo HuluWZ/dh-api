@@ -37,6 +37,7 @@ model User {
   TaskAsignee    TaskAsignee[]
   OrgGroup       OrgGroup[]
   UserAdmin      UserAdmin[]
+  FCM            FCM[]
 }
 
 model Industry {
@@ -199,4 +200,15 @@ model UserAdmin {
   admin     User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model FCM {
+  userId    Int
+  deviceId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, deviceId])
+  @@index([userId, deviceId])
 }
