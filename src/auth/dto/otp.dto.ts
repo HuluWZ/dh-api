@@ -20,7 +20,10 @@ export class VerifyOtpDto {
   @Length(4, 4)
   otpCode: string;
 
-  @ApiProperty({ example: '1234', description: 'Device ID' })
+  @ApiProperty({
+    example: 'eJ9z5J2nQ1y:APA91bH7y5J2nQ1y',
+    description: 'Device ID/Token',
+  })
   @IsNotEmpty()
   @IsString()
   deviceId: string;

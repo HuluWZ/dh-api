@@ -1,9 +1,20 @@
-import { Controller, Get, Post, Body, Patch, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  UseGuards,
+} from '@nestjs/common';
 import { DeviceService } from './device.service';
 import { CreateDeviceDto, UpdateDeviceDto } from './dto/device.dto';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { AuthGuard } from '../../auth/auth.guard';
 
 @ApiTags('Device')
+@ApiBearerAuth()
+@UseGuards(AuthGuard)
 @Controller('devices')
 export class DeviceController {
   constructor(private readonly deviceService: DeviceService) {}
