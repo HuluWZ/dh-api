@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
@@ -108,8 +109,35 @@ export class OrgMemberController {
   @ApiOperation({ summary: 'Get All Members By Org Id' })
   @UseGuards(AuthGuard)
   async getAllMemberByOrgId(@Param('orgId') orgId: string) {
+    console.log('orgId', orgId);
     const orgMembers = await this.orgMemberService.getOrgAllMembers(+orgId);
     return { orgMembers };
+  }
+  @Get('org/:orgId/search')
+  @ApiOperation({ summary: 'Search Org Members by Username' })
+  @UseGuards(AuthGuard)
+  async searchAllOrgMember(
+    @Param('orgId') orgId: string,
+    @Query('search') search: string,
+  ) {
+    const searchResult = await this.orgMemberService.searchOrgMembers(
+      +orgId,
+      search,
+    );
+    return { searchResult };
+  }
+  @Get('group/:groupId/search')
+  @ApiOperation({ summary: 'Search Group Members by Username' })
+  @UseGuards(AuthGuard)
+  async searchAllGroupMember(
+    @Param('groupId') groupId: string,
+    @Query('search') search: string,
+  ) {
+    const groupMemberResult = await this.orgMemberService.searchGroupMembers(
+      +groupId,
+      search,
+    );
+    return { groupMemberResult };
   }
 
   @Delete(':orgId/:memberId')

@@ -19,6 +19,8 @@ import { OrgMemberStatus } from 'src/org-member/dto/org-member.dto';
 import { OrgInviteStatus } from '@prisma/client';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { OrgService } from 'src/org/org.service';
+import { NotificationService } from 'src/notification/notification.service';
+import { DeviceService } from 'src/common/device/device.service';
 
 @ApiTags('Org Join Invitation')
 @ApiBearerAuth()
@@ -28,6 +30,8 @@ export class OrgInviteController {
     private orgInviteService: OrgInviteService,
     private orgMemberService: OrgMemberService,
     private orgService: OrgService,
+    private notificationService: NotificationService,
+    private deviceService: DeviceService,
   ) {}
 
   @Post(':orgId')
@@ -75,7 +79,19 @@ export class OrgInviteController {
         orgId: +getInvite.orgId,
         role: OrgMemberStatus.Member,
       });
-      //  create transaction
+      // Send Notification to Invitee
+      const device = await this.deviceService.findDeviceByUserId(
+        +getInvite.inviteeId,
+      );
+      if (device && device.deviceId) {
+        const message = {
+          token: device.deviceId,
+          title: `Invitation to Join Org #${getInvite.org.name} Approved`,
+          body: `Welcome ${getInvite.invitee.firstName}. From now on You are now a member of the organization ${getInvite.org.name}`,
+          icon: 'https://example.com/icon.png',
+        };
+        await this.notificationService.sendNotification(message);
+      }
     }
 
     return { message: 'Invitation updated successfully', invite };
