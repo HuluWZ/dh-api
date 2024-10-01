@@ -49,10 +49,68 @@ export class OrgMemberService {
     const members = await this.prisma.orgMember.findMany({
       where: { orgId },
       include: {
-        member: { select: { firstName: true, lastName: true, phone: true } },
+        member: {
+          select: {
+            userName: true,
+            firstName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
       },
     });
     return { ...org, members };
+  }
+
+  async searchOrgMembers(orgId: number, search: string) {
+    const org = await this.orgService.getOne(orgId);
+    if (!org) {
+      throw new NotFoundException(`Org ID ${orgId} not found`);
+    }
+    const members = await this.prisma.orgMember.findMany({
+      where: { orgId, member: { userName: { startsWith: search } } },
+      include: {
+        member: {
+          select: {
+            id: true,
+            userName: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+      },
+    });
+    const allMembers = members.map((member) => member.member);
+    return allMembers;
+  }
+  async searchGroupMembers(groupId: number, search: string) {
+    const group = await this.prisma.orgGroup.findFirst({
+      where: { id: groupId },
+    });
+    if (!group) {
+      throw new NotFoundException(`Group ID ${groupId} not found`);
+    }
+
+    const members = await this.prisma.orgGroupMember.findMany({
+      where: { groupId, member: { userName: { startsWith: search } } },
+      include: {
+        member: {
+          select: {
+            id: true,
+            userName: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
+            phone: true,
+          },
+        },
+      },
+    });
+
+    const allMembers = members.map((member) => member.member);
+    return allMembers;
   }
 
   async getMyOrgMembers(ownerId: number) {
@@ -65,6 +123,7 @@ export class OrgMemberService {
             member: {
               select: {
                 id: true,
+                userName: true,
                 firstName: true,
                 lastName: true,
                 phone: true,
