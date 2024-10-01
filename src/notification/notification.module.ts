@@ -7,6 +7,7 @@ import { NotificationController } from './notification.controller';
 @Module({
   imports: [AuthModule, JwtModule],
   providers: [NotificationService],
+  exports: [NotificationService],
   controllers: [NotificationController],
 })
 export class NotificationModule {}
