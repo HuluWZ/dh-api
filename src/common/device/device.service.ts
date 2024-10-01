@@ -7,13 +7,9 @@ export class DeviceService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createDeviceDto: CreateDeviceDto) {
-    const device = await this.findByUserId(createDeviceDto.userId);
+    const device = await this.findDeviceByUserId(createDeviceDto.userId);
     if (device) {
-      const update = await this.update(
-        createDeviceDto.userId,
-        createDeviceDto.deviceId,
-      );
-      return update;
+      return this.update(createDeviceDto.userId, createDeviceDto.deviceId);
     } else {
       return this.prisma.fCM.create({
         data: createDeviceDto,
@@ -36,7 +32,11 @@ export class DeviceService {
 
     return device;
   }
-
+  async findDeviceByUserId(userId: number) {
+    return this.prisma.fCM.findFirst({
+      where: { userId },
+    });
+  }
   async update(userId: number, deviceId: string) {
     return this.prisma.fCM.updateMany({
       where: {
