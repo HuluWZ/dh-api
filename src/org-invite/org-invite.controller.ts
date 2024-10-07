@@ -39,6 +39,7 @@ export class OrgInviteController {
   @UseGuards(AuthGuard)
   async createOrgInvite(@Param('orgId') orgId: string, @Req() req: any) {
     const inviteeId: number = req.user.id;
+    const invitee = req.user;
     const isAlreadyInvitationExists =
       await this.orgInviteService.isAlreadyInvitationExists(+orgId, inviteeId);
     if (isAlreadyInvitationExists) {
@@ -52,6 +53,17 @@ export class OrgInviteController {
       +inviteeId,
       +org.ownerId,
     );
+    const device = await this.deviceService.findDeviceByUserId(+org.ownerId);
+    if (device && device.deviceId) {
+      const message = {
+        token: device.deviceId,
+        title: `New Invitation to Join Org #${org.name} Requested`,
+        body: `View The Invitation from ${invitee?.firstName}. And Approve or Reject The Request`,
+        icon: 'https://example.com/icon.png',
+      };
+      await this.notificationService.sendNotification(message);
+    }
+
     return { message: 'Invitation created successfully', invite };
   }
 
