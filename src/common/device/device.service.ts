@@ -18,7 +18,23 @@ export class DeviceService {
   }
 
   async findAll() {
-    return this.prisma.fCM.findMany({ select: { user: true } });
+    return this.prisma.fCM.findMany({
+      select: {
+        user: {
+          select: {
+            id: true,
+            userName: true,
+            firstName: true,
+            middleName: true,
+            lastName: true,
+            phone: true,
+            profile: true,
+            createdAt: true,
+          },
+        },
+        deviceId: true,
+      },
+    });
   }
 
   async findByUserId(userId: number) {
