@@ -69,9 +69,10 @@ export class AuthController {
     @UploadedFile() file?: Express.Multer.File, // Get the uploaded file
   ) {
     const id = request.user.id;
+    const { file: updateFile, ...others } = completeProfileDto;
     const updatedUser = await this.authService.completeProfile(
       id,
-      completeProfileDto,
+      others,
       file,
     );
     return { message: 'Profile updated successfully', user: updatedUser };
