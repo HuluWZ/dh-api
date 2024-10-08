@@ -13,17 +13,13 @@ import {
 import { OrgService } from './org.service';
 import { CreateOrgDto, UpdateOrgDto } from './dto/org.dto';
 import { AuthGuard } from '../auth/auth.guard';
-import { MinioService } from '../minio/minio.service';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 @ApiTags('Organization')
 @ApiBearerAuth()
 @Controller('organization')
 export class OrgController {
   private readonly bucketName = 'private';
-  constructor(
-    private readonly orgService: OrgService,
-    private readonly minioService: MinioService,
-  ) {}
+  constructor(private readonly orgService: OrgService) {}
 
   @Post()
   @ApiOperation({ summary: 'Create Organization' })
