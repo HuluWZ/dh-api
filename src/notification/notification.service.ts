@@ -36,6 +36,10 @@ export class NotificationService {
         body,
         icon,
       },
+      notification: {
+        title,
+        body,
+      },
     };
     try {
       const response = await admin.messaging().send(message);
