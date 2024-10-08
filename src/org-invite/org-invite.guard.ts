@@ -19,9 +19,9 @@ export class OrgInviteGuard implements CanActivate {
       throw new UnauthorizedException('Invalid User');
     }
     const resp = request.user;
-    if (resp.profile && resp.isVerified === false) {
-      throw new UnauthorizedException('User is not verified');
-    }
+    // if (resp.profile && resp.isVerified === false) {
+    //   throw new UnauthorizedException('User is not verified');
+    // }
 
     const orgs = await this.orgService.getMyOrgs(+resp.id);
     const invites = await this.orgInviteService.getMyInvitees(+resp.id);

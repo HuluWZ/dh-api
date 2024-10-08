@@ -24,9 +24,9 @@ export class AddOrgMemberToAdminForGroupGuard implements CanActivate {
     }
     const resp = request.user;
     const orgs = await this.orgService.getMyOrgs(+resp.id);
-    if (resp.profile && resp.isVerified === false) {
-      throw new UnauthorizedException('User is not verified');
-    }
+    // if (resp.profile && resp.isVerified === false) {
+    //   throw new UnauthorizedException('User is not verified');
+    // }
 
     const orgGroup = await this.orgGroupService.getGroup(
       createOrgGroupMemberDto.groupId,
