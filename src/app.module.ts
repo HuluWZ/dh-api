@@ -3,7 +3,6 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CommonModule } from './common/common.module';
 import { ConfigAppModule } from './config/config.module';
-import { MinioModule } from './minio/minio.module';
 import { OrgModule } from './org/org.module';
 import { OrgInviteModule } from './org-invite/org-invite.module';
 import { OrgMemberModule } from './org-member/org-member.module';
@@ -24,7 +23,6 @@ import { NotificationModule } from './notification/notification.module';
     OrgInviteModule,
     OrgMemberModule,
     OrgGroupModule,
-    MinioModule,
     OrgGroupMembersModule,
     TaskModule,
     CloudinaryModule,
