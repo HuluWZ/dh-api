@@ -32,7 +32,11 @@ export class NotificationController {
     @Body() notificationData: NotificationDto,
   ) {
     const userId: number = req.user.id;
-    return this.notificationService.sendNotification(notificationData, userId);
+    const response = await this.notificationService.sendNotification(
+      notificationData,
+      userId,
+    );
+    return response;
   }
 
   @Get('my-notifications')
