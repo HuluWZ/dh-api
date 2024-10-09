@@ -91,7 +91,6 @@ export class OrgInviteController {
         orgId: +getInvite.orgId,
         role: OrgMemberStatus.Member,
       });
-      await this.orgInviteService.deleteInvite(+id, getInvite.ownerId);
       // Send Notification to Invitee
       const device = await this.deviceService.findDeviceByUserId(
         +getInvite.inviteeId,
