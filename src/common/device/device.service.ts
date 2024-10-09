@@ -53,6 +53,11 @@ export class DeviceService {
       where: { userId },
     });
   }
+  async deleteDeviceByUserId(userId: number) {
+    return this.prisma.fCM.deleteMany({
+      where: { userId },
+    });
+  }
   async update(userId: number, deviceId: string) {
     return this.prisma.fCM.updateMany({
       where: {

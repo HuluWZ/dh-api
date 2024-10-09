@@ -63,7 +63,7 @@ export class OrgInviteController {
       };
       await this.notificationService.sendNotification(message, +org.ownerId);
     }
-
+    console.log('invite', invite, device.deviceId, org.ownerId);
     return { message: 'Invitation created successfully', invite };
   }
 
@@ -109,6 +109,7 @@ export class OrgInviteController {
         );
       }
     }
+    console.log('invite', invite);
 
     return { message: 'Invitation updated successfully', invite };
   }
