@@ -42,6 +42,7 @@ export class NotificationService {
       },
     };
     try {
+      console.log('Sending message:', message, userId);
       const response = await admin.messaging().send(message);
       console.log('Successfully sent message to device:', response);
       await this.createNotification({ token, title, body, icon }, userId);
