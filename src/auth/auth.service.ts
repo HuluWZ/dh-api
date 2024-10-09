@@ -52,6 +52,7 @@ export class AuthService {
       verifyUser.id,
       verifyUser.phone,
     );
+    console.log('Device Id', verifyOtpDto.deviceId);
     await this.deviceService.create({
       userId: verifyUser.id,
       deviceId: verifyOtpDto.deviceId,
