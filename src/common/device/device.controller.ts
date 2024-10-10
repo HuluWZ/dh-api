@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   UseGuards,
+  Delete,
 } from '@nestjs/common';
 import { DeviceService } from './device.service';
 import { CreateDeviceDto, UpdateDeviceDto } from './dto/device.dto';
@@ -44,5 +45,10 @@ export class DeviceController {
     @Body() updateDeviceDto: UpdateDeviceDto,
   ) {
     return this.deviceService.update(+userId, updateDeviceDto.deviceId);
+  }
+  @Delete(':userId')
+  @ApiOperation({ summary: 'Delete Device By User Id' })
+  delete(@Param('userId') userId: string) {
+    return this.deviceService.deleteDeviceByUserId(+userId);
   }
 }

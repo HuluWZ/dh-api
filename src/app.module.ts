@@ -12,9 +12,16 @@ import { TaskModule } from './task/task.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { AdminModule } from './admin/admin.module';
 import { NotificationModule } from './notification/notification.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minute
+        limit: 45, // 45 requests
+      },
+    ]),
     ConfigAppModule,
     AuthModule,
     PrismaModule,

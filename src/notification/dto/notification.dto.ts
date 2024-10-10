@@ -1,32 +1,37 @@
 import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
-import { IsNotEmpty } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class NotificationDto {
   @ApiProperty({
-    type: String,
+    example: 'aeake#2',
     description: 'Client device token',
   })
+  @IsString()
   @IsNotEmpty()
   token: string;
 
   @ApiProperty({
-    type: String,
+    example: 'You Company Invitation Verified :fire',
     description: 'Notification Title',
   })
+  @IsString()
   @IsNotEmpty()
   title: string;
 
   @ApiProperty({
-    type: String,
+    example: 'hope you are doing well',
     description: 'Notification Body',
   })
+  @IsString()
   @IsNotEmpty()
   body: string;
 
-  @ApiPropertyOptional({
-    type: String,
+  @ApiProperty({
+    example: 'https://code.enf',
     description: 'Notification Icon / Logo',
   })
+  @IsString()
+  @IsNotEmpty()
   icon: string;
 }
 

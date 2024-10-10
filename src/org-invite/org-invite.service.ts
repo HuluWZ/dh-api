@@ -19,7 +19,7 @@ export class OrgInviteService {
       where: {
         orgId,
         inviteeId,
-        status: { not: 'Pending' },
+        status: 'Pending',
       },
     });
   }

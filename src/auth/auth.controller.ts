@@ -28,11 +28,15 @@ import {
 } from '@nestjs/swagger';
 import { AuthGuard } from './auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { DeviceService } from 'src/common/device/device.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly deviceService: DeviceService,
+  ) {}
 
   @Post('send-otp')
   @ApiOperation({ summary: 'Send OTP to phone number' })
@@ -143,6 +147,7 @@ export class AuthController {
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
+    await this.deviceService.deleteDeviceByUserId(user.id);
     return { message: 'User logged out successfully!' };
   }
 

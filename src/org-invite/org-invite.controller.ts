@@ -61,9 +61,9 @@ export class OrgInviteController {
         body: `View The Invitation from ${invitee?.firstName}. And Approve or Reject The Request`,
         icon: 'https://example.com/icon.png',
       };
-      await this.notificationService.sendNotification(message);
+      await this.notificationService.sendNotification(message, +org.ownerId);
     }
-
+    console.log('invite', invite, device.deviceId, org.ownerId);
     return { message: 'Invitation created successfully', invite };
   }
 
@@ -102,9 +102,13 @@ export class OrgInviteController {
           body: `Welcome ${getInvite.invitee.firstName}. From now on You are now a member of the organization ${getInvite.org.name}`,
           icon: 'https://example.com/icon.png',
         };
-        await this.notificationService.sendNotification(message);
+        await this.notificationService.sendNotification(
+          message,
+          +getInvite.inviteeId,
+        );
       }
     }
+    console.log('invite', invite);
 
     return { message: 'Invitation updated successfully', invite };
   }
