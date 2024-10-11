@@ -13,6 +13,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { AdminModule } from './admin/admin.module';
 import { NotificationModule } from './notification/notification.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { PrivateChatModule } from './private-chat/private-chat.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     CloudinaryModule,
     AdminModule,
     NotificationModule,
+    PrivateChatModule,
   ],
   controllers: [],
   providers: [],
