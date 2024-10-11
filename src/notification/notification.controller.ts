@@ -19,6 +19,7 @@ import {
 import { AuthGuard } from 'src/auth/auth.guard';
 
 @ApiTags('Notifications')
+@ApiTags('Notifications')
 @Controller('notifications')
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}

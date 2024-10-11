@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaExceptionFilter } from './common/prisma-exception/prisma-exception.filter';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +16,8 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+  // Use default IoAdapter for WebSocket
+  app.useWebSocketAdapter(new IoAdapter(app.getHttpServer()));
   const config = new DocumentBuilder()
     .setTitle('DH API')
     .setDescription('The DH API description')

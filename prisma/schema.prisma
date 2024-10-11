@@ -14,31 +14,33 @@ datasource db {
 }
 
 model User {
-  id             Int              @id @default(autoincrement())
-  userName       String?          @unique
-  firstName      String?
-  middleName     String?
-  lastName       String?
-  email          String?          @unique
-  phone          String           @unique
-  isActive       Boolean          @default(false)
-  isVerified     Boolean          @default(false)
-  profile        String?
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  otpCode        String?
-  otpExpiresAt   DateTime?
-  organizations  Org[]
-  orgInvite      OrgInvite[]      @relation(name: "Invitee")
-  OrgInvite      OrgInvite[]      @relation(name: "InviteOwner")
-  orgMember      OrgMember[]
-  OrgGroupMember OrgGroupMember[]
-  OrgGroupAdmin  OrgGroupAdmin[]
-  TaskAsignee    TaskAsignee[]
-  OrgGroup       OrgGroup[]
-  UserAdmin      UserAdmin[]
-  FCM            FCM[]
-  Notification   Notification[]
+  id                     Int              @id @default(autoincrement())
+  userName               String?          @unique
+  firstName              String?
+  middleName             String?
+  lastName               String?
+  email                  String?          @unique
+  phone                  String           @unique
+  isActive               Boolean          @default(false)
+  isVerified             Boolean          @default(false)
+  profile                String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  otpCode                String?
+  otpExpiresAt           DateTime?
+  organizations          Org[]
+  orgInvite              OrgInvite[]      @relation(name: "Invitee")
+  OrgInvite              OrgInvite[]      @relation(name: "InviteOwner")
+  orgMember              OrgMember[]
+  OrgGroupMember         OrgGroupMember[]
+  OrgGroupAdmin          OrgGroupAdmin[]
+  TaskAsignee            TaskAsignee[]
+  OrgGroup               OrgGroup[]
+  UserAdmin              UserAdmin[]
+  FCM                    FCM[]
+  Notification           Notification[]
+  SenderPrivateMessage   PrivateMessage[] @relation(name: "sender")
+  ReceiverPrivateMessage PrivateMessage[] @relation(name: "receiver")
 }
 
 model Industry {
@@ -224,4 +226,25 @@ model Notification {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
+}
+
+enum MessageType {
+  Text
+  Image
+  Video
+  Audio
+  File
+}
+
+model PrivateMessage {
+  id         Int         @id @default(autoincrement())
+  senderId   Int
+  receiverId Int
+  content    String
+  type       MessageType @default(Text)
+  is_seen    Boolean     @default(false)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  sender     User        @relation(name: "sender", fields: [senderId], references: [id])
+  receiver   User        @relation(name: "receiver", fields: [receiverId], references: [id])
 }
