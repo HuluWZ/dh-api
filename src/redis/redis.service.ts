@@ -23,4 +23,24 @@ export class RedisService {
   async removeUserSocket(userId: number) {
     await this.redis.del(`user:${userId}`);
   }
+  // Manage group memberships
+  async addUserToGroup(userId: number, groupId: number) {
+    await this.redis.sadd(`group:${groupId}`, userId.toString());
+  }
+
+  async getGroupMembers(groupId: number) {
+    return await this.redis.smembers(`group:${groupId}`);
+  }
+
+  async removeUserFromGroup(userId: number, groupId: number) {
+    await this.redis.srem(`group:${groupId}`, userId.toString());
+  }
+
+  async getUserGroups(userId: number) {
+    return await this.redis.smembers(`user_groups:${userId}`);
+  }
+
+  async addUserGroup(userId: number, groupId: string) {
+    await this.redis.sadd(`user_groups:${userId}`, groupId);
+  }
 }

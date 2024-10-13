@@ -41,6 +41,7 @@ model User {
   Notification           Notification[]
   SenderPrivateMessage   PrivateMessage[] @relation(name: "sender")
   ReceiverPrivateMessage PrivateMessage[] @relation(name: "receiver")
+  GroupMessage           GroupMessage[]   @relation(name: "senderGroup")
 }
 
 model Industry {
@@ -128,6 +129,7 @@ model OrgGroup {
   personal       User?            @relation(fields: [createdBy], references: [id])
   OrgGroupMember OrgGroupMember[]
   OrgGroupAdmin  OrgGroupAdmin[]
+  GroupMessage   GroupMessage[]
 }
 
 model OrgGroupMember {
@@ -247,4 +249,17 @@ model PrivateMessage {
   updatedAt  DateTime    @updatedAt
   sender     User        @relation(name: "sender", fields: [senderId], references: [id])
   receiver   User        @relation(name: "receiver", fields: [receiverId], references: [id])
+}
+
+model GroupMessage {
+  id        Int         @id @default(autoincrement())
+  senderId  Int
+  content   String
+  groupId   Int
+  type      MessageType @default(Text)
+  is_seen   Boolean     @default(false)
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  sender    User        @relation(name: "senderGroup", fields: [senderId], references: [id])
+  group     OrgGroup    @relation(fields: [groupId], references: [id])
 }

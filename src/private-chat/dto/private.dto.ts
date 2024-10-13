@@ -40,3 +40,46 @@ export class CreateGroupMessageDto {
   @IsInt()
   groupId: number;
 }
+
+export const GroupInclude = {
+  sender: {
+    select: {
+      id: true,
+      firstName: true,
+      middleName: true,
+      userName: true,
+      profile: true,
+      phone: true,
+    },
+  },
+  group: {
+    select: {
+      id: true,
+      name: true,
+      color: true,
+    },
+  },
+};
+export const PrivateInclude = {
+  sender: {
+    select: {
+      id: true,
+      firstName: true,
+      middleName: true,
+      userName: true,
+      profile: true,
+      phone: true,
+    },
+  },
+  receiver: {
+    select: {
+      id: true,
+      firstName: true,
+      middleName: true,
+      lastName: true,
+      userName: true,
+      profile: true,
+      phone: true,
+    },
+  },
+};

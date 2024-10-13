@@ -151,4 +151,16 @@ export class OrgGroupService {
       where: { id },
     });
   }
+  async getMyGroups(userId: number) {
+    const owners = await this.prisma.orgGroup.findMany({
+      where: { createdBy: userId },
+    });
+    const ownerGroup = owners.map((group) => group.id);
+    const members = await this.prisma.orgGroupMember.findMany({
+      where: { memberId: userId },
+    });
+    const memberGroup = members.map((group) => group.groupId);
+    const myGroups = Array.from(new Set([...ownerGroup, ...memberGroup]));
+    return myGroups;
+  }
 }

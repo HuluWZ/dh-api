@@ -13,15 +13,18 @@ import {
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { PrivateChatService } from './private-chat.service';
-import { CreatePrivateMessageDto } from './dto/private.dto';
+import {
+  CreateGroupMessageDto,
+  CreatePrivateMessageDto,
+} from './dto/private.dto';
 
-@ApiTags('Private Chat')
+@ApiTags('Chat')
 @ApiBearerAuth()
-@Controller('private-chat')
+@Controller('chat')
 export class PrivateChatController {
   constructor(private privateChatService: PrivateChatService) {}
 
-  @Post()
+  @Post('private-message')
   @ApiOperation({ summary: 'Send Private Message' })
   @UseGuards(AuthGuard)
   async sendPrivateMessage(
@@ -37,7 +40,7 @@ export class PrivateChatController {
     return { message: 'Message sent successfully', data: message };
   }
 
-  @Patch(':id')
+  @Patch('private-message/:id')
   @ApiOperation({ summary: 'Update Message is_seen status' })
   @UseGuards(AuthGuard)
   async updateOrgGroup(@Param('id') id: string) {
@@ -48,7 +51,7 @@ export class PrivateChatController {
     const updatedMessage = await this.privateChatService.updateMessageSeen(+id);
     return { message: 'Message status updated successfully', updatedMessage };
   }
-  @Get('my-chat-users')
+  @Get('my-private-chat-users')
   @ApiOperation({ summary: 'Get My Chat lists' })
   @UseGuards(AuthGuard)
   async getAllOrgGroups(@Req() req: any) {
@@ -57,7 +60,7 @@ export class PrivateChatController {
     return { chats };
   }
 
-  @Get(':id')
+  @Get('private/:id')
   @ApiOperation({ summary: 'Get Message By Id' })
   @UseGuards(AuthGuard)
   async getMessage(@Param('id') id: string) {
@@ -65,7 +68,7 @@ export class PrivateChatController {
     return { message };
   }
 
-  @Get('/chat/:senderId/:receiverId')
+  @Get('/private/:senderId/:receiverId')
   @ApiOperation({ summary: 'Get Private Users Chat History' })
   @UseGuards(AuthGuard)
   async getAllGroupsByOrgId(
@@ -79,11 +82,53 @@ export class PrivateChatController {
     return { message };
   }
 
-  @Delete(':id')
+  @Delete('private/:id')
   @ApiOperation({ summary: 'Delete Message By Id' })
   @UseGuards(AuthGuard)
   async deleteMessage(@Param('id') id: string) {
     const deleteMessage = await this.privateChatService.deleteMessage(+id);
     return { deleteMessage };
+  }
+  @Post('group-message')
+  @ApiOperation({ summary: 'Send Group Message' })
+  @UseGuards(AuthGuard)
+  async sendGroupMessage(
+    @Body() createGroupMessage: CreateGroupMessageDto,
+    @Req() req: any,
+  ) {
+    const userId: number = req.user.id;
+    const message = await this.privateChatService.createGroupMessage(
+      userId,
+      createGroupMessage,
+    );
+
+    return { message: 'Message sent successfully', data: message };
+  }
+  @Patch('group-message/:id')
+  @ApiOperation({ summary: 'Update Group is_seen status' })
+  @UseGuards(AuthGuard)
+  async updateGroupMessage(@Param('id') id: string) {
+    const message = await this.privateChatService.getGroupMessage(+id);
+    if (!message) {
+      throw new NotFoundException(`Message with Id #${id} not found!`);
+    }
+    const updatedMessage =
+      await this.privateChatService.updateGroupMessageSeen(+id);
+    return { message: 'Message status updated successfully', updatedMessage };
+  }
+  @Get('group-message/:id')
+  @ApiOperation({ summary: 'Get Group Message By Id' })
+  @UseGuards(AuthGuard)
+  async getGroupMessageById(@Param('id') id: string) {
+    const message = await this.privateChatService.getGroupMessage(+id);
+    return { message };
+  }
+  @Get('group-message/group/:groupId')
+  @ApiOperation({ summary: 'Get Group Message By Group Id' })
+  @UseGuards(AuthGuard)
+  async getGroupMessages(@Param('groupId') groupId: string) {
+    const GroupMessages =
+      await this.privateChatService.getGroupMessageByGroupId(+groupId);
+    return { GroupMessages };
   }
 }
