@@ -22,3 +22,21 @@ export class CreatePrivateMessageDto {
   @IsInt()
   receiverId: number;
 }
+
+export class CreateGroupMessageDto {
+  @ApiProperty({ example: 'Hello Everyone', description: 'Message Content' })
+  @IsString()
+  content: string;
+
+  @ApiProperty({
+    example: 'Text | Image | Video',
+    description: 'Message Type',
+  })
+  @IsEnum(MessageType)
+  @IsOptional()
+  type: MessageType;
+
+  @ApiProperty({ example: 1, description: 'Group Id' })
+  @IsInt()
+  groupId: number;
+}
