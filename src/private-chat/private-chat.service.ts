@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreatePrivateMessageDto } from './dto/private.dto';
+import {
+  CreateGroupMessageDto,
+  CreatePrivateMessageDto,
+  GroupInclude,
+  PrivateInclude,
+} from './dto/private.dto';
+import { group } from 'console';
 
 @Injectable()
 export class PrivateChatService {
@@ -15,29 +21,7 @@ export class PrivateChatService {
         ...createPrivateMessageDto,
         senderId,
       },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            firstName: true,
-            middleName: true,
-            userName: true,
-            profile: true,
-            phone: true,
-          },
-        },
-        receiver: {
-          select: {
-            id: true,
-            firstName: true,
-            middleName: true,
-            lastName: true,
-            userName: true,
-            profile: true,
-            phone: true,
-          },
-        },
-      },
+      include: PrivateInclude,
     });
   }
 
@@ -49,30 +33,7 @@ export class PrivateChatService {
           { senderId: receiverId, receiverId: senderId },
         ],
       },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            firstName: true,
-            middleName: true,
-            lastName: true,
-            userName: true,
-            profile: true,
-            phone: true,
-          },
-        },
-        receiver: {
-          select: {
-            id: true,
-            firstName: true,
-            middleName: true,
-            lastName: true,
-            userName: true,
-            profile: true,
-            phone: true,
-          },
-        },
-      },
+      include: PrivateInclude,
       orderBy: {
         createdAt: 'desc',
       },
@@ -166,6 +127,43 @@ export class PrivateChatService {
     return this.prisma.privateMessage.update({
       where: { id },
       data: { is_seen: true },
+    });
+  }
+  async createGroupMessage(
+    senderId: number,
+    createGroupMessage: CreateGroupMessageDto,
+  ) {
+    return this.prisma.groupMessage.create({
+      data: {
+        ...createGroupMessage,
+        senderId,
+      },
+      include: GroupInclude,
+    });
+  }
+  async getGroupMessage(id: number) {
+    return this.prisma.groupMessage.findFirst({
+      where: { id },
+      include: GroupInclude,
+    });
+  }
+  async deleteGroupMessage(id: number) {
+    return this.prisma.groupMessage.delete({ where: { id } });
+  }
+  async updateGroupMessageSeen(id: number) {
+    return this.prisma.groupMessage.update({
+      where: { id },
+      data: { is_seen: true },
+      include: GroupInclude,
+    });
+  }
+  async getGroupMessageByGroupId(groupId: number) {
+    return this.prisma.groupMessage.findMany({
+      where: { groupId },
+      include: GroupInclude,
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 }

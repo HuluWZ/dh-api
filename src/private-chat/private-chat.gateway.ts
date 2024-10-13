@@ -10,9 +10,11 @@ import {
 import { Socket, Server } from 'socket.io';
 import { PrivateChatService } from './private-chat.service';
 import { CreatePrivateMessageDto } from './dto/private.dto';
-// import { WsJwtAuthGuard } from './private-chat.guard';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { RedisService } from 'src/redis/redis.service';
+import { AuthService } from 'src/auth/auth.service';
+import { User } from '@prisma/client';
+import { PrivateChatGuard } from './private-chat.guard';
 
 @WebSocketGateway({
   cors: {
@@ -28,53 +30,55 @@ export class PrivateChatGateway
 
   constructor(
     private privateChatService: PrivateChatService,
-    private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
+    private readonly authService: AuthService,
   ) {}
 
   afterInit() {
     console.log('WebSocket Gateway Initialized');
   }
 
-  // @UseGuards(WsJwtAuthGuard) // Use WebSocket JWT Guard to get user details
   async handleConnection(@ConnectedSocket() client: Socket) {
     const token = client.handshake.auth.token?.split(' ')[1];
-    const decoded: { sub: number; phone: string } =
-      this.jwtService.verify(token);
-    if (!decoded) {
+    const resp = await this.authService.validateToken(token);
+    if (!resp) {
       throw new UnauthorizedException('Unauthorized Access');
     }
-    const { sub, phone } = decoded;
-    const user = { id: sub, phone }; // Create a new object with id and phone
+    const user = await this.authService.getMe(+resp.sub);
     client['user'] = user;
-    const userId: number = client['user'].id; // Extract userId from Auth Guard
-    this.userSocketMap.set(userId, client.id); // Store the mapping of userId to socketId
-    console.log(`Client connected:  ${userId}, SocketId: ${client.id}`);
+    if (user) {
+      await this.redisService.setUserSocket(user.id, client.id); // Store socketId
+      console.log(`Client connected:  ${user.id}, SocketId: ${client.id}`);
+    } else {
+      console.log('Unauthorized user connected');
+      client.emit('error', { message: 'Unauthorized Access' });
+      client.disconnect();
+    }
   }
 
   // On client disconnect, remove their userId from the map
-  handleDisconnect(@ConnectedSocket() client: Socket) {
-    const userId: number = client['user'].id; // Extract userId from Auth Guard
-    this.userSocketMap.delete(userId); // Remove the user from the map
-    console.log(`User disconnected: ${userId}, socketId: ${client.id}`);
+  async handleDisconnect(@ConnectedSocket() client: Socket) {
+    const user: User = client['user']; // Assuming the Auth Guard populates user
+    if (user) {
+      await this.redisService.removeUserSocket(user.id); // Remove on disconnect
+      console.log(`User disconnected: ${user.id}, socketId: ${client.id}`);
+    }
   }
 
-  // Handle sending a new message (async handling with senderId from authenticated user)
-  // Send a private message to a user
-  // @UseGuards(WsJwtAuthGuard)
+  @UseGuards(PrivateChatGuard)
   @SubscribeMessage('sendMessage')
   async handleMessage(client: Socket, payload: CreatePrivateMessageDto) {
     try {
-      // Extract the authenticated user's ID from the client object
-      const senderId: number = client['user'].id;
-      console.log({ payload });
+      const sender: User = client['user'];
       // Create the message in the service layer
       const newMessage = await this.privateChatService.createPrivateMessage(
-        senderId,
+        sender.id,
         payload,
       );
 
-      const receiverSocketId = this.userSocketMap.get(payload.receiverId);
-
+      const receiverSocketId = await this.redisService.getUserSocket(
+        payload.receiverId,
+      );
       // If the receiver is online, send the message to their socket
       if (receiverSocketId) {
         this.server.to(receiverSocketId).emit('newMessage', newMessage);
@@ -84,9 +88,6 @@ export class PrivateChatGateway
           `User ${payload.receiverId} is offline, message saved to DB`,
         );
       }
-
-      // Also send the message back to the sender to confirm it's sent
-      // client.emit('newMessage', newMessage);
     } catch (error) {
       console.error('Error sending message:', error);
       client.emit('error', { message: 'Failed to send message' });
@@ -94,7 +95,7 @@ export class PrivateChatGateway
   }
 
   // Handle fetching messages between two users (async handling)
-  // @UseGuards(WsJwtAuthGuard)
+  @UseGuards(PrivateChatGuard)
   @SubscribeMessage('findMessages')
   async handleFindMessages(client: Socket, payload: { receiverId: number }) {
     try {
@@ -112,7 +113,7 @@ export class PrivateChatGateway
   }
 
   // Handle fetching the list of users the authenticated user has chatted with
-  // @UseGuards(WsJwtAuthGuard)
+  @UseGuards(PrivateChatGuard)
   @SubscribeMessage('getMyChats')
   async handleGetMyChats(client: Socket) {
     try {
