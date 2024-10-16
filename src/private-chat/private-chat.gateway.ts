@@ -40,7 +40,7 @@ export class PrivateChatGateway
 
   async handleConnection(@ConnectedSocket() client: Socket) {
     const token = client.handshake.auth.token?.split(' ')[1];
-    console.log({ token, cl2: client.handshake });
+    console.log({ token, cl2: client.handshake.query });
     if (!token) {
       client.emit('error', { message: 'Please provide token' });
     }
