@@ -23,12 +23,21 @@ export class AuthGuard implements CanActivate {
     if (bearer.toLowerCase() !== 'bearer' || !token) {
       throw new UnauthorizedException('Invalid or Expired token');
     }
-    const resp = await this.authService.validateToken(token);
-    if (!resp) {
-      throw new UnauthorizedException('Unauthorized Access');
+    try {
+      const resp = await this.authService.validateToken(token);
+      if (!resp) {
+        throw new UnauthorizedException('Unauthorized Access');
+      }
+      const user = await this.authService.getMe(+resp.sub);
+      request.user = user;
+      return true;
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw new UnauthorizedException('Token validation failed');
+      } else {
+        // Handle other potential errors
+        throw new UnauthorizedException('Unauthorized Access');
+      }
     }
-    const user = await this.authService.getMe(+resp.sub);
-    request.user = user;
-    return true;
   }
 }
