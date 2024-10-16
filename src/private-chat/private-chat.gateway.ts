@@ -40,17 +40,14 @@ export class PrivateChatGateway
 
   async handleConnection(@ConnectedSocket() client: Socket) {
     const token = client.handshake.auth.token?.split(' ')[1];
-    console.log(token, client);
     if (!token) {
       client.emit('error', { message: 'Please provide token' });
     }
     const resp = await this.authService.validateToken(token);
-    console.log(resp);
     if (!resp) {
       client.emit('error', { message: 'Unauthorized Access' });
     }
     const user = await this.authService.getMe(+resp.sub);
-    console.log(user);
     client['user'] = user;
     if (user) {
       await this.redisService.setUserSocket(user.id, client.id); // Store socketId
