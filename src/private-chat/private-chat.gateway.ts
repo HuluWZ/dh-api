@@ -50,6 +50,7 @@ export class PrivateChatGateway
       client.emit('error', { message: 'Unauthorized Access' });
     }
     const user = await this.authService.getMe(+resp.sub);
+    console.log(user);
     client['user'] = user;
     if (user) {
       await this.redisService.setUserSocket(user.id, client.id); // Store socketId
