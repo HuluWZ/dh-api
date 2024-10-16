@@ -39,10 +39,11 @@ export class PrivateChatGateway
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {
-    const token = client.handshake.auth.token?.split(' ')[1];
+    const token =
+      client.handshake.auth.token?.split(' ')[1] ??
+      (client.handshake.query.token as string).split(' ')[1];
     console.log({
       token,
-      cl2: client.handshake.query,
       t: client.handshake.query.token,
     });
     if (!token) {
