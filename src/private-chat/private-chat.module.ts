@@ -5,9 +5,10 @@ import { PrivateChatController } from './private-chat.controller';
 import { JwtModule } from '@nestjs/jwt';
 import { AuthModule } from 'src/auth/auth.module';
 import { RedisService } from 'src/redis/redis.service';
+import { OrgGroupModule } from 'src/org-group/org-group.module';
 
 @Module({
-  imports: [JwtModule, AuthModule],
+  imports: [JwtModule, AuthModule, OrgGroupModule],
   controllers: [PrivateChatController],
   providers: [PrivateChatGateway, PrivateChatService, RedisService],
 })

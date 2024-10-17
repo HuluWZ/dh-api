@@ -9,12 +9,16 @@ import {
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { PrivateChatService } from './private-chat.service';
-import { CreatePrivateMessageDto } from './dto/private.dto';
+import {
+  CreateGroupMessageDto,
+  CreatePrivateMessageDto,
+} from './dto/private.dto';
 import { UnauthorizedException, UseGuards } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
 import { AuthService } from 'src/auth/auth.service';
 import { User } from '@prisma/client';
 import { PrivateChatGuard } from './private-chat.guard';
+import { OrgGroupService } from 'src/org-group/org-group.service';
 
 @WebSocketGateway({
   cors: {
@@ -32,6 +36,7 @@ export class PrivateChatGateway
     private privateChatService: PrivateChatService,
     private readonly redisService: RedisService,
     private readonly authService: AuthService,
+    private readonly orgGroupService: OrgGroupService,
   ) {}
 
   afterInit() {
@@ -42,10 +47,6 @@ export class PrivateChatGateway
     const token =
       client.handshake.auth.token?.split(' ')[1] ??
       (client.handshake.query.token as string).split(' ')[1];
-    console.log({
-      token,
-      t: client.handshake.query.token,
-    });
     if (!token) {
       client.emit('error', { message: 'Please provide token' });
     }
@@ -57,6 +58,11 @@ export class PrivateChatGateway
     client['user'] = user;
     if (user) {
       await this.redisService.setUserSocket(user.id, client.id); // Store socketId
+      const groupIds = await this.orgGroupService.getMyGroups(user.id);
+      groupIds.forEach((groupId) => {
+        client.join(`group:${groupId}`);
+        console.log(`User ${user.id} joined group ${groupId}`);
+      });
       console.log(`Client connected:  ${user.id}, SocketId: ${client.id}`);
     } else {
       console.log('Unauthorized user connected');
@@ -100,6 +106,26 @@ export class PrivateChatGateway
     } catch (error) {
       console.error('Error sending message:', error);
       client.emit('error', { message: 'Failed to send message' });
+    }
+  }
+  @UseGuards(PrivateChatGuard)
+  @SubscribeMessage('sendGroupMessage')
+  async handleGroupMessage(client: Socket, payload: CreateGroupMessageDto) {
+    try {
+      const sender: User = client['user'];
+      const groupMessage = await this.privateChatService.createGroupMessage(
+        sender.id,
+        payload,
+      );
+      this.server
+        .to(`group:${payload.groupId}`)
+        .emit('newGroupMessage', groupMessage);
+      console.log(
+        `Group message sent to group ${payload.groupId} from ${sender.firstName} ${sender.middleName}.`,
+      );
+    } catch (error) {
+      console.error('Error sending group message:', error);
+      client.emit('error', { message: 'Failed to send group message' });
     }
   }
 
