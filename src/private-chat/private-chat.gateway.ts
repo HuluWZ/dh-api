@@ -47,10 +47,6 @@ export class PrivateChatGateway
     const token =
       client.handshake.auth.token?.split(' ')[1] ??
       (client.handshake.query.token as string).split(' ')[1];
-    console.log({
-      token,
-      t: client.handshake.query.token,
-    });
     if (!token) {
       client.emit('error', { message: 'Please provide token' });
     }
