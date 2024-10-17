@@ -44,10 +44,19 @@ export class PrivateChatGateway
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {
-    const token = client.handshake.auth.token?.split(' ')[1];
+    const token =
+      client.handshake.auth.token?.split(' ')[1] ??
+      (client.handshake.query.token as string).split(' ')[1];
+    console.log({
+      token,
+      t: client.handshake.query.token,
+    });
+    if (!token) {
+      client.emit('error', { message: 'Please provide token' });
+    }
     const resp = await this.authService.validateToken(token);
     if (!resp) {
-      throw new UnauthorizedException('Unauthorized Access');
+      client.emit('error', { message: 'Unauthorized Access' });
     }
     const user = await this.authService.getMe(+resp.sub);
     client['user'] = user;
