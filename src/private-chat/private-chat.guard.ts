@@ -12,7 +12,12 @@ export class PrivateChatGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = context.switchToWs();
     const client = ctx.getClient();
-    const token = client.handshake.auth.token?.split(' ')[1];
+    const token =
+      client.handshake.auth.token?.split(' ')[1] ??
+      (client.handshake.query.token as string).split(' ')[1];
+    if (!token) {
+      throw new UnauthorizedException('Token not provided');
+    }
     const resp = await this.authService.validateToken(token);
     if (!resp) {
       throw new UnauthorizedException('Unauthorized Access');
