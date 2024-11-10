@@ -11,10 +11,16 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { NotificationService } from './notification.service';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   MultipleDeviceNotificationDto,
   NotificationDto,
+  NotificationType,
 } from './dto/notification.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 
@@ -47,14 +53,26 @@ export class NotificationController {
     summary:
       'Get all My notifications set seen to one of [all, true and false] value',
   })
-  async getMyNotifications(@Req() req: any, @Query('seen') seen: string) {
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    enum: NotificationType,
+    description: 'Filter notifications by type',
+  })
+  async getMyNotifications(
+    @Req() req: any,
+    @Query('seen') seen: string,
+    @Query('type') type: NotificationType,
+  ) {
     const seenValue =
       seen.toLowerCase() === 'all'
         ? null
         : seen.toLowerCase() === 'true'
           ? true
           : false;
-    return this.notificationService.getMyNotifications(1, seenValue);
+    const typeValue = type ? type : null;
+
+    return this.notificationService.getMyNotifications(1, seenValue, typeValue);
   }
 
   @Get(':id')

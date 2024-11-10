@@ -1,5 +1,12 @@
-import { ApiProperty, ApiPropertyOptional, PickType } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ApiProperty, PickType } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+export enum NotificationType {
+  Task = 'Task',
+  Communication = 'Communication',
+  System = 'System',
+  Others = 'Others',
+}
 
 export class NotificationDto {
   @ApiProperty({
@@ -33,12 +40,22 @@ export class NotificationDto {
   @IsString()
   @IsNotEmpty()
   icon: string;
+
+  @ApiProperty({
+    example: 'Task / Communication / System / Others',
+    description: 'Notification Type',
+    enum: NotificationType,
+  })
+  @IsEnum(NotificationType)
+  @IsOptional()
+  type?: NotificationType;
 }
 
 export class MultipleDeviceNotificationDto extends PickType(NotificationDto, [
   'title',
   'body',
   'icon',
+  'type',
 ]) {
   @ApiProperty({
     type: String,

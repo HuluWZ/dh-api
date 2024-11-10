@@ -7,6 +7,7 @@ import {
   MultipleDeviceNotificationDto,
   NotificationDto,
 } from './dto/notification.dto';
+import { NotificationType } from '@prisma/client';
 
 @Injectable()
 export class NotificationService {
@@ -57,12 +58,14 @@ export class NotificationService {
     tokens,
     title,
     body,
+    type,
     icon,
   }: MultipleDeviceNotificationDto) {
     const message = {
       notification: {
         title,
         body,
+        type,
         icon,
       },
       tokens,
@@ -81,10 +84,14 @@ export class NotificationService {
     }
   }
 
-  async getMyNotifications(userId: number, is_seen: boolean | null) {
+  async getMyNotifications(
+    userId: number,
+    is_seen: boolean | null,
+    type: NotificationType,
+  ) {
     const condition = is_seen === null ? { userId } : { userId, is_seen };
     return this.prismaService.notification.findMany({
-      where: { ...condition },
+      where: { ...condition, type },
       include: {
         user: {
           select: {
