@@ -14,12 +14,17 @@ import { OrgService } from './org.service';
 import { CreateOrgDto, UpdateOrgDto } from './dto/org.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { OrgMemberService } from 'src/org-member/org-member.service';
+import { OrgMemberStatus } from 'src/org-member/dto/org-member.dto';
 @ApiTags('Organization')
 @ApiBearerAuth()
 @Controller('organization')
 export class OrgController {
   private readonly bucketName = 'private';
-  constructor(private readonly orgService: OrgService) {}
+  constructor(
+    private readonly orgService: OrgService,
+    private readonly orgMemberService: OrgMemberService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create Organization' })
@@ -36,11 +41,24 @@ export class OrgController {
     // }
 
     const ownerId = req.user.id;
+    const { members, ...createOrgDtoData } = createOrgDto;
     const organization = await this.orgService.createOrg(
       ownerId,
-      createOrgDto,
+      createOrgDtoData,
       logoUrl,
     );
+    const membersToAdd = members.filter((memberId) => memberId !== ownerId);
+    if (membersToAdd.length) {
+      await Promise.all(
+        membersToAdd.map((memberId) =>
+          this.orgMemberService.addMember({
+            orgId: organization.id,
+            memberId,
+            role: OrgMemberStatus.Member,
+          }),
+        ),
+      );
+    }
 
     return { message: 'Organization created successfully', org: organization };
   }

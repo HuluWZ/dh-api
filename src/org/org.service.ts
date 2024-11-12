@@ -13,7 +13,7 @@ export class OrgService {
 
   async createOrg(
     ownerId: number,
-    createOrgDto: CreateOrgDto,
+    createOrgDto: Omit<CreateOrgDto, 'members'>,
     logoUrl?: string,
   ) {
     return this.prisma.org.create({

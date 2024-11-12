@@ -3,9 +3,10 @@ import { OrgController } from './org.controller';
 import { OrgService } from './org.service';
 import { AuthModule } from 'src/auth/auth.module';
 import { JwtModule } from '@nestjs/jwt';
+import { OrgMemberModule } from 'src/org-member/org-member.module';
 
 @Module({
-  imports: [AuthModule, JwtModule],
+  imports: [AuthModule, JwtModule, OrgMemberModule],
   controllers: [OrgController],
   providers: [OrgService],
   exports: [OrgService],

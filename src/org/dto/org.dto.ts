@@ -1,5 +1,11 @@
-import { IsInt, IsString } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import {
+  IsArray,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 
 export class CreateOrgDto {
   @ApiProperty({ example: 'Zay Ride PLC', description: 'Organization Name' })
@@ -15,7 +21,19 @@ export class CreateOrgDto {
     description: 'Organization Region/Address',
   })
   @IsInt()
-  regionId: number;
+  @IsOptional()
+  regionId?: number;
+  @ApiPropertyOptional({
+    example: [1, 2, 3],
+    description: 'Array of Member IDs',
+    type: [Number],
+  })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  members?: number[];
 }
 
-export class UpdateOrgDto extends PartialType(CreateOrgDto) {}
+export class UpdateOrgDto extends OmitType(CreateOrgDto, [
+  'members',
+] as const) {}
