@@ -56,6 +56,7 @@ export class AuthController {
     return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,
+      sessionId: result.sessionId,
       user: result.user,
       isActive: result.isActive,
     };
