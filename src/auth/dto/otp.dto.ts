@@ -27,4 +27,12 @@ export class VerifyOtpDto {
   @IsNotEmpty()
   @IsString()
   deviceId: string;
+
+  @ApiProperty({
+    example: 'IOS Or Android',
+    description: 'Platform',
+  })
+  @IsNotEmpty()
+  @IsString()
+  platform: string;
 }

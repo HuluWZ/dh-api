@@ -21,7 +21,6 @@ import { formatPhone } from 'phone-formater-eth';
 import { User } from '@prisma/client';
 import {
   ApiBearerAuth,
-  ApiBody,
   ApiConsumes,
   ApiOperation,
   ApiTags,
@@ -51,8 +50,9 @@ export class AuthController {
 
   @Post('verify-otp')
   @ApiOperation({ summary: 'Verify OTP and get access token' })
-  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
-    const result = await this.authService.verifyOtp(verifyOtpDto);
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto, @Req() req: any) {
+    const ip = req.ip as string;
+    const result = await this.authService.verifyOtp(verifyOtpDto, ip);
     return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,

@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { DeviceService } from 'src/common/device/device.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +21,7 @@ export class AuthService {
     private readonly authJwtService: JwtService,
     private readonly cloudinaryService: CloudinaryService,
     private readonly deviceService: DeviceService,
+    private readonly redisService: RedisService,
   ) {}
   async sendOtp(sendOtpDto: SendOtpDto): Promise<void> {
     const formattedPhone = formatPhone(sendOtpDto.phone);
@@ -30,7 +32,7 @@ export class AuthService {
     await this.otpService.sendOtp(formattedPhone);
   }
 
-  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
+  async verifyOtp(verifyOtpDto: VerifyOtpDto, ip?: string) {
     const formattedPhone = formatPhone(verifyOtpDto.phone);
     const user = await this.prisma.user.findUnique({
       where: { phone: formattedPhone },
@@ -58,7 +60,20 @@ export class AuthService {
       deviceId: verifyOtpDto.deviceId,
     });
     const refreshToken = await this.generateRefreshToken(verifyUser.id);
-    return { accessToken, refreshToken, user: verifyUser, isActive: true };
+    const sessionId = await this.redisService.createUserSession(
+      verifyUser.id.toString(),
+      verifyOtpDto.platform,
+      verifyOtpDto.deviceId,
+      verifyOtpDto.otpCode,
+      ip,
+    );
+    return {
+      accessToken,
+      refreshToken,
+      sessionId,
+      user: verifyUser,
+      isActive: true,
+    };
   }
 
   async completeProfile(

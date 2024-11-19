@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { OtpService } from './otp/otp.service';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { DeviceService } from 'src/common/device/device.service';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports: [
@@ -17,7 +18,13 @@ import { DeviceService } from 'src/common/device/device.service';
       signOptions: { expiresIn: process.env.REFRESH_JWT_EXPIRATION },
     }),
   ],
-  providers: [AuthService, OtpService, CloudinaryService, DeviceService],
+  providers: [
+    AuthService,
+    OtpService,
+    CloudinaryService,
+    DeviceService,
+    RedisService,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })
