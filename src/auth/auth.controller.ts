@@ -50,9 +50,8 @@ export class AuthController {
 
   @Post('verify-otp')
   @ApiOperation({ summary: 'Verify OTP and get access token' })
-  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto, @Req() req: any) {
-    const ip = req.ip as string;
-    const result = await this.authService.verifyOtp(verifyOtpDto, ip);
+  async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
+    const result = await this.authService.verifyOtp(verifyOtpDto);
     return {
       accessToken: result.accessToken,
       refreshToken: result.refreshToken,

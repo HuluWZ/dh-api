@@ -15,6 +15,7 @@ import { NotificationModule } from './notification/notification.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { PrivateChatModule } from './private-chat/private-chat.module';
 import { RedisService } from './redis/redis.service';
+import { SessionModule } from './session/session.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { RedisService } from './redis/redis.service';
     AdminModule,
     NotificationModule,
     PrivateChatModule,
+    SessionModule,
   ],
   controllers: [],
   providers: [RedisService],

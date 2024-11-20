@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsPhoneNumber, IsString, Length } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsPhoneNumber,
+  IsString,
+  Length,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class SendOtpDto {
@@ -35,4 +41,12 @@ export class VerifyOtpDto {
   @IsNotEmpty()
   @IsString()
   platform: string;
+
+  @ApiProperty({
+    example: 'Samsung S20',
+    description: 'Model',
+  })
+  @IsOptional()
+  @IsString()
+  model?: string;
 }

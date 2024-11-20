@@ -32,7 +32,7 @@ export class AuthService {
     await this.otpService.sendOtp(formattedPhone);
   }
 
-  async verifyOtp(verifyOtpDto: VerifyOtpDto, ip?: string) {
+  async verifyOtp(verifyOtpDto: VerifyOtpDto) {
     const formattedPhone = formatPhone(verifyOtpDto.phone);
     const user = await this.prisma.user.findUnique({
       where: { phone: formattedPhone },
@@ -64,8 +64,7 @@ export class AuthService {
       verifyUser.id.toString(),
       verifyOtpDto.platform,
       verifyOtpDto.deviceId,
-      verifyOtpDto.otpCode,
-      ip,
+      verifyOtpDto.model,
     );
     return {
       accessToken,
