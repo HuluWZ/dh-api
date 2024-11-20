@@ -55,7 +55,6 @@ export class RedisService {
     platform: string,
     device_id: string,
     model?: string,
-    ip?: string,
   ) {
     const sessionId = generateShortSessionId();
     const sessionKey = `user_sessions:${userId}:${sessionId}`;
@@ -66,7 +65,6 @@ export class RedisService {
       platform,
       model,
       device_id,
-      ip,
     };
 
     await this.redis.hset(sessionKey, sessionData);

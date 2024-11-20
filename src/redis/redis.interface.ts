@@ -4,7 +4,6 @@ type User_Session = {
   platform: string;
   device_id: string;
   model?: string;
-  ip?: string;
 };
 
 export type Session = User_Session;
