@@ -89,8 +89,23 @@ export class RedisService {
     return sessionData;
   }
 
-  async getUserSessions(userId: string): Promise<string[]> {
-    return await this.redis.keys(`user_sessions:${userId}:*`);
+  async getUserSessions(userId: string) {
+    const keys = await this.redis.keys(`user_sessions:${userId}:*`);
+    if (keys.length === 0) {
+      return {};
+    }
+    const sessions = {};
+    await Promise.all(
+      keys.map(async (key) => {
+        const sessionData = await this.redis.hgetall(key);
+        sessions[key] = sessionData;
+      }),
+    );
+    return sessions;
+  }
+
+  async getSessionUser(sessionId: string): Promise<string[]> {
+    return await this.redis.keys(`user_sessions:*:${sessionId}`);
   }
 
   async deleteUserSession(userId: string, sessionId: string): Promise<void> {
@@ -100,7 +115,7 @@ export class RedisService {
 
   async deleteAllUserSessions(userId: string): Promise<void> {
     try {
-      const keys = await this.getUserSessions(userId);
+      const keys = await this.redis.keys(`user_sessions:${userId}:*`);
       const formattedKeys = keys.map((k) => `user_sessions:${userId}:${k}`);
       await this.redis.del(formattedKeys);
     } catch (error) {

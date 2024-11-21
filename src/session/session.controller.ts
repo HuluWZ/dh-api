@@ -14,7 +14,9 @@ export class SessionController {
   @UseGuards(AuthGuard)
   async getMySessions(@Req() req: any) {
     const userId = req.user.id;
-    return this.redisService.getUserSessions(userId);
+    const user = req.user;
+    const sessions = await this.redisService.getUserSessions(userId);
+    return { user, sessions };
   }
   @Get(':sessionId')
   @ApiOperation({ summary: 'Get My Session By  Session Id' })
