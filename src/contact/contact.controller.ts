@@ -59,6 +59,13 @@ export class ContactController {
     const myContacts = await this.contactService.getMyContacts(userId);
     return { myContacts };
   }
+  @Get('search')
+  @ApiOperation({ summary: 'Search My Contact' })
+  @UseGuards(AuthGuard)
+  async searchOrgs(@Query('search') search: string, @Req() req: any) {
+    const userId: number = req.user.id;
+    return this.contactService.searchMyContacts(userId, search);
+  }
 
   @Get(':contactId')
   @ApiOperation({ summary: 'Get Contact By Id' })
@@ -70,14 +77,6 @@ export class ContactController {
       +contactId,
     );
     return { contact };
-  }
-
-  @Get('search')
-  @ApiOperation({ summary: 'Search My Contact' })
-  @UseGuards(AuthGuard)
-  async searchOrgs(@Query('search') search: string, @Req() req: any) {
-    const userId: number = req.user.id;
-    return this.contactService.searchMyContacts(userId, search);
   }
 
   @Delete(':contactId')

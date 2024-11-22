@@ -62,13 +62,15 @@ export class ContactService {
     return this.prisma.userContact.findMany({
       where: {
         userId,
-        contact: {
-          OR: [
-            { phone: { startsWith: name, mode: 'insensitive' } },
-            { phone: { contains: name, mode: 'insensitive' } },
-          ],
-        },
         OR: [
+          {
+            contact: {
+              OR: [
+                { phone: { startsWith: name, mode: 'insensitive' } },
+                { phone: { contains: name, mode: 'insensitive' } },
+              ],
+            },
+          },
           { firstName: { startsWith: name, mode: 'insensitive' } },
           { lastName: { startsWith: name, mode: 'insensitive' } },
           { company: { startsWith: name, mode: 'insensitive' } },
