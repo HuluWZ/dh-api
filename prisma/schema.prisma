@@ -42,6 +42,7 @@ model User {
   SenderPrivateMessage   PrivateMessage[] @relation(name: "sender")
   ReceiverPrivateMessage PrivateMessage[] @relation(name: "receiver")
   GroupMessage           GroupMessage[]   @relation(name: "senderGroup")
+  UserContact            UserContact[]
 }
 
 model Industry {
@@ -270,4 +271,30 @@ model GroupMessage {
   updatedAt DateTime    @updatedAt
   sender    User        @relation(name: "senderGroup", fields: [senderId], references: [id])
   group     OrgGroup    @relation(fields: [groupId], references: [id])
+}
+
+model Contact {
+  id          Int           @id @default(autoincrement())
+  phone       String
+  createdAt   DateTime      @default(now())
+  UserContact UserContact[]
+
+  @@unique([phone])
+  @@index([phone])
+}
+
+model UserContact {
+  userId    Int
+  contactId Int
+  firstName String
+  lastName  String?
+  company   String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  owner     User     @relation(fields: [userId], references: [id])
+  contact   Contact  @relation(fields: [contactId], references: [id])
+
+  @@unique([userId, contactId])
+  @@index([userId, contactId])
 }

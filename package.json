@@ -48,6 +48,7 @@
     "nestjs-minio-client": "^2.2.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "phone": "^3.1.53",
     "phone-formater-eth": "^1.1.8",
     "redis": "^4.7.0",
     "reflect-metadata": "^0.2.2",

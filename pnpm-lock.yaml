@@ -74,6 +74,9 @@ dependencies:
   passport-jwt:
     specifier: ^4.0.1
     version: 4.0.1
+  phone:
+    specifier: ^3.1.53
+    version: 3.1.53
   phone-formater-eth:
     specifier: ^1.1.8
     version: 1.1.8
@@ -5711,6 +5714,11 @@ packages:
 
   /phone-formater-eth@1.1.8:
     resolution: {integrity: sha512-DlhrikSR8SRpEwyvBHsVb9RB/l1sXNHWc9nBuogkiGglZPhK2dd0cwZk4AeqUA5EbckX92smp9fjT8vvFHwRbQ==}
+    dev: false
+
+  /phone@3.1.53:
+    resolution: {integrity: sha512-+0sMjlxjcm1rjUDRLzXW06vRg/SePwa+MubuSt9WhHoUziGrGHjuC/tfFYfh2oXKU/dcckwCyMUMDAOaVArb6w==}
+    engines: {node: '>=12'}
     dev: false
 
   /picocolors@1.1.1:

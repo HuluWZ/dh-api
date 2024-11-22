@@ -16,6 +16,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { PrivateChatModule } from './private-chat/private-chat.module';
 import { RedisService } from './redis/redis.service';
 import { SessionModule } from './session/session.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { SessionModule } from './session/session.module';
     NotificationModule,
     PrivateChatModule,
     SessionModule,
+    ContactModule,
   ],
   controllers: [],
   providers: [RedisService],
