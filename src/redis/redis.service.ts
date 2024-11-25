@@ -122,8 +122,8 @@ export class RedisService {
       console.error(error);
     }
   }
-  async setLastSeen(userId: string) {
-    await this.redis.set(`last_seen:${userId}`, Date.now());
+  async setLastSeen(userId: string, timestamp: string) {
+    await this.redis.set(`last_seen:${userId}`, timestamp);
   }
   async getLastSeen(userId: string) {
     return await this.redis.get(`last_seen:${userId}`);
