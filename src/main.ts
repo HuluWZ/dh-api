@@ -4,6 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaExceptionFilter } from './common/prisma-exception/prisma-exception.filter';
 import { IoAdapter } from '@nestjs/platform-socket.io';
+import { UpdateLastSeenMiddleware } from './update-last-seen.middleware';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -11,6 +12,7 @@ async function bootstrap() {
   });
   app.enableCors();
   app.useGlobalFilters(new PrismaExceptionFilter());
+  app.use(UpdateLastSeenMiddleware);
 
   app.useGlobalPipes(
     new ValidationPipe({

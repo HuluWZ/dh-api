@@ -14,23 +14,25 @@ datasource db {
 }
 
 model User {
-  id                     Int              @id @default(autoincrement())
-  userName               String?          @unique
+  id                     Int                   @id @default(autoincrement())
+  userName               String?               @unique
   firstName              String?
   middleName             String?
   lastName               String?
-  email                  String?          @unique
-  phone                  String           @unique
-  isActive               Boolean          @default(false)
-  isVerified             Boolean          @default(false)
+  email                  String?               @unique
+  phone                  String                @unique
+  isActive               Boolean               @default(false)
+  isVerified             Boolean               @default(false)
+  lastSeenVisibility     ProfileVisibilityType @default(Everybody)
+  phoneVisibility        ProfileVisibilityType @default(MyContacts)
   profile                String?
-  createdAt              DateTime         @default(now())
-  updatedAt              DateTime         @updatedAt
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
   otpCode                String?
   otpExpiresAt           DateTime?
   organizations          Org[]
-  orgInvite              OrgInvite[]      @relation(name: "Invitee")
-  OrgInvite              OrgInvite[]      @relation(name: "InviteOwner")
+  orgInvite              OrgInvite[]           @relation(name: "Invitee")
+  OrgInvite              OrgInvite[]           @relation(name: "InviteOwner")
   orgMember              OrgMember[]
   OrgGroupMember         OrgGroupMember[]
   OrgGroupAdmin          OrgGroupAdmin[]
@@ -39,9 +41,9 @@ model User {
   UserAdmin              UserAdmin[]
   FCM                    FCM[]
   Notification           Notification[]
-  SenderPrivateMessage   PrivateMessage[] @relation(name: "sender")
-  ReceiverPrivateMessage PrivateMessage[] @relation(name: "receiver")
-  GroupMessage           GroupMessage[]   @relation(name: "senderGroup")
+  SenderPrivateMessage   PrivateMessage[]      @relation(name: "sender")
+  ReceiverPrivateMessage PrivateMessage[]      @relation(name: "receiver")
+  GroupMessage           GroupMessage[]        @relation(name: "senderGroup")
   UserContact            UserContact[]
 }
 
@@ -297,4 +299,10 @@ model UserContact {
 
   @@unique([userId, contactId])
   @@index([userId, contactId])
+}
+
+enum ProfileVisibilityType {
+  Everybody
+  Nobody
+  MyContacts
 }

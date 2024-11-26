@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsOptional } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 
 export class CreateContactDto {
   @ApiProperty({
@@ -32,4 +32,6 @@ export class CreateContactDto {
   address?: string;
 }
 
-export class UpdateContactDto extends PartialType(CreateContactDto) {}
+export class UpdateContactDto extends OmitType(CreateContactDto, [
+  'phone',
+] as const) {}

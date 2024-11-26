@@ -1,5 +1,17 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+
+export enum ProfileVisibilityType {
+  Everybody = 'Everybody',
+  Nobody = 'Nobody',
+  MyContacts = 'MyContacts',
+}
 
 export class CompleteProfileDto {
   @ApiProperty({ example: 'John', description: 'First Name' })
@@ -34,4 +46,20 @@ export class CompleteProfileDto {
   })
   @IsOptional()
   file?: Express.Multer.File;
+
+  @ApiProperty({
+    example: 'Everybody / Nobody / MyContacts',
+    description: 'Phone Visibility',
+  })
+  @IsEnum(ProfileVisibilityType)
+  @IsOptional()
+  phoneVisibility: ProfileVisibilityType;
+
+  @ApiProperty({
+    example: 'Everybody / Nobody / MyContacts',
+    description: 'Last Seen Visibility',
+  })
+  @IsEnum(ProfileVisibilityType)
+  @IsOptional()
+  lastSeenVisibility: ProfileVisibilityType;
 }

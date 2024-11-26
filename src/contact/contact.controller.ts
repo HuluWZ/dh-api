@@ -67,6 +67,17 @@ export class ContactController {
     return this.contactService.searchMyContacts(userId, search);
   }
 
+  @Get(':targetUserId')
+  @ApiOperation({ summary: 'Get Last Seen for User' })
+  @UseGuards(AuthGuard)
+  async getUserLastSeen(
+    @Param('targetUserId') targetUserId: string,
+    @Req() req: any,
+  ) {
+    const userId = req.user.id;
+    return this.contactService.getLastSeen(userId, targetUserId);
+  }
+
   @Get(':contactId')
   @ApiOperation({ summary: 'Get Contact By Id' })
   @UseGuards(AuthGuard)

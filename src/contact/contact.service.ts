@@ -7,10 +7,15 @@ import {
 import { PrismaService } from 'src/prisma';
 import { CreateContactDto, UpdateContactDto } from './dto/contact.dto';
 import phone from 'phone';
+import { RedisService } from 'src/redis/redis.service';
+import { ProfileVisibilityType } from 'src/auth/dto/complete-profile.dto';
 
 @Injectable()
 export class ContactService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly redisService: RedisService,
+  ) {}
 
   async createOrFindContact(phone: string) {
     const contact = await this.prisma.contact.upsert({
@@ -106,12 +111,56 @@ export class ContactService {
     if (!contact) {
       throw new NotFoundException('Contact Not Found');
     }
-    const { phone, ...update } = updateContact;
     return this.prisma.userContact.update({
       where: { userId_contactId: { userId, contactId } },
       data: {
-        ...update,
+        ...updateContact,
       },
     });
+  }
+  async setLastSeen(userId: string, timestamp: Date) {
+    await this.redisService.setLastSeen(userId, timestamp.toISOString());
+  }
+
+  async getLastSeen(viewerId: string, targetUserId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: +targetUserId },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const visibility = user.lastSeenVisibility;
+
+    if (visibility === ProfileVisibilityType.Everybody) {
+      return this.redisService.getLastSeen(targetUserId.toString());
+    }
+
+    if (visibility === ProfileVisibilityType.Nobody) {
+      return null;
+    }
+
+    if (visibility === ProfileVisibilityType.MyContacts) {
+      const contact = await this.prisma.contact.findUnique({
+        where: { phone: user.phone },
+      });
+      if (!contact) {
+        return null;
+      }
+      const isContact = await this.prisma.userContact.findUnique({
+        where: {
+          userId_contactId: {
+            userId: +viewerId,
+            contactId: contact.id,
+          },
+        },
+      });
+      if (isContact) {
+        return this.redisService.getLastSeen(targetUserId);
+      }
+    }
+
+    return null;
   }
 }
