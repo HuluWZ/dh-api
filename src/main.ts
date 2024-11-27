@@ -12,7 +12,6 @@ async function bootstrap() {
   });
   app.enableCors();
   app.useGlobalFilters(new PrismaExceptionFilter());
-  app.use(UpdateLastSeenMiddleware);
 
   app.useGlobalPipes(
     new ValidationPipe({

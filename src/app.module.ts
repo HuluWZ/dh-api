@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { CommonModule } from './common/common.module';
@@ -17,6 +17,7 @@ import { PrivateChatModule } from './private-chat/private-chat.module';
 import { RedisService } from './redis/redis.service';
 import { SessionModule } from './session/session.module';
 import { ContactModule } from './contact/contact.module';
+import { UpdateLastSeenMiddleware } from './update-last-seen.middleware';
 
 @Module({
   imports: [
@@ -46,4 +47,8 @@ import { ContactModule } from './contact/contact.module';
   controllers: [],
   providers: [RedisService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(UpdateLastSeenMiddleware).forRoutes('*');
+  }
+}
