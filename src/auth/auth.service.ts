@@ -1,17 +1,19 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpService } from './otp/otp.service';
-import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
+import { SendOtpDto, VerifyOtpDto, verifyPhoneChange } from './dto/otp.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { JwtService } from '@nestjs/jwt';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { DeviceService } from 'src/common/device/device.service';
 import { RedisService } from 'src/redis/redis.service';
+import phone from 'phone';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +32,11 @@ export class AuthService {
     }
 
     await this.otpService.sendOtp(formattedPhone);
+  }
+  async findUserByPhone(phone: string) {
+    return this.prisma.user.findUnique({
+      where: { phone },
+    });
   }
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto) {
@@ -168,6 +175,48 @@ export class AuthService {
     return this.authJwtService.sign(payload, {
       secret: process.env.REFRESH_JWT_SECRET,
       expiresIn: process.env.REFRESH_JWT_EXPIRATION,
+    });
+  }
+  async requestPhoneChange(userId: number, phone: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.phone === phone) {
+      throw new BadRequestException('Phone number is the same');
+    }
+    const otpCode = this.otpService.generateOtp();
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000); // OTP expires in 10 minutes
+
+    await this.prisma.phoneChangeRequests.create({
+      data: { userId, phone, otpCode, otpExpiresAt },
+    });
+  }
+  async verifyPhoneChange(
+    userId: number,
+    verifyPhoneChange: verifyPhoneChange,
+  ) {
+    const { phone, otpCode } = verifyPhoneChange;
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const phoneChangeRequest = await this.prisma.phoneChangeRequests.findFirst({
+      where: { userId, phone, otpCode },
+    });
+    if (!phoneChangeRequest || phoneChangeRequest.otpExpiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired OTP');
+    }
+    await this.prisma.phoneChangeRequests.deleteMany({
+      where: { userId },
+    });
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { phone },
     });
   }
 }

@@ -45,6 +45,7 @@ model User {
   ReceiverPrivateMessage PrivateMessage[]      @relation(name: "receiver")
   GroupMessage           GroupMessage[]        @relation(name: "senderGroup")
   UserContact            UserContact[]
+  PhoneChangeRequests    PhoneChangeRequests[]
 }
 
 model Industry {
@@ -305,4 +306,16 @@ enum ProfileVisibilityType {
   Everybody
   Nobody
   MyContacts
+}
+
+model PhoneChangeRequests {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  phone        String
+  otpCode      String
+  otpExpiresAt DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }

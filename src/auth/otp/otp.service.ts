@@ -6,7 +6,7 @@ import { formatPhone } from 'phone-formater-eth'; // Phone number validation lib
 export class OtpService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private generateOtp(): string {
+  generateOtp(): string {
     return '1234';
   }
 

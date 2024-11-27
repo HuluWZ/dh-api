@@ -15,7 +15,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SendOtpDto, VerifyOtpDto } from './dto/otp.dto';
+import { SendOtpDto, VerifyOtpDto, verifyPhoneChange } from './dto/otp.dto';
 import { CompleteProfileDto } from './dto/complete-profile.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { User } from '@prisma/client';
@@ -28,6 +28,7 @@ import {
 import { AuthGuard } from './auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { DeviceService } from 'src/common/device/device.service';
+import phone from 'phone';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -46,6 +47,50 @@ export class AuthController {
     } catch {
       throw new BadRequestException('Invalid phone number');
     }
+  }
+
+  @Post('request-phone-change')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Request Phone Change' })
+  async requestPhoneChange(@Req() req: any, @Body() phoneChange: SendOtpDto) {
+    const userId: number = req.user.id;
+    const { isValid, phoneNumber } = phone(phoneChange.phone);
+    if (!isValid) {
+      throw new BadRequestException('Invalid phone number');
+    }
+    const isExist = await this.authService.findUserByPhone(phoneNumber);
+    if (isExist) {
+      throw new BadRequestException('Phone number already exist');
+    }
+
+    await this.authService.requestPhoneChange(userId, phoneNumber);
+    return { message: 'OTP sent to new phone successfully' };
+  }
+
+  @Post('verify-phone-change')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Verify Phone Change' })
+  async verifyPhoneChange(
+    @Req() req: any,
+    @Body() verifyPhoneChange: verifyPhoneChange,
+  ) {
+    const userId: number = req.user.id;
+    const { isValid, phoneNumber } = phone(verifyPhoneChange.phone);
+    if (!isValid) {
+      throw new BadRequestException('Invalid phone number');
+    }
+    const isExist = await this.authService.findUserByPhone(phoneNumber);
+    verifyPhoneChange.phone = phoneNumber;
+    if (isExist) {
+      throw new BadRequestException('Phone number already exist');
+    }
+    const user = await this.authService.verifyPhoneChange(
+      userId,
+      verifyPhoneChange,
+    );
+    return { user, message: 'Phone Changed successfully' };
   }
 
   @Post('verify-otp')

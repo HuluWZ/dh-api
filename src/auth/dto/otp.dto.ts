@@ -5,7 +5,7 @@ import {
   IsString,
   Length,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 
 export class SendOtpDto {
   @ApiProperty({ example: '+251910214243', description: 'Phone Number' })
@@ -50,3 +50,9 @@ export class VerifyOtpDto {
   @IsString()
   model?: string;
 }
+
+export class verifyPhoneChange extends OmitType(VerifyOtpDto, [
+  'deviceId',
+  'model',
+  'platform',
+] as const) {}
