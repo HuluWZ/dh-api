@@ -1,5 +1,14 @@
-import { IsNotEmpty, IsNumber, IsEnum, IsOptional } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsEnum,
+  IsArray,
+  IsOptional,
+  ArrayNotEmpty,
+  isString,
+  IsString,
+} from 'class-validator';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 
 export enum OrgMemberStatus {
   Member = 'Member',
@@ -28,6 +37,39 @@ export class CreateOrgMemberDto {
 }
 
 export class UpdateOrgMemberDto {
+  @ApiProperty({
+    example: 'General Manager',
+    description: 'Position of the member in the organization',
+  })
+  @IsString()
+  @IsOptional()
+  position?: string;
+}
+
+export class CreateMultipleOrgMemberDto {
+  @ApiProperty({ example: '1', description: 'Org Id' })
+  @IsNotEmpty()
+  @IsNumber()
+  orgId: number;
+
+  @ApiProperty({ example: ['1'], description: 'Member User Ids' })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNumber({}, { each: true })
+  memberId: number[];
+
+  @ApiProperty({
+    example: ['Member', 'Admin', 'Owner'],
+    description: 'Member Statuses',
+  })
+  @IsEnum(OrgMemberStatus, { each: true })
+  @IsOptional()
+  @IsArray()
+  role: OrgMemberStatus[];
+}
+
+export class UpdateMemberRoleDto {
   @ApiProperty({
     example: 'Member / Admin / Owner',
     description: 'Member Status',

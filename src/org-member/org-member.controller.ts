@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -14,7 +15,12 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { CreateOrgMemberDto, UpdateOrgMemberDto } from './dto/org-member.dto';
+import {
+  CreateMultipleOrgMemberDto,
+  CreateOrgMemberDto,
+  UpdateMemberRoleDto,
+  UpdateOrgMemberDto,
+} from './dto/org-member.dto';
 import { OrgMemberService } from './org-member.service';
 import { OrgMemberGuard } from './org-member.guard';
 
@@ -25,41 +31,67 @@ export class OrgMemberController {
   constructor(private orgMemberService: OrgMemberService) {}
 
   @Post()
-  @ApiOperation({ summary: 'Add Org Member' })
+  @ApiOperation({ summary: 'Add  Multiple Org Member' })
   @UseGuards(AuthGuard, OrgMemberGuard)
   async createOrgMember(
-    @Body() createOrgMemberDto: CreateOrgMemberDto,
+    @Body() createOrgMemberDto: CreateMultipleOrgMemberDto,
     @Req() req: any,
   ) {
     const ownerId: number = req.user.id;
     const orgs = req.orgs as number[];
-    const { memberId, orgId } = createOrgMemberDto;
-    if (memberId === ownerId) {
-      throw new UnauthorizedException(
-        'User is already the owner of the organization',
-      );
+    const { memberId, orgId, role } = createOrgMemberDto;
+    if (memberId.length !== role.length) {
+      throw new BadRequestException('Invalid Data');
     }
     if (orgs.length && !orgs.includes(orgId)) {
       throw new UnauthorizedException('You are not the owner of the Org');
     }
-    const isAlreadyMemberExists =
-      await this.orgMemberService.isAlreadyMemberExists(orgId, memberId);
-    if (isAlreadyMemberExists) {
+    if (memberId.length === 1 && memberId[0] === ownerId) {
       throw new UnauthorizedException(
-        'Member already exists. Try to update or remove member!',
+        'User is already the owner of the organization',
       );
     }
-    const member = await this.orgMemberService.addMember(createOrgMemberDto);
-    return { message: 'Member Added TO Org successfully', member };
+
+    const validMembers = [];
+    for (let i = 0; i < memberId.length; i++) {
+      if (memberId[i] === ownerId) {
+        continue;
+      }
+      const isAlreadyMemberExists =
+        await this.orgMemberService.isAlreadyMemberExists(orgId, memberId[i]);
+      if (!isAlreadyMemberExists) {
+        validMembers.push({
+          memberId: memberId[i],
+          role: role ? role[i] : undefined,
+        });
+      }
+    }
+
+    if (validMembers.length === 0) {
+      throw new UnauthorizedException(
+        'No valid members to add or all members are already exist',
+      );
+    }
+
+    const createOrgMemberDtoFiltered = {
+      orgId,
+      memberId: validMembers.map((member) => +member.memberId),
+      role: validMembers.map((member) => member.role),
+    };
+
+    const members = await this.orgMemberService.addMember(
+      createOrgMemberDtoFiltered,
+    );
+    return { message: 'Members Added TO Org successfully', members };
   }
 
-  @Patch(':orgId/:memberId')
-  @ApiOperation({ summary: 'Update Org Member' })
+  @Patch('role/:orgId/:memberId')
+  @ApiOperation({ summary: 'Update Org Member Role' })
   @UseGuards(AuthGuard, OrgMemberGuard)
-  async updateOrgMember(
+  async updateOrgMemberRole(
     @Param('orgId') orgId: string,
     @Param('memberId') memberId: string,
-    @Body() updateOrgMember: UpdateOrgMemberDto,
+    @Body() updateOrgMemberRole: UpdateMemberRoleDto,
     @Req() req: any,
   ) {
     const orgs = req.orgs as number[];
@@ -74,12 +106,38 @@ export class OrgMemberController {
       throw new NotFoundException('No Member found under Org!');
     }
 
+    const member = await this.orgMemberService.updateMemberRole(
+      +orgId,
+      +memberId,
+      updateOrgMemberRole,
+    );
+    return { message: 'Member Role updated successfully', member };
+  }
+  @Patch(':orgId/:memberId')
+  @ApiOperation({ summary: 'Update Org Member Details' })
+  @UseGuards(AuthGuard, OrgMemberGuard)
+  async updateOrgMember(
+    @Param('orgId') orgId: string,
+    @Param('memberId') memberId: string,
+    @Body() updateOrgMember: UpdateOrgMemberDto,
+    @Req() req: any,
+  ) {
+    const userId = req.user.id as number;
+    if (userId !== +memberId) {
+      throw new UnauthorizedException('Only Member can update his details');
+    }
+    const isAlreadyMemberExists =
+      await this.orgMemberService.isAlreadyMemberExists(+orgId, +memberId);
+    if (!isAlreadyMemberExists) {
+      throw new NotFoundException('No Member found under Org!');
+    }
+
     const member = await this.orgMemberService.updateMember(
       +orgId,
       +memberId,
       updateOrgMember,
     );
-    return { message: 'Member Role updated successfully', member };
+    return { message: 'Member Data updated successfully', member };
   }
 
   @Get('my/members')

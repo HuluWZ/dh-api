@@ -106,6 +106,7 @@ model OrgMember {
   orgId     Int
   memberId  Int
   role      OrgMemberStatus @default(Member)
+  position  String?
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
   org       Org             @relation(fields: [orgId], references: [id])

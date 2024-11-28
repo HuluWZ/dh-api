@@ -4,7 +4,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
-import { CreateOrgMemberDto, UpdateOrgMemberDto } from './dto/org-member.dto';
+import {
+  CreateMultipleOrgMemberDto,
+  CreateOrgMemberDto,
+  OrgMemberStatus,
+  UpdateMemberRoleDto,
+  UpdateOrgMemberDto,
+} from './dto/org-member.dto';
 import { OrgService } from 'src/org/org.service';
 
 @Injectable()
@@ -21,9 +27,16 @@ export class OrgMemberService {
       },
     });
   }
-  async addMember(createOrgMemberDto: CreateOrgMemberDto) {
-    return this.prisma.orgMember.create({
-      data: { ...createOrgMemberDto },
+  async addMember(createOrgMemberDto: CreateMultipleOrgMemberDto) {
+    const { orgId, memberId, role } = createOrgMemberDto;
+    const members = memberId.map((id, index) => ({
+      orgId,
+      memberId: id,
+      role: role ? role[index] : undefined,
+    }));
+
+    return this.prisma.orgMember.createMany({
+      data: members,
     });
   }
   async getOrgMembers(orgId: number, memberId: number) {
@@ -144,11 +157,21 @@ export class OrgMemberService {
   async updateMember(
     orgId: number,
     memberId: number,
-    updateOrgMemberRole: UpdateOrgMemberDto,
+    updateOrgMember: UpdateOrgMemberDto,
   ) {
     return this.prisma.orgMember.update({
       where: { orgId_memberId: { orgId, memberId } },
-      data: { ...updateOrgMemberRole },
+      data: { ...updateOrgMember },
+    });
+  }
+  async updateMemberRole(
+    orgId: number,
+    memberId: number,
+    updateMemberRole: UpdateMemberRoleDto,
+  ) {
+    return this.prisma.orgMember.update({
+      where: { orgId_memberId: { orgId, memberId } },
+      data: { ...updateMemberRole },
     });
   }
 

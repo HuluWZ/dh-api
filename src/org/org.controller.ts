@@ -53,8 +53,8 @@ export class OrgController {
         membersToAdd.map((memberId) =>
           this.orgMemberService.addMember({
             orgId: organization.id,
-            memberId,
-            role: OrgMemberStatus.Member,
+            memberId: [memberId],
+            role: [OrgMemberStatus.Member],
           }),
         ),
       );

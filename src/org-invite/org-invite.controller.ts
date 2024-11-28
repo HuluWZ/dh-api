@@ -87,9 +87,9 @@ export class OrgInviteController {
     );
     if (updateOrgInvite.status === OrgInviteStatus.Approved) {
       await this.orgMemberService.addMember({
-        memberId: +getInvite.inviteeId,
+        memberId: [+getInvite.inviteeId],
         orgId: +getInvite.orgId,
-        role: OrgMemberStatus.Member,
+        role: [OrgMemberStatus.Member],
       });
       // Send Notification to Invitee
       const device = await this.deviceService.findDeviceByUserId(
