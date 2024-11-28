@@ -60,7 +60,7 @@ export class AuthController {
       throw new BadRequestException('Invalid phone number');
     }
     const isExist = await this.authService.findUserByPhone(phoneNumber);
-    if (isExist) {
+    if (isExist && isExist.id !== userId) {
       throw new BadRequestException('Phone number already exist');
     }
 
