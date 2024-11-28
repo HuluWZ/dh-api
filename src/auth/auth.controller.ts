@@ -49,50 +49,6 @@ export class AuthController {
     }
   }
 
-  @Post('request-phone-change')
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Request Phone Change' })
-  async requestPhoneChange(@Req() req: any, @Body() phoneChange: SendOtpDto) {
-    const userId: number = req.user.id;
-    const { isValid, phoneNumber } = phone(phoneChange.phone);
-    if (!isValid) {
-      throw new BadRequestException('Invalid phone number');
-    }
-    const isExist = await this.authService.findUserByPhone(phoneNumber);
-    if (isExist && isExist.id !== userId) {
-      throw new BadRequestException('Phone number already exist');
-    }
-
-    await this.authService.requestPhoneChange(userId, phoneNumber);
-    return { message: 'OTP sent to new phone successfully' };
-  }
-
-  @Post('verify-phone-change')
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @ApiOperation({ summary: 'Verify Phone Change' })
-  async verifyPhoneChange(
-    @Req() req: any,
-    @Body() verifyPhoneChange: verifyPhoneChange,
-  ) {
-    const userId: number = req.user.id;
-    const { isValid, phoneNumber } = phone(verifyPhoneChange.phone);
-    if (!isValid) {
-      throw new BadRequestException('Invalid phone number');
-    }
-    const isExist = await this.authService.findUserByPhone(phoneNumber);
-    verifyPhoneChange.phone = phoneNumber;
-    if (isExist) {
-      throw new BadRequestException('Phone number already exist');
-    }
-    const user = await this.authService.verifyPhoneChange(
-      userId,
-      verifyPhoneChange,
-    );
-    return { user, message: 'Phone Changed successfully' };
-  }
-
   @Post('verify-otp')
   @ApiOperation({ summary: 'Verify OTP and get access token' })
   async verifyOtp(@Body() verifyOtpDto: VerifyOtpDto) {
@@ -138,6 +94,49 @@ export class AuthController {
   @ApiBearerAuth()
   async searchOrgs(@Query('search') search: string) {
     return this.authService.searchUser(search);
+  }
+  @Post('request-phone-change')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Request Phone Change' })
+  async requestPhoneChange(@Req() req: any, @Body() phoneChange: SendOtpDto) {
+    const userId: number = req.user.id;
+    const { isValid, phoneNumber } = phone(phoneChange.phone);
+    if (!isValid) {
+      throw new BadRequestException('Invalid phone number');
+    }
+    const isExist = await this.authService.findUserByPhone(phoneNumber);
+    if (isExist && isExist.id !== userId) {
+      throw new BadRequestException('Phone number already exist');
+    }
+
+    await this.authService.requestPhoneChange(userId, phoneNumber);
+    return { message: 'OTP sent to new phone successfully' };
+  }
+
+  @Post('verify-phone-change')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Verify Phone Change' })
+  async verifyPhoneChange(
+    @Req() req: any,
+    @Body() verifyPhoneChange: verifyPhoneChange,
+  ) {
+    const userId: number = req.user.id;
+    const { isValid, phoneNumber } = phone(verifyPhoneChange.phone);
+    if (!isValid) {
+      throw new BadRequestException('Invalid phone number');
+    }
+    const isExist = await this.authService.findUserByPhone(phoneNumber);
+    verifyPhoneChange.phone = phoneNumber;
+    if (isExist) {
+      throw new BadRequestException('Phone number already exist');
+    }
+    const user = await this.authService.verifyPhoneChange(
+      userId,
+      verifyPhoneChange,
+    );
+    return { user, message: 'Phone Changed successfully' };
   }
 
   @Get('user/:phone')
