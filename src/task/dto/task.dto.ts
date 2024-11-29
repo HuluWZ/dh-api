@@ -1,6 +1,7 @@
 import {
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -74,6 +75,11 @@ export class CreateTaskDto {
   @IsNotEmpty()
   @IsNumber()
   groupId: number;
+
+  @ApiProperty({ example: 'false', description: 'Is The Task Pinned' })
+  @IsOptional()
+  @IsBoolean()
+  isPinned?: boolean;
 
   @ApiProperty({
     example: '[2,4]',

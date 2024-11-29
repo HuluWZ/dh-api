@@ -183,6 +183,7 @@ model Task {
   name        String
   desc        String?
   deadline    DateTime?
+  isPinned    Boolean       @default(false)
   priority    TaskPriority? @default(NoPriority)
   status      TaskStatus?   @default(Todo)
   groupId     Int

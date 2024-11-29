@@ -102,6 +102,7 @@ export class TaskService {
           },
         },
       },
+      orderBy: { isPinned: 'desc', createdAt: 'desc' },
     });
   }
 
@@ -118,6 +119,7 @@ export class TaskService {
           },
         },
       },
+      orderBy: { isPinned: 'desc', createdAt: 'desc' },
     });
   }
   async getMyAssignedTasks(memberId: number) {
