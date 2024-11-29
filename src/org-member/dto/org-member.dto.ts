@@ -9,6 +9,7 @@ import {
   IsString,
 } from 'class-validator';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export enum OrgMemberStatus {
   Member = 'Member',
@@ -56,7 +57,7 @@ export class CreateMultipleOrgMemberDto {
   @IsNotEmpty()
   @IsArray()
   @ArrayNotEmpty()
-  @IsNumber({}, { each: true })
+  @Transform(({ value }) => value.map(Number))
   memberId: number[];
 
   @ApiProperty({
