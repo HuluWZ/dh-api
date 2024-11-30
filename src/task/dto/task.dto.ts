@@ -2,10 +2,12 @@ import {
   ArrayMinSize,
   IsArray,
   IsBoolean,
+  IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
+  MinDate,
 } from 'class-validator';
 import { ApiProperty, PartialType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
@@ -49,11 +51,14 @@ export class CreateTaskDto {
   desc?: string;
 
   @ApiProperty({
-    example: '2021-09-30T00:00:00.000Z',
+    example: '2025-09-30T00:00:00.000Z',
     description: 'Task Deadline',
   })
+  @Transform(({ value }) => value && new Date(value))
   @IsOptional()
-  deadline: Date;
+  @IsDate()
+  @MinDate(new Date(), { message: `Task deadline must be in the future.` })
+  deadline?: Date;
 
   @ApiProperty({
     example: 'NoPriority / Low / Medium / High / Urgent',
