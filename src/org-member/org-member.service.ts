@@ -175,26 +175,28 @@ export class OrgMemberService {
     });
   }
 
-  async deleteMember(orgId: number, memberId: number) {
-    const member = await this.prisma.orgMember.findFirst({
-      where: { orgId, memberId },
-      include: { org: { select: { id: true } } },
-    });
+  async deleteMembers(orgId: number, memberIds: number[]) {
+    const validMemberIds = [];
 
-    if (!member) {
-      throw new NotFoundException(
-        `Member ID ${memberId} with  Org ID ${orgId} not found`,
-      );
+    for (const memberId of memberIds) {
+      const member = await this.prisma.orgMember.findFirst({
+        where: { orgId, memberId },
+        include: { org: { select: { id: true } } },
+      });
+
+      if (member && member.role !== 'Owner') {
+        validMemberIds.push(memberId);
+      }
     }
 
-    if (member.role === 'Owner') {
-      throw new UnauthorizedException(
-        'You are not authorized to delete Org Owner',
-      );
+    if (validMemberIds.length === 0) {
+      throw new UnauthorizedException('No valid member IDs to delete');
     }
-
-    return this.prisma.orgMember.delete({
-      where: { orgId_memberId: { orgId, memberId } },
+    return this.prisma.orgMember.deleteMany({
+      where: {
+        orgId,
+        memberId: { in: validMemberIds },
+      },
     });
   }
 }

@@ -2,7 +2,6 @@ import {
   BadRequestException,
   Body,
   Controller,
-  Delete,
   Get,
   NotFoundException,
   Param,
@@ -17,12 +16,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import {
   CreateMultipleOrgMemberDto,
-  CreateOrgMemberDto,
+  DeleteOrgMembersDto,
   UpdateMemberRoleDto,
   UpdateOrgMemberDto,
 } from './dto/org-member.dto';
-import { OrgMemberService } from './org-member.service';
 import { OrgMemberGuard } from './org-member.guard';
+import { OrgMemberService } from './org-member.service';
 
 @ApiTags('Org Members')
 @ApiBearerAuth()
@@ -198,22 +197,28 @@ export class OrgMemberController {
     return { groupMemberResult };
   }
 
-  @Delete(':orgId/:memberId')
-  @ApiOperation({ summary: 'Delete Member By Org Id & Member Id' })
+  @Post('delete/:orgId')
+  @ApiOperation({ summary: 'Delete Members By Org Id & Member Ids' })
   @UseGuards(AuthGuard, OrgMemberGuard)
-  async deleteOrgInvite(
+  async deleteOrgMembers(
     @Param('orgId') orgId: string,
-    @Param('memberId') memberId: string,
+    @Body() members: DeleteOrgMembersDto,
     @Req() req: any,
   ) {
+    const ownerId = req.user.id;
     const orgs = req.orgs as number[];
     if (orgs.length && !orgs.includes(+orgId)) {
       throw new UnauthorizedException('Only Org Owner Can Delete Member');
     }
-    const deleteMember = await this.orgMemberService.deleteMember(
+    const memberIds = members.memberId;
+
+    if (memberIds.includes(ownerId)) {
+      throw new UnauthorizedException('Owner cannot delete himself');
+    }
+    const deleteMember = await this.orgMemberService.deleteMembers(
       +orgId,
-      +memberId,
+      memberIds,
     );
-    return { deleteMember };
+    return { message: ` ${deleteMember.count} Members deleted successfully` };
   }
 }

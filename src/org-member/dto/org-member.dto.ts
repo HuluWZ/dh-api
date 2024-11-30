@@ -5,7 +5,6 @@ import {
   IsArray,
   IsOptional,
   ArrayNotEmpty,
-  isString,
   IsString,
 } from 'class-validator';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
@@ -78,3 +77,8 @@ export class UpdateMemberRoleDto {
   @IsEnum(OrgMemberStatus)
   role: OrgMemberStatus;
 }
+
+export class DeleteOrgMembersDto extends OmitType(CreateMultipleOrgMemberDto, [
+  'orgId',
+  'role',
+] as const) {}
