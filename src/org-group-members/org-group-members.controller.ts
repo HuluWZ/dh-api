@@ -11,7 +11,11 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateOrgGroupMemberDto } from './dto/org-group-members.dto';
+import {
+  CreateMultipleOrgGroupMemberDto,
+  CreateOrgGroupMemberDto,
+  DeleteMultipleGroupMembersDto,
+} from './dto/org-group-members.dto';
 import { OrgGroupMembersService } from './org-group-members.service';
 import { OrgGroupMembersGuard } from './org-group-members.guard';
 import { OrgGroupGuard } from 'src/org-group/org-group.guard';
@@ -30,31 +34,47 @@ export class OrgGroupMembersController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Add Org Member To Group' })
+  @ApiOperation({ summary: 'Add Org Members To Group' })
   @UseGuards(AuthGuard, OrgGroupMembersGuard)
   async addOrgMemberToGroup(
-    @Body() createOrgGroupMemberDto: CreateOrgGroupMemberDto,
+    @Body() createMultipleOrgGroupMemberDto: CreateMultipleOrgGroupMemberDto,
     @Req() req: any,
   ) {
+    const userId: number = req.user.id;
     const orgs: number[] = req.orgs;
     const orgId = req.orgId;
+    const { groupId, memberId } = createMultipleOrgGroupMemberDto;
 
     if (orgId && !orgs.includes(orgId)) {
       throw new UnauthorizedException('Invalid Org Data');
     }
-    const isAlreadyGroupMemberExists =
-      await this.orgGroupMemberService.isAlreadyGroupMemberExists(
-        createOrgGroupMemberDto,
-      );
-    if (isAlreadyGroupMemberExists) {
-      throw new UnauthorizedException(
-        'Member already exists in Groups. Try to update or remove member!',
-      );
+    const validMemberIds: number[] = [];
+    for (const id of memberId) {
+      if (id === userId) {
+        continue;
+      }
+      const isAlreadyGroupMember =
+        await this.orgGroupMemberService.isAlreadyGroupMemberExists({
+          groupId,
+          memberId: id,
+        });
+      if (!isAlreadyGroupMember) {
+        validMemberIds.push(id);
+      }
     }
-    const member = await this.orgGroupMemberService.addOrgGroupMember(
-      createOrgGroupMemberDto,
+
+    if (validMemberIds.length === 0) {
+      throw new UnauthorizedException('No valid member IDs to add');
+    }
+
+    const insertMultipleMembers = validMemberIds.map((id) => ({
+      groupId,
+      memberId: id,
+    }));
+    const member = await this.orgGroupMemberService.addMultipleOrgGroupMembers(
+      insertMultipleMembers,
     );
-    return { message: 'Member  Added To Org  Group successfully', member };
+    return { message: 'Members  Added To Org  Group successfully' };
   }
   @Post('add/group-admin')
   @ApiOperation({ summary: 'Add Member As Group Admin' })
@@ -78,38 +98,46 @@ export class OrgGroupMembersController {
     };
   }
 
-  @Delete(':groupId/:memberId')
-  @ApiOperation({ summary: 'Remove Member from Org  Group' })
+  @Post('delete/:groupId')
+  @ApiOperation({ summary: 'Remove Multiple Members from Org  Group' })
   @UseGuards(AuthGuard, OrgGroupGuard)
   async removeMemberFromGroup(
     @Param('groupId') groupId: number,
-    @Param('memberId') memberId: number,
+    @Body() memberIds: DeleteMultipleGroupMembersDto,
     @Req() req: any,
   ) {
     const orgs: number[] = req.orgs;
     const userId: number = req.user.id;
-    const isAlreadyGroupMemberExists =
-      await this.orgGroupMemberService.isAlreadyGroupMemberExists({
-        groupId,
-        memberId,
-      });
-    if (!isAlreadyGroupMemberExists) {
-      throw new NotFoundException('Member not found in the Group');
+    const { memberId } = memberIds;
+    const validMemberIds: number[] = [];
+    for (const id of memberId) {
+      if (id === userId) {
+        continue;
+      }
+      const isAlreadyGroupMember =
+        await this.orgGroupMemberService.isAlreadyGroupMemberExists({
+          groupId,
+          memberId: id,
+        });
+      if (isAlreadyGroupMember) {
+        validMemberIds.push(id);
+      }
     }
+
+    if (validMemberIds.length === 0) {
+      throw new UnauthorizedException('No valid member IDs to delete');
+    }
+
     const orgGroup = await this.orgGroupService.getGroup(groupId);
     if (!orgGroup) {
       throw new UnauthorizedException('Invalid Org Group');
     }
 
     if (orgGroup.orgId) {
-      const orgMember = await this.orgMemberService.getOrgMember(
-        memberId,
+      const orgMember = await this.orgMemberService.getOrgMembersList(
         orgGroup.orgId,
       );
-      if (!orgMember) {
-        throw new NotFoundException('Invalid Member');
-      }
-      if (!orgs.includes(orgMember.orgId)) {
+      if (!orgs.includes(orgMember[0].orgId)) {
         throw new UnauthorizedException('Invalid Org Data');
       }
     } else {
@@ -118,8 +146,11 @@ export class OrgGroupMembersController {
         throw new UnauthorizedException('Only Owner Can Remove Member');
       }
     }
-    await this.orgGroupMemberService.removeGroupMember(groupId, memberId);
-    return { message: 'Member Removed from Org Group successfully' };
+    await this.orgGroupMemberService.removeMultipleGroupMembers(
+      groupId,
+      validMemberIds,
+    );
+    return { message: 'Members Removed from Org Group successfully' };
   }
 
   @Delete('remove/group-admin/:groupId/:memberId')

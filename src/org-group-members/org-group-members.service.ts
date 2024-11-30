@@ -26,6 +26,17 @@ export class OrgGroupMembersService {
       data: { ...createOrgGroupMemberDto },
     });
   }
+  async addMultipleOrgGroupMembers(
+    createMultipleOrgGroupMemberDto: {
+      memberId: number;
+      groupId: number;
+    }[],
+  ) {
+    return this.prisma.orgGroupMember.createMany({
+      data: { ...createMultipleOrgGroupMemberDto },
+    });
+  }
+
   async getGroupMembers(groupId: number) {
     return this.prisma.orgGroupMember.findMany({
       where: { groupId },
@@ -45,5 +56,14 @@ export class OrgGroupMembersService {
     return this.prisma.orgGroupMember.delete({
       where: { groupId_memberId: { groupId, memberId } },
     });
+  }
+  async removeMultipleGroupMembers(groupId: number, memberIds: number[]) {
+    return this.prisma.$transaction(
+      memberIds.map((memberId) =>
+        this.prisma.orgGroupMember.delete({
+          where: { groupId_memberId: { groupId, memberId } },
+        }),
+      ),
+    );
   }
 }

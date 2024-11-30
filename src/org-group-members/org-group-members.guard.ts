@@ -35,21 +35,12 @@ export class OrgGroupMembersGuard implements CanActivate {
       throw new UnauthorizedException('Invalid Org Group');
     }
     if (orgGroup.orgId) {
-      const orgMember = await this.orgMemberService.getOrgMember(
-        createOrgGroupMemberDto.memberId,
-        orgGroup.orgId,
-      );
-      if (!orgMember) {
-        throw new UnauthorizedException('Invalid Member');
-      }
-
       request.orgs = orgs.length ? orgs.map((org) => org.id) : [];
       if (!request.orgs.includes(orgGroup.orgId)) {
         throw new UnauthorizedException(
           'Only Org Owner can Add  or remove Member or  Admin',
         );
       }
-      request.orgMember = orgMember;
       request.orgId = orgGroup.orgId;
     } else {
       if (orgGroup.createdBy !== +resp.id) {

@@ -154,6 +154,10 @@ export class OrgMemberService {
   async getOrgMember(memberId: number, orgId: number) {
     return this.prisma.orgMember.findFirst({ where: { memberId, orgId } });
   }
+  async getOrgMembersList(orgId: number) {
+    return this.prisma.orgMember.findMany({ where: { orgId } });
+  }
+
   async updateMember(
     orgId: number,
     memberId: number,

@@ -1,5 +1,6 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ArrayNotEmpty, IsArray, IsNotEmpty, IsNumber } from 'class-validator';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateOrgGroupMemberDto {
   @ApiProperty({ example: '1', description: 'Org Group Id' })
@@ -13,6 +14,24 @@ export class CreateOrgGroupMemberDto {
   memberId: number;
 }
 
+export class CreateMultipleOrgGroupMemberDto {
+  @ApiProperty({ example: '1', description: 'Org Group Id' })
+  @IsNotEmpty()
+  @IsNumber()
+  groupId: number;
+
+  @ApiProperty({ example: ['1'], description: 'Member Ids' })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayNotEmpty()
+  @Transform(({ value }) => value.map(Number))
+  memberId: number[];
+}
 export class UpdateOrgGroupMember extends PartialType(
   CreateOrgGroupMemberDto,
+) {}
+
+export class DeleteMultipleGroupMembersDto extends OmitType(
+  CreateMultipleOrgGroupMemberDto,
+  ['groupId'],
 ) {}
