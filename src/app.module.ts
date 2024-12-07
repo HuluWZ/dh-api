@@ -18,6 +18,7 @@ import { RedisService } from './redis/redis.service';
 import { SessionModule } from './session/session.module';
 import { ContactModule } from './contact/contact.module';
 import { UpdateLastSeenMiddleware } from './update-last-seen.middleware';
+import { AdvertisementModule } from './advertisement/advertisement.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { UpdateLastSeenMiddleware } from './update-last-seen.middleware';
     PrivateChatModule,
     SessionModule,
     ContactModule,
+    AdvertisementModule,
   ],
   controllers: [],
   providers: [RedisService],

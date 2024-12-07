@@ -338,3 +338,14 @@ model ArchivedTasks {
   @@unique([userId, taskId])
   @@index([userId, taskId])
 }
+
+model Advertisement {
+  id          Int      @id @default(autoincrement())
+  logo        String?
+  title       String
+  description String
+  link        String
+  expireDate  DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
