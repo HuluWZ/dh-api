@@ -238,4 +238,15 @@ export class TaskService {
       where: { taskId_memberId: { taskId, memberId } },
     });
   }
+  async searchTasks(search: string) {
+    return this.prisma.task.findMany({
+      where: {
+        OR: [
+          { name: { startsWith: search, mode: 'insensitive' } },
+          { name: { contains: search, mode: 'insensitive' } },
+          { group: { name: { startsWith: search, mode: 'insensitive' } } },
+        ],
+      },
+    });
+  }
 }

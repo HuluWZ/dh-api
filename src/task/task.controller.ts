@@ -161,6 +161,14 @@ export class TaskController {
   async getAll(@Query() filterTaskDto: FilterTaskDto) {
     return this.taskService.getAllTasks(filterTaskDto);
   }
+  @Get('search')
+  @ApiOperation({ summary: 'Search Tasks ' })
+  @UseGuards(AuthGuard)
+  async searchTask(@Query('search') search: string, @Req() req: any) {
+    // const userId: number = req.user.id;
+    return this.taskService.searchTasks(search);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get Task By Id' })
   @UseGuards(AuthGuard)
