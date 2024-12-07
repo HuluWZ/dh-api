@@ -121,6 +121,7 @@ enum OrgMemberStatus {
   Member
   Admin
   Owner
+  Connector
 }
 
 model OrgGroup {

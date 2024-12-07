@@ -14,6 +14,7 @@ export enum OrgMemberStatus {
   Member = 'Member',
   Admin = 'Admin',
   Owner = 'Owner',
+  Connector = 'Connector',
 }
 
 export class CreateOrgMemberDto {
@@ -28,7 +29,7 @@ export class CreateOrgMemberDto {
   memberId: number;
 
   @ApiProperty({
-    example: 'Member / Admin / Owner',
+    example: 'Member / Admin / Owner /Connector',
     description: 'Member Status',
   })
   @IsEnum(OrgMemberStatus)
