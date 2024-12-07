@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SendOtpDto, VerifyOtpDto, verifyPhoneChange } from './dto/otp.dto';
-import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { CompleteProfileDto, QRCodeDto } from './dto/complete-profile.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { User } from '@prisma/client';
 import {
@@ -60,6 +60,24 @@ export class AuthController {
       user: result.user,
       isActive: result.isActive,
     };
+  }
+  @Post('generate')
+  @ApiOperation({ summary: 'Generate QR Code' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async generateQRCode(@Req() request) {
+    const id: number = request.user.id;
+    const qrCode = await this.authService.generateQRCode(id);
+    console.log(qrCode);
+    return {
+      qrCode,
+    };
+  }
+
+  @Post('validate')
+  @ApiOperation({ summary: 'Validate & Scan QR Code' })
+  async validateQRCode(@Body() body: QRCodeDto) {
+    return this.authService.validateQRCode(body);
   }
 
   @Post('complete-profile')

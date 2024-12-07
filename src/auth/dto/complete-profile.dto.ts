@@ -1,11 +1,14 @@
 import {
+  IsDate,
   IsEmail,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export enum ProfileVisibilityType {
   Everybody = 'Everybody',
@@ -62,4 +65,18 @@ export class CompleteProfileDto {
   @IsEnum(ProfileVisibilityType)
   @IsOptional()
   lastSeenVisibility: ProfileVisibilityType;
+}
+
+export class QRCodeDto {
+  @ApiProperty({
+    example: '2025-09-30T00:00:00.000Z',
+    description: 'Task Deadline',
+  })
+  @Transform(({ value }) => value && new Date(value))
+  @IsDate()
+  expireDate: Date;
+
+  @ApiProperty({ example: 1, description: 'User ID' })
+  @IsInt()
+  id: number;
 }

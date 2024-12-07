@@ -9,11 +9,12 @@ import { OtpService } from './otp/otp.service';
 import { SendOtpDto, VerifyOtpDto, verifyPhoneChange } from './dto/otp.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { JwtService } from '@nestjs/jwt';
-import { CompleteProfileDto } from './dto/complete-profile.dto';
+import { CompleteProfileDto, QRCodeDto } from './dto/complete-profile.dto';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { DeviceService } from 'src/common/device/device.service';
 import { RedisService } from 'src/redis/redis.service';
 import phone from 'phone';
+import * as QRCode from 'qrcode';
 
 @Injectable()
 export class AuthService {
@@ -218,5 +219,32 @@ export class AuthService {
       where: { id: userId },
       data: { phone },
     });
+  }
+  async generateQRCode(id: number) {
+    const now = new Date();
+    const expireDate = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000); // Add 1 day in milliseconds
+    if (expireDate <= now) {
+      throw new BadRequestException('Expire date must be in the future.');
+    }
+
+    const qrData = JSON.stringify({ id, expireDate });
+    console.log(`QR Data: ${qrData}`);
+    return QRCode.toDataURL(qrData);
+  }
+
+  async validateQRCode(qrData: QRCodeDto) {
+    try {
+      const { id, expireDate } = qrData;
+      console.log('Expire Date', expireDate);
+      if (new Date(expireDate) <= new Date()) {
+        throw new BadRequestException('QR code has expired.');
+      }
+      const user = await this.prisma.user.findUnique({
+        where: { id },
+      });
+      return { message: 'QR code is valid', user };
+    } catch (error) {
+      throw new BadRequestException('Invalid QR code.');
+    }
   }
 }
