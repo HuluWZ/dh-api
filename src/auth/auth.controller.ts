@@ -113,6 +113,13 @@ export class AuthController {
   async searchOrgs(@Query('search') search: string) {
     return this.authService.searchUser(search);
   }
+  @Get(':id')
+  @ApiOperation({ summary: 'Get User By Id' })
+  @UseGuards(AuthGuard)
+  async getOne(@Param('id') id: string) {
+    return this.authService.getMe(+id);
+  }
+
   @Post('request-phone-change')
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
