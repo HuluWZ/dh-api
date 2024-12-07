@@ -46,6 +46,7 @@ model User {
   GroupMessage           GroupMessage[]        @relation(name: "senderGroup")
   UserContact            UserContact[]
   PhoneChangeRequests    PhoneChangeRequests[]
+  ArchivedTasks          ArchivedTasks[]
 }
 
 model Industry {
@@ -180,20 +181,21 @@ enum TaskStatus {
 }
 
 model Task {
-  id          Int           @id @default(autoincrement())
-  name        String
-  desc        String?
-  deadline    DateTime?
-  isPinned    Boolean       @default(false)
-  priority    TaskPriority? @default(NoPriority)
-  status      TaskStatus?   @default(Todo)
-  groupId     Int
-  monitoredBy Int?
-  createdBy   Int
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  TaskAsignee TaskAsignee[]
-  group       OrgGroup      @relation(fields: [groupId], references: [id])
+  id            Int             @id @default(autoincrement())
+  name          String
+  desc          String?
+  deadline      DateTime?
+  isPinned      Boolean         @default(false)
+  priority      TaskPriority?   @default(NoPriority)
+  status        TaskStatus?     @default(Todo)
+  groupId       Int
+  monitoredBy   Int?
+  createdBy     Int
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  TaskAsignee   TaskAsignee[]
+  group         OrgGroup        @relation(fields: [groupId], references: [id])
+  ArchivedTasks ArchivedTasks[]
 }
 
 model TaskAsignee {
@@ -322,4 +324,17 @@ model PhoneChangeRequests {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
+}
+
+model ArchivedTasks {
+  id        Int      @id @default(autoincrement())
+  taskId    Int
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      Task     @relation(fields: [taskId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, taskId])
+  @@index([userId, taskId])
 }

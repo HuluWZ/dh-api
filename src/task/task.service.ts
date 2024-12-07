@@ -249,4 +249,40 @@ export class TaskService {
       },
     });
   }
+  async getArchivedTaskById(id: number) {
+    return this.prisma.archivedTasks.findUnique({
+      where: { id },
+    });
+  }
+  async isTaskArchived(userId: number, taskId: number) {
+    return this.prisma.archivedTasks.findFirst({
+      where: { userId, taskId },
+    });
+  }
+  async archiveTask(userId: number, taskId: number) {
+    return this.prisma.archivedTasks.create({ data: { userId, taskId } });
+  }
+  async getMyArchivedTasks(userId: number) {
+    return this.prisma.archivedTasks.findMany({
+      where: { userId },
+      include: {
+        task: {
+          include: {
+            group: { select: { name: true, color: true } },
+            TaskAsignee: {
+              select: {
+                memberId: true,
+                member: {
+                  select: { firstName: true, lastName: true, phone: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+  async unArchiveTask(archivedId: number) {
+    return this.prisma.archivedTasks.delete({ where: { id: archivedId } });
+  }
 }

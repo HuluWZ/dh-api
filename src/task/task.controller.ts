@@ -95,6 +95,41 @@ export class TaskController {
     const task = await this.taskService.createTask(createTaskDto, createdBy);
     return { message: 'Task Created successfully', task };
   }
+  @Post(':id/archive')
+  @ApiOperation({ summary: 'Archive Task' })
+  @UseGuards(AuthGuard)
+  async archiveTask(@Req() req: any, @Param('id') id: number) {
+    const userId: number = req.user.id;
+    const task = await this.taskService.getTaskById(id);
+    if (!task) {
+      throw new NotFoundException('Task Not Found');
+    }
+    const isTaskArchived = await this.taskService.isTaskArchived(userId, id);
+    if (isTaskArchived) {
+      throw new UnauthorizedException('Task Already Archived By User');
+    }
+    const archivedTask = await this.taskService.archiveTask(userId, id);
+    return { message: 'Task Archived successfully', task: archivedTask };
+  }
+  @Post(':archivedId/unarchive')
+  @ApiOperation({ summary: 'Unarchive Task' })
+  @UseGuards(AuthGuard)
+  async unarchiveTask(
+    @Req() req: any,
+    @Param('archivedId') archivedId: number,
+  ) {
+    const userId: number = req.user.id;
+    const archivedTask = await this.taskService.getArchivedTaskById(archivedId);
+    if (!archivedTask) {
+      throw new UnauthorizedException('Archived Task not found');
+    }
+    if (archivedTask.userId !== userId) {
+      throw new UnauthorizedException('You are not authorized to unarchive');
+    }
+    const task = await this.taskService.unArchiveTask(archivedId);
+    return { message: 'Task UnArchived successfully', task: task };
+  }
+
   @Post('assign/:taskId/:memberId')
   @ApiOperation({ summary: 'Assign Member Task' })
   @UseGuards(AuthGuard)
@@ -199,6 +234,14 @@ export class TaskController {
     const memberId: number = req.user.id;
     const myAssigned = await this.taskService.getMyAssignedTasks(memberId);
     return { myAssigned: myAssigned.map((task) => task.task) };
+  }
+  @Get('my/archived')
+  @ApiOperation({ summary: 'Get My Archived Tasks' })
+  @UseGuards(AuthGuard)
+  async getMyArchivedTasks(@Req() req: any) {
+    const userId: number = req.user.id;
+    const archivedTasks = await this.taskService.getMyArchivedTasks(userId);
+    return { archivedTasks };
   }
   @Get('my/created')
   @ApiOperation({ summary: 'Get Tasks I Created' })
