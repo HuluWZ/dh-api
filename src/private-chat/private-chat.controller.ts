@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -68,6 +70,26 @@ export class PrivateChatController {
     const userId: number = req.user.id;
     const chats = await this.privateChatService.getMyChats(userId);
     return { chats };
+  }
+  @Get('search')
+  @ApiOperation({ summary: 'Search My Chat Messages' })
+  @UseGuards(AuthGuard)
+  async searchMessages(
+    @Req() req: any,
+    @Query('content') content: string,
+    @Query('type?') type: 'private' | 'group' | 'all' = 'all',
+  ) {
+    const userId = req.user.id; // Extract userId from JWT payload
+    if (!content) {
+      throw new BadRequestException('The "content" parameter is required.');
+    }
+    console.log(content, type);
+
+    return this.privateChatService.searchMessagesByContent(
+      userId,
+      content,
+      type,
+    );
   }
 
   @Get('private/:id')

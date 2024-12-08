@@ -6,6 +6,7 @@ import {
   GroupInclude,
   PrivateInclude,
 } from './dto/private.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class PrivateChatService {
@@ -168,5 +169,57 @@ export class PrivateChatService {
         createdAt: 'desc',
       },
     });
+  }
+  async searchMessagesByContent(
+    userId: number,
+    content: string,
+    type: 'private' | 'group' | 'all',
+  ) {
+    if (!content) {
+      throw new Error('Content parameter is required for searching messages.');
+    }
+
+    const privateFilters: Prisma.PrivateMessageWhereInput = {
+      AND: [
+        { content: { contains: content, mode: 'insensitive' } },
+        { OR: [{ senderId: userId }, { receiverId: userId }] },
+      ],
+    };
+
+    const groupFilters: Prisma.GroupMessageWhereInput = {
+      AND: [
+        { content: { contains: content, mode: 'insensitive' } },
+        {
+          OR: [
+            { senderId: userId },
+            {
+              group: {
+                OR: [
+                  { createdBy: userId },
+                  {
+                    OrgGroupMember: {
+                      some: { memberId: userId },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ],
+    };
+
+    if (type === 'private') {
+      return this.prisma.privateMessage.findMany({ where: privateFilters });
+    } else if (type === 'group') {
+      return this.prisma.groupMessage.findMany({ where: groupFilters });
+    } else {
+      const [privateMessages, groupMessages] = await Promise.all([
+        this.prisma.privateMessage.findMany({ where: privateFilters }),
+        this.prisma.groupMessage.findMany({ where: groupFilters }),
+      ]);
+
+      return { privateMessages, groupMessages };
+    }
   }
 }
