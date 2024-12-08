@@ -32,6 +32,16 @@ export class PrivateChatController {
     @Req() req: any,
   ) {
     const userId: number = req.user.id;
+    if (createPrivateMsg.replyToId) {
+      const replyMessage = await this.privateChatService.getMessage(
+        createPrivateMsg.replyToId,
+      );
+      if (!replyMessage) {
+        throw new NotFoundException(
+          `Message with Id #${createPrivateMsg.replyToId} not found!`,
+        );
+      }
+    }
     const message = await this.privateChatService.createPrivateMessage(
       userId,
       createPrivateMsg,
@@ -97,6 +107,16 @@ export class PrivateChatController {
     @Req() req: any,
   ) {
     const userId: number = req.user.id;
+    if (createGroupMessage.replyToId) {
+      const replyMessage = await this.privateChatService.getGroupMessage(
+        createGroupMessage.replyToId,
+      );
+      if (!replyMessage) {
+        throw new NotFoundException(
+          `Group Message with Id #${createGroupMessage.replyToId} not found!`,
+        );
+      }
+    }
     const message = await this.privateChatService.createGroupMessage(
       userId,
       createGroupMessage,

@@ -21,6 +21,11 @@ export class CreatePrivateMessageDto {
   @ApiProperty({ example: 1, description: 'Receiver Id' })
   @IsInt()
   receiverId: number;
+
+  @ApiProperty({ example: 1, description: 'Reply  Message Id' })
+  @IsInt()
+  @IsOptional()
+  replyToId?: number;
 }
 
 export class CreateGroupMessageDto {
@@ -39,6 +44,11 @@ export class CreateGroupMessageDto {
   @ApiProperty({ example: 1, description: 'Group Id' })
   @IsInt()
   groupId: number;
+
+  @ApiProperty({ example: 1, description: 'Reply Message Id' })
+  @IsInt()
+  @IsOptional()
+  replyToId?: number;
 }
 
 export const GroupInclude = {
@@ -52,6 +62,7 @@ export const GroupInclude = {
       phone: true,
     },
   },
+  replies: true,
   group: {
     select: {
       id: true,
@@ -71,6 +82,7 @@ export const PrivateInclude = {
       phone: true,
     },
   },
+  replies: true,
   receiver: {
     select: {
       id: true,

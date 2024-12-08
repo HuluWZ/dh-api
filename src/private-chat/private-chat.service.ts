@@ -6,7 +6,6 @@ import {
   GroupInclude,
   PrivateInclude,
 } from './dto/private.dto';
-import { group } from 'console';
 
 @Injectable()
 export class PrivateChatService {
@@ -45,6 +44,7 @@ export class PrivateChatService {
         OR: [{ senderId: userId }, { receiverId: userId }],
       },
       select: {
+        replies: true,
         senderId: true,
         receiverId: true,
         createdAt: true,
@@ -118,7 +118,10 @@ export class PrivateChatService {
     return Array.from(uniqueUsers.values()); // Return the sorted unique users wit
   }
   async getMessage(id: number) {
-    return this.prisma.privateMessage.findFirst({ where: { id } });
+    return this.prisma.privateMessage.findUnique({
+      where: { id },
+      include: { replies: true },
+    });
   }
   async deleteMessage(id: number) {
     return this.prisma.privateMessage.delete({ where: { id } });
@@ -142,7 +145,7 @@ export class PrivateChatService {
     });
   }
   async getGroupMessage(id: number) {
-    return this.prisma.groupMessage.findFirst({
+    return this.prisma.groupMessage.findUnique({
       where: { id },
       include: GroupInclude,
     });
