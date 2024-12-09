@@ -19,6 +19,7 @@ import { SessionModule } from './session/session.module';
 import { ContactModule } from './contact/contact.module';
 import { UpdateLastSeenMiddleware } from './update-last-seen.middleware';
 import { AdvertisementModule } from './advertisement/advertisement.module';
+import { PollModule } from './poll/poll.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { AdvertisementModule } from './advertisement/advertisement.module';
     SessionModule,
     ContactModule,
     AdvertisementModule,
+    PollModule,
   ],
   controllers: [],
   providers: [RedisService],

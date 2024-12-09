@@ -47,6 +47,10 @@ model User {
   UserContact            UserContact[]
   PhoneChangeRequests    PhoneChangeRequests[]
   ArchivedTasks          ArchivedTasks[]
+  OwnershipTransfer      OwnershipTransfer[]   @relation(name: "orgOwner")
+  NewOwnershipTransfer   OwnershipTransfer[]   @relation(name: "newOrgOwner")
+  Poll                   Poll[]
+  PollVote               PollVote[]
 }
 
 model Industry {
@@ -68,20 +72,21 @@ model Region {
 }
 
 model Org {
-  id         Int         @id @default(autoincrement())
-  name       String
-  ownerId    Int
-  industryId Int
-  regionId   Int?
-  logo       String?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  owner      User?       @relation(fields: [ownerId], references: [id])
-  industry   Industry    @relation(fields: [industryId], references: [id])
-  region     Region?     @relation(fields: [regionId], references: [id])
-  orgInvite  OrgInvite[]
-  OrgMember  OrgMember[]
-  OrgGroup   OrgGroup[]
+  id                Int                 @id @default(autoincrement())
+  name              String
+  ownerId           Int
+  industryId        Int
+  regionId          Int?
+  logo              String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  owner             User?               @relation(fields: [ownerId], references: [id])
+  industry          Industry            @relation(fields: [industryId], references: [id])
+  region            Region?             @relation(fields: [regionId], references: [id])
+  orgInvite         OrgInvite[]
+  OrgMember         OrgMember[]
+  OrgGroup          OrgGroup[]
+  OwnershipTransfer OwnershipTransfer[]
 }
 
 model OrgInvite {
@@ -138,6 +143,7 @@ model OrgGroup {
   OrgGroupAdmin  OrgGroupAdmin[]
   GroupMessage   GroupMessage[]
   Task           Task[]
+  Poll           Poll[]
 }
 
 model OrgGroupMember {
@@ -360,4 +366,42 @@ model Advertisement {
   expireDate  DateTime
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model OwnershipTransfer {
+  id          Int      @id @default(autoincrement())
+  orgId       Int
+  ownerId     Int
+  newOwnerId  Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  org         Org      @relation(fields: [orgId], references: [id])
+  orgOwner    User     @relation(name: "orgOwner", fields: [ownerId], references: [id])
+  newOrgOwner User     @relation(name: "newOrgOwner", fields: [newOwnerId], references: [id])
+}
+
+model Poll {
+  id          Int        @id @default(autoincrement())
+  groupId     Int
+  createdBy   Int
+  question    String
+  options     String[]
+  isAnonymous Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  votes       PollVote[]
+  group       OrgGroup   @relation(fields: [groupId], references: [id])
+  creator     User       @relation(fields: [createdBy], references: [id])
+}
+
+model PollVote {
+  id        Int      @id @default(autoincrement())
+  pollId    Int
+  userId    Int
+  option    String
+  createdAt DateTime @default(now())
+  poll      Poll     @relation(fields: [pollId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([pollId, userId])
 }
