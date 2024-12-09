@@ -63,6 +63,24 @@ export class PrivateChatController {
     const updatedMessage = await this.privateChatService.updateMessageSeen(+id);
     return { message: 'Message status updated successfully', updatedMessage };
   }
+  @Patch('private-message/pinned/:id')
+  @ApiOperation({ summary: 'Toggle Group is_pinned status' })
+  @UseGuards(AuthGuard)
+  async updatePrivateMessagePinned(@Param('id') id: string) {
+    const message = await this.privateChatService.getMessage(+id);
+    if (!message) {
+      throw new NotFoundException(`Message with Id #${id} not found!`);
+    }
+    const updatedMessage =
+      await this.privateChatService.updatePrivateMessageIsPinned(
+        +id,
+        !message.is_pinned,
+      );
+    return {
+      message: 'Message Is Pinned updated successfully',
+      updatedMessage,
+    };
+  }
   @Get('my-private-chat-users')
   @ApiOperation({ summary: 'Get My Chat lists' })
   @UseGuards(AuthGuard)
@@ -158,6 +176,25 @@ export class PrivateChatController {
       await this.privateChatService.updateGroupMessageSeen(+id);
     return { message: 'Message status updated successfully', updatedMessage };
   }
+  @Patch('group-message/pinned/:id')
+  @ApiOperation({ summary: 'Toggle Group is_pinned status' })
+  @UseGuards(AuthGuard)
+  async updateGroupMessagePinned(@Param('id') id: string) {
+    const message = await this.privateChatService.getGroupMessage(+id);
+    if (!message) {
+      throw new NotFoundException(`Message with Id #${id} not found!`);
+    }
+    const updatedMessage =
+      await this.privateChatService.updateGroupMessageIsPinned(
+        +id,
+        !message.is_pinned,
+      );
+    return {
+      message: 'Message Is Pinned updated successfully',
+      updatedMessage,
+    };
+  }
+
   @Get('group-message/:id')
   @ApiOperation({ summary: 'Get Group Message By Id' })
   @UseGuards(AuthGuard)

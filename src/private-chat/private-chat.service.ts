@@ -161,6 +161,21 @@ export class PrivateChatService {
       include: GroupInclude,
     });
   }
+  async updateGroupMessageIsPinned(id: number, is_pinned: boolean) {
+    return this.prisma.groupMessage.update({
+      where: { id },
+      data: { is_pinned },
+      include: GroupInclude,
+    });
+  }
+  async updatePrivateMessageIsPinned(id: number, is_pinned: boolean) {
+    return this.prisma.privateMessage.update({
+      where: { id },
+      data: { is_pinned },
+      include: PrivateInclude,
+    });
+  }
+
   async getGroupMessageByGroupId(groupId: number) {
     return this.prisma.groupMessage.findMany({
       where: { groupId },
