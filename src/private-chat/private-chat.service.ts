@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateGroupMessageDto,
   CreatePrivateMessageDto,
+  CreateSavedMessageDto,
   GroupInclude,
   PrivateInclude,
 } from './dto/private.dto';
@@ -236,5 +237,26 @@ export class PrivateChatService {
 
       return { privateMessages, groupMessages };
     }
+  }
+  async saveMessage(
+    userId: number,
+    createSavedMessageDto: CreateSavedMessageDto,
+  ) {
+    return this.prisma.savedMessage.create({
+      data: {
+        ...createSavedMessageDto,
+        userId,
+      },
+    });
+  }
+  async removeSavedMessage(userId: number, id: number) {
+    return this.prisma.savedMessage.delete({ where: { id, userId } });
+  }
+  async getSavedMessages(userId: number) {
+    return this.prisma.savedMessage.findMany({
+      where: { userId },
+      include: { groupMessage: true, privateMessage: true },
+      orderBy: { savedAt: 'desc' },
+    });
   }
 }

@@ -5,6 +5,11 @@ enum MessageType {
   Video = 'Video',
   Audio = 'Audio',
 }
+enum ChatType {
+  PrivateMessage = 'PrivateMessage',
+  GroupMessage = 'GroupMessage',
+}
+
 export class CreatePrivateMessageDto {
   @ApiProperty({ example: 'Hello man', description: 'Message Content' })
   @IsString()
@@ -49,6 +54,18 @@ export class CreateGroupMessageDto {
   @IsInt()
   @IsOptional()
   replyToId?: number;
+}
+export class CreateSavedMessageDto {
+  @ApiProperty({
+    example: 'PrivateMessage | GroupMessage | Video',
+    description: 'Chat Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
+
+  @ApiProperty({ example: 1, description: 'Message Id' })
+  @IsInt()
+  messageId: number;
 }
 
 export const GroupInclude = {

@@ -51,6 +51,7 @@ model User {
   NewOwnershipTransfer   OwnershipTransfer[]   @relation(name: "newOrgOwner")
   Poll                   Poll[]
   PollVote               PollVote[]
+  SavedMessage           SavedMessage[]
 }
 
 model Industry {
@@ -280,8 +281,9 @@ model PrivateMessage {
   replyTo   PrivateMessage?  @relation("Replies", fields: [replyToId], references: [id])
   replies   PrivateMessage[] @relation("Replies")
 
-  sender   User @relation(name: "sender", fields: [senderId], references: [id])
-  receiver User @relation(name: "receiver", fields: [receiverId], references: [id])
+  sender       User           @relation(name: "sender", fields: [senderId], references: [id])
+  receiver     User           @relation(name: "receiver", fields: [receiverId], references: [id])
+  SavedMessage SavedMessage[]
 }
 
 model GroupMessage {
@@ -297,9 +299,10 @@ model GroupMessage {
   sender    User?       @relation(name: "senderGroup", fields: [senderId], references: [id])
   group     OrgGroup    @relation(fields: [groupId], references: [id])
 
-  replyToId Int?
-  replyTo   GroupMessage?  @relation("Replies", fields: [replyToId], references: [id])
-  replies   GroupMessage[] @relation("Replies")
+  replyToId    Int?
+  replyTo      GroupMessage?  @relation("Replies", fields: [replyToId], references: [id])
+  replies      GroupMessage[] @relation("Replies")
+  SavedMessage SavedMessage[]
 }
 
 model Contact {
@@ -406,4 +409,21 @@ model PollVote {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([pollId, userId])
+}
+
+enum ChatType {
+  PrivateMessage
+  GroupMessage
+}
+
+model SavedMessage {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  messageId   Int
+  messageType ChatType
+  savedAt     DateTime @default(now())
+
+  user           User            @relation(fields: [userId], references: [id])
+  privateMessage PrivateMessage? @relation(fields: [messageId], references: [id], map: "SavedMessage_privateMessageId_fkey")
+  groupMessage   GroupMessage?   @relation(fields: [messageId], references: [id], map: "SavedMessage_groupMessageId_fkey")
 }

@@ -10,6 +10,7 @@ import {
   Post,
   Query,
   Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -18,6 +19,7 @@ import { PrivateChatService } from './private-chat.service';
 import {
   CreateGroupMessageDto,
   CreatePrivateMessageDto,
+  CreateSavedMessageDto,
 } from './dto/private.dto';
 
 @ApiTags('Chat')
@@ -52,6 +54,20 @@ export class PrivateChatController {
     return { message: 'Message sent successfully', data: message };
   }
 
+  @Post('saved-message')
+  @ApiOperation({ summary: 'Save Group | Private Message' })
+  @UseGuards(AuthGuard)
+  async saveMessage(
+    @Req() req: any,
+    @Body() createSavedMsg: CreateSavedMessageDto,
+  ) {
+    const userId: number = req.user.id;
+    const savedMessage = await this.privateChatService.saveMessage(
+      userId,
+      createSavedMsg,
+    );
+    return { message: 'Message saved successfully', data: savedMessage };
+  }
   @Patch('private-message/:id')
   @ApiOperation({ summary: 'Update Message is_seen status' })
   @UseGuards(AuthGuard)
@@ -209,5 +225,16 @@ export class PrivateChatController {
     const GroupMessages =
       await this.privateChatService.getGroupMessageByGroupId(+groupId);
     return { GroupMessages };
+  }
+  @Delete('saved-message/:id')
+  @ApiOperation({ summary: 'Get Saved Message By Id' })
+  @UseGuards(AuthGuard)
+  async getSavedMessageById(@Req() req: any, @Param('id') id: number) {
+    const userId: number = req.user.id;
+    const message = await this.privateChatService.removeSavedMessage(
+      userId,
+      id,
+    );
+    return { message };
   }
 }
