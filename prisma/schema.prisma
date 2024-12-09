@@ -261,6 +261,8 @@ enum MessageType {
   Video
   Audio
   File
+  Link
+  System
 }
 
 model PrivateMessage {
@@ -284,7 +286,7 @@ model PrivateMessage {
 
 model GroupMessage {
   id        Int         @id @default(autoincrement())
-  senderId  Int
+  senderId  Int?
   content   String
   groupId   Int
   type      MessageType @default(Text)
@@ -292,7 +294,7 @@ model GroupMessage {
   is_pinned Boolean     @default(false)
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  sender    User        @relation(name: "senderGroup", fields: [senderId], references: [id])
+  sender    User?       @relation(name: "senderGroup", fields: [senderId], references: [id])
   group     OrgGroup    @relation(fields: [groupId], references: [id])
 
   replyToId Int?

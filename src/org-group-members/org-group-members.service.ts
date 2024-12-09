@@ -1,6 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 import { CreateOrgGroupMemberDto } from './dto/org-group-members.dto';
+import { MessageType } from '@prisma/client';
 
 @Injectable()
 export class OrgGroupMembersService {
@@ -22,6 +23,22 @@ export class OrgGroupMembersService {
     });
   }
   async addOrgGroupMember(createOrgGroupMemberDto: CreateOrgGroupMemberDto) {
+    const member = await this.prisma.user.findUnique({
+      where: { id: createOrgGroupMemberDto.memberId },
+    });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+    const insertGroupMessage = await this.memberJoinedLeavedGroupMessage(
+      [
+        {
+          firstName: member.firstName,
+          groupId: createOrgGroupMemberDto.groupId,
+          type: MessageType.System,
+        },
+      ],
+      'Join',
+    );
     return this.prisma.orgGroupMember.create({
       data: { ...createOrgGroupMemberDto },
     });
@@ -53,6 +70,23 @@ export class OrgGroupMembersService {
     });
   }
   async removeGroupMember(groupId: number, memberId: number) {
+    const member = await this.prisma.user.findUnique({
+      where: { id: memberId },
+    });
+    if (!member) {
+      throw new NotFoundException('Member not found');
+    }
+    const insertGroupMessage = await this.memberJoinedLeavedGroupMessage(
+      [
+        {
+          firstName: member.firstName,
+          groupId: groupId,
+          type: MessageType.System,
+        },
+      ],
+      'Leave',
+    );
+
     return this.prisma.orgGroupMember.delete({
       where: { groupId_memberId: { groupId, memberId } },
     });
@@ -62,6 +96,29 @@ export class OrgGroupMembersService {
       memberIds.map((memberId) =>
         this.prisma.orgGroupMember.delete({
           where: { groupId_memberId: { groupId, memberId } },
+        }),
+      ),
+    );
+  }
+  async memberJoinedLeavedGroupMessage(
+    userJoinedLeavedGroup: {
+      groupId: number;
+      type: MessageType;
+      firstName: string;
+    }[],
+    leave_join: 'Leave' | 'Join',
+  ) {
+    return Promise.all(
+      userJoinedLeavedGroup.map(({ firstName, groupId, type }) =>
+        this.prisma.groupMessage.create({
+          data: {
+            content:
+              leave_join === 'Join'
+                ? `User ${firstName} has joined the group`
+                : `User ${firstName} has left the group`,
+            groupId,
+            type,
+          },
         }),
       ),
     );
