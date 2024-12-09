@@ -1,5 +1,6 @@
 import {
   ArrayMinSize,
+  ArrayNotEmpty,
   IsArray,
   IsBoolean,
   IsDate,
@@ -115,3 +116,11 @@ export class CreateTaskDto {
 }
 
 export class UpdateTaskDto extends PartialType(CreateTaskDto) {}
+export class ReorderTasksDto {
+  @ApiProperty({ example: ['1'], description: 'Task Ids' })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayNotEmpty()
+  @Transform(({ value }) => value.map(Number))
+  taskIds: number[];
+}

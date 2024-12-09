@@ -21,7 +21,7 @@ import {
 } from '@nestjs/swagger';
 import { TaskService } from './task.service';
 import { TaskGuard } from './task.guard';
-import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
+import { CreateTaskDto, ReorderTasksDto, UpdateTaskDto } from './dto/task.dto';
 import { OrgGroupService } from 'src/org-group/org-group.service';
 import { FilterTaskDto } from './dto/filter-task.dto';
 import { OrgMemberService } from 'src/org-member/org-member.service';
@@ -128,6 +128,14 @@ export class TaskController {
     }
     const task = await this.taskService.unArchiveTask(archivedId);
     return { message: 'Task UnArchived successfully', task: task };
+  }
+  @Post(':archivedId/unarchive')
+  @ApiOperation({ summary: 'Reorder Tasks' })
+  @UseGuards(AuthGuard)
+  async reorderTasks(@Req() req: any, @Body() reorderTasks: ReorderTasksDto) {
+    const userId: number = req.user.id;
+    const task = await this.taskService.reorderTasks(reorderTasks.taskIds);
+    return { message: 'Task Reordered successfully', task: task };
   }
 
   @Post('assign/:taskId/:memberId')

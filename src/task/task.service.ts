@@ -57,6 +57,7 @@ export class TaskService {
           },
         },
       },
+      orderBy: { position: 'asc', updatedAt: 'desc' },
     });
   }
 
@@ -80,6 +81,7 @@ export class TaskService {
           },
         },
       },
+      orderBy: { position: 'asc', updatedAt: 'desc' },
     });
   }
 
@@ -284,5 +286,17 @@ export class TaskService {
   }
   async unArchiveTask(archivedId: number) {
     return this.prisma.archivedTasks.delete({ where: { id: archivedId } });
+  }
+  async reorderTasks(taskIds: number[]) {
+    return this.prisma.$transaction(async (prisma) => {
+      await Promise.all(
+        taskIds.map((taskId, index) =>
+          prisma.task.update({
+            where: { id: taskId },
+            data: { position: index + 1 },
+          }),
+        ),
+      );
+    });
   }
 }
