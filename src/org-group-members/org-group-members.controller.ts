@@ -152,6 +152,24 @@ export class OrgGroupMembersController {
     );
     return { message: 'Members Removed from Org Group successfully' };
   }
+  @Delete('remove/group/:groupId')
+  @ApiOperation({ summary: 'Remove Org Group' })
+  @UseGuards(AuthGuard, AddOrgMemberToAdminForGroupGuard)
+  async leaveOrgGroup(@Req() req: any, @Param('groupId') groupId: number) {
+    const memberId: number = req.user.id;
+    const isAlreadyGroupMemberExists =
+      await this.orgGroupMemberService.isAlreadyGroupMemberExists({
+        groupId,
+        memberId,
+      });
+    if (!isAlreadyGroupMemberExists) {
+      throw new NotFoundException('Members Must have  Role To Be Removed!');
+    }
+    await this.orgGroupMemberService.removeGroupMember(groupId, memberId);
+    return {
+      message: 'Member Leaved From Group successfully',
+    };
+  }
 
   @Delete('remove/group-admin/:groupId/:memberId')
   @ApiOperation({ summary: 'Remove Org Group Admin' })
