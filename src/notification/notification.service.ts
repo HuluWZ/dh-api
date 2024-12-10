@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as admin from 'firebase-admin';
 import { firebaseConfigType } from 'src/config/firebase.config';
@@ -6,8 +6,10 @@ import { PrismaService } from 'src/prisma';
 import {
   MultipleDeviceNotificationDto,
   NotificationDto,
+  ScheduledNotificationDto,
 } from './dto/notification.dto';
 import { NotificationType } from '@prisma/client';
+import { OrgGroupService } from 'src/org-group/org-group.service';
 
 @Injectable()
 export class NotificationService {
@@ -16,6 +18,7 @@ export class NotificationService {
   constructor(
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
+    private readonly orgGroupService: OrgGroupService,
   ) {
     this.firebaseConfig =
       this.configService.get<firebaseConfigType>('firebase');
@@ -130,10 +133,57 @@ export class NotificationService {
       data: { is_seen: true },
     });
   }
-  async createNotification(notificationData: NotificationDto, userId: number) {
+  async createNotification(
+    notificationData: NotificationDto,
+    userId: number,
+    is_schedule: boolean = false,
+  ) {
     const { token, ...others } = notificationData;
     return this.prismaService.notification.create({
       data: { ...others, userId },
     });
+  }
+  async sendScheduledMultipleNotifications(
+    userId: number,
+    groupId: number,
+    scheduledNotification: ScheduledNotificationDto,
+  ) {
+    const group = await this.orgGroupService.getGroup(groupId);
+    if (!group) {
+      throw new NotFoundException('Group not found');
+    }
+    const { title, body, icon } = scheduledNotification;
+    const members = group.OrgGroupMember.map((member) => member.memberId);
+    const memberIds = scheduledNotification.memberIds.filter((id) =>
+      members.includes(id),
+    );
+    const tokens = await this.prismaService.fCM.findMany({
+      where: { userId: { in: memberIds } },
+    });
+    if (!tokens.length) {
+      throw new NotFoundException('No tokens found');
+    }
+    await Promise.all(
+      tokens.map(async ({ deviceId }) => {
+        const message = {
+          token: deviceId,
+          data: {
+            title,
+            body,
+            icon,
+          },
+          notification: {
+            title,
+            body,
+          },
+        };
+        const response = await admin.messaging().send(message);
+        await this.createNotification(
+          { token: deviceId, title, body, icon },
+          userId,
+          true,
+        );
+      }),
+    );
   }
 }

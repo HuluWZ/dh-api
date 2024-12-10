@@ -21,6 +21,7 @@ import {
   MultipleDeviceNotificationDto,
   NotificationDto,
   NotificationType,
+  ScheduledNotificationDto,
 } from './dto/notification.dto';
 import { AuthGuard } from 'src/auth/auth.guard';
 
@@ -43,6 +44,27 @@ export class NotificationController {
       notificationData,
       userId,
     );
+    return response;
+  }
+
+  @Post('scheduled-notification/:groupId')
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @ApiOperation({
+    summary: 'Send a scheduled push notification to a multiple members',
+  })
+  async sendScheduledNotification(
+    @Req() req: any,
+    @Param('groupId') groupId: number,
+    @Body() scheduledNotification: ScheduledNotificationDto,
+  ) {
+    const userId: number = req.user.id;
+    const response =
+      await this.notificationService.sendScheduledMultipleNotifications(
+        userId,
+        groupId,
+        scheduledNotification,
+      );
     return response;
   }
 

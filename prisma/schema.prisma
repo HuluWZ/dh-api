@@ -245,16 +245,18 @@ enum NotificationType {
 }
 
 model Notification {
-  id        Int              @id @default(autoincrement())
-  title     String
-  body      String
-  icon      String?
-  type      NotificationType @default(Task)
-  userId    Int
-  is_seen   Boolean          @default(false)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  user      User             @relation(fields: [userId], references: [id])
+  id           Int              @id @default(autoincrement())
+  title        String
+  body         String
+  icon         String?
+  type         NotificationType @default(Task)
+  userId       Int
+  is_seen      Boolean          @default(false)
+  is_scheduled Boolean          @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 enum MessageType {
