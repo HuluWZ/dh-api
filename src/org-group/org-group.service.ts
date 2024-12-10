@@ -163,4 +163,16 @@ export class OrgGroupService {
     const myGroups = Array.from(new Set([...ownerGroup, ...memberGroup]));
     return myGroups;
   }
+  async createFirstTask(groupId: number, name: string, userId: number) {
+    return this.prisma.task.create({
+      data: {
+        name,
+        groupId,
+        monitoredBy: userId,
+        createdBy: userId,
+        priority: 'Low',
+        status: 'Backlog',
+      },
+    });
+  }
 }

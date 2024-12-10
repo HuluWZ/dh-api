@@ -48,9 +48,19 @@ export class OrgGroupController {
     let group;
     if (creCreateOrgGroupDto.orgId) {
       group = await this.orgGroupService.addOrgGroup(creCreateOrgGroupDto);
+      await this.orgGroupService.createFirstTask(
+        group.id,
+        `Welcome to ${group.name} Group Task`,
+        userId,
+      );
     } else {
       group = await this.orgGroupService.addOrgGroup(
         creCreateOrgGroupDto,
+        userId,
+      );
+      await this.orgGroupService.createFirstTask(
+        group.id,
+        `Welcome to ${group.name} Group Task`,
         userId,
       );
     }
