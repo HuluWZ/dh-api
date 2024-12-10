@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateGroupMessageDto,
   CreatePrivateMessageDto,
+  CreateReactionDto,
   CreateSavedMessageDto,
   GroupInclude,
   PrivateInclude,
@@ -50,6 +51,7 @@ export class PrivateChatService {
         senderId: true,
         receiverId: true,
         createdAt: true,
+        Reaction: true,
         sender: {
           select: {
             id: true,
@@ -122,7 +124,7 @@ export class PrivateChatService {
   async getMessage(id: number) {
     return this.prisma.privateMessage.findUnique({
       where: { id },
-      include: { replies: true },
+      include: { replies: true, Reaction: true },
     });
   }
   async deleteMessage(id: number) {
@@ -288,5 +290,49 @@ export class PrivateChatService {
       where: { id },
       data: { deletedByReceiver, deletedBySender },
     });
+  }
+  async createReactions(userId: number, createReaction: CreateReactionDto) {
+    const { messageType, ...reactionDate } = createReaction;
+    const createReactionRecord = async (data) => {
+      return this.prisma.reaction.create({
+        data: {
+          ...data,
+          userId,
+        },
+      });
+    };
+
+    if (messageType === 'GroupMessage') {
+      const message = await this.prisma.groupMessage.findUnique({
+        where: { id: reactionDate.messageId },
+      });
+      if (!message) {
+        throw new NotFoundException('Message not found');
+      }
+      return createReactionRecord(reactionDate);
+    }
+
+    if (messageType === 'PrivateMessage') {
+      const message = await this.prisma.groupMessage.findUnique({
+        where: { id: reactionDate.messageId },
+      });
+      if (!message) {
+        throw new NotFoundException('Message not found');
+      }
+      return createReactionRecord(reactionDate);
+    }
+  }
+  async getReaction(id: number) {
+    return this.prisma.reaction.findUnique({ where: { id } });
+  }
+  async removeReaction(userId: number, reactionId: number) {
+    const reaction = await this.getReaction(reactionId);
+    if (!reaction) {
+      throw new NotFoundException('Reaction not found');
+    }
+    if (reaction.userId !== userId) {
+      throw new Error('You are not authorized to remove this reaction');
+    }
+    return this.prisma.reaction.delete({ where: { id: reaction.id } });
   }
 }

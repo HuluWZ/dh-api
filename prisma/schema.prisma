@@ -52,6 +52,7 @@ model User {
   Poll                   Poll[]
   PollVote               PollVote[]
   SavedMessage           SavedMessage[]
+  Reaction               Reaction[]
 }
 
 model Industry {
@@ -294,6 +295,7 @@ model PrivateMessage {
   sender       User           @relation(name: "sender", fields: [senderId], references: [id])
   receiver     User           @relation(name: "receiver", fields: [receiverId], references: [id])
   SavedMessage SavedMessage[]
+  Reaction     Reaction[]
 }
 
 model GroupMessage {
@@ -315,6 +317,7 @@ model GroupMessage {
   replyTo      GroupMessage?  @relation("Replies", fields: [replyToId], references: [id])
   replies      GroupMessage[] @relation("Replies")
   SavedMessage SavedMessage[]
+  Reaction     Reaction[]
 }
 
 model Contact {
@@ -438,4 +441,20 @@ model SavedMessage {
   user           User            @relation(fields: [userId], references: [id])
   privateMessage PrivateMessage? @relation(fields: [messageId], references: [id], map: "SavedMessage_privateMessageId_fkey")
   groupMessage   GroupMessage?   @relation(fields: [messageId], references: [id], map: "SavedMessage_groupMessageId_fkey")
+}
+
+model Reaction {
+  id               Int      @id @default(autoincrement())
+  type             String
+  createdAt        DateTime @default(now())
+  userId           Int
+  privateMessageId Int?
+  groupMessageId   Int?
+
+  user           User            @relation(fields: [userId], references: [id])
+  privateMessage PrivateMessage? @relation(fields: [privateMessageId], references: [id])
+  groupMessage   GroupMessage?   @relation(fields: [groupMessageId], references: [id])
+
+  @@unique([userId, privateMessageId, type], map: "unique_private_message_reaction")
+  @@unique([userId, groupMessageId, type], map: "unique_group_message_reaction")
 }

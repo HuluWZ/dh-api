@@ -20,6 +20,7 @@ import { PrivateChatService } from './private-chat.service';
 import {
   CreateGroupMessageDto,
   CreatePrivateMessageDto,
+  CreateReactionDto,
   CreateSavedMessageDto,
   DeleteMultiplePrivateGroupMessageDto,
 } from './dto/private.dto';
@@ -161,6 +162,20 @@ export class PrivateChatController {
     );
     return { message: 'Message saved successfully', data: savedMessage };
   }
+  @Post('create-reaction')
+  @ApiOperation({ summary: 'React to Private / Group Message' })
+  @UseGuards(AuthGuard)
+  async createReaction(
+    @Req() req: any,
+    @Body() createReaction: CreateReactionDto,
+  ) {
+    const userId: number = req.user.id;
+    const reaction = await this.privateChatService.createReactions(
+      userId,
+      createReaction,
+    );
+    return { message: 'Reaction created successfully', data: reaction };
+  }
   @Patch('private-message/:id')
   @ApiOperation({ summary: 'Update Message is_seen status' })
   @UseGuards(AuthGuard)
@@ -248,6 +263,15 @@ export class PrivateChatController {
     const deleteMessage = await this.privateChatService.deleteMessage(+id);
     return { deleteMessage };
   }
+  @Delete('remove-reaction/:id')
+  @ApiOperation({ summary: 'Remove Reaction to Private / Group Message' })
+  @UseGuards(AuthGuard)
+  async removeReaction(@Param('id') id: number, @Req() req: any) {
+    const userId: number = req.user.id;
+    const reaction = await this.privateChatService.removeReaction(userId, id);
+    return { message: 'Reaction removed successfully', data: reaction };
+  }
+
   @Post('group-message')
   @ApiOperation({ summary: 'Send Group Message' })
   @UseGuards(AuthGuard)

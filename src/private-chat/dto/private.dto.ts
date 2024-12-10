@@ -84,6 +84,22 @@ export class DeleteMultiplePrivateGroupMessageDto {
   @Transform(({ value }) => value.map(Number))
   messageId: number[];
 }
+export class CreateReactionDto {
+  @ApiProperty({ example: 1, description: 'Message Id' })
+  @IsInt()
+  messageId: number;
+
+  @ApiProperty({ example: '🤟', description: 'Reaction Content' })
+  @IsString()
+  type: string;
+
+  @ApiProperty({
+    example: 'GroupMessage | PrivateMessage',
+    description: 'Message Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
+}
 export const GroupInclude = {
   sender: {
     select: {
@@ -96,6 +112,7 @@ export const GroupInclude = {
     },
   },
   replies: true,
+  Reaction: true,
   group: {
     select: {
       id: true,
@@ -121,6 +138,7 @@ export const PrivateInclude = {
     },
   },
   replies: true,
+  Reaction: true,
   receiver: {
     select: {
       id: true,
