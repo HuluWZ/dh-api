@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   NotFoundException,
   Param,
@@ -20,6 +21,7 @@ import {
   CreateGroupMessageDto,
   CreatePrivateMessageDto,
   CreateSavedMessageDto,
+  DeleteMultiplePrivateGroupMessageDto,
 } from './dto/private.dto';
 
 @ApiTags('Chat')
@@ -28,6 +30,13 @@ import {
 export class PrivateChatController {
   constructor(private privateChatService: PrivateChatService) {}
 
+  isLessThanFiveMinutes = (created_at) => {
+    const createdAt = new Date(created_at);
+    const now = new Date();
+    const diffInMilliseconds = now.getTime() - createdAt.getTime();
+    const diffInMinutes = diffInMilliseconds / (1000 * 60);
+    return diffInMinutes < 5;
+  };
   @Post('private-message')
   @ApiOperation({ summary: 'Send Private Message' })
   @UseGuards(AuthGuard)
@@ -52,6 +61,97 @@ export class PrivateChatController {
     );
 
     return { message: 'Message sent successfully', data: message };
+  }
+  @Post('delete-private-message')
+  @ApiOperation({ summary: 'Delete Multiple Private Message' })
+  @UseGuards(AuthGuard)
+  async deletePrivateMessages(
+    @Body() deletePrivateMessage: DeleteMultiplePrivateGroupMessageDto,
+    @Req() req: any,
+  ) {
+    const userId: number = req.user.id;
+    const messages = await this.privateChatService.getMultiplePrivateMessages(
+      deletePrivateMessage.messageId,
+    );
+
+    if (messages.length === 0) {
+      throw new NotFoundException('No messages found for the provided IDs.');
+    }
+
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+
+    const updates = messages.map((message) => {
+      const isSender = message.senderId === userId;
+      const isReceiver = message.receiverId === userId;
+
+      if (!isSender && !isReceiver) {
+        throw new ForbiddenException(
+          'You are not authorized to delete some of these messages.',
+        );
+      }
+
+      // Determine deletion type
+      if (isSender && message.createdAt > fiveMinutesAgo) {
+        // Within 5 minutes: Delete for both sender and receiver
+        return this.privateChatService.updatePrivateMessageDelete(
+          message.id,
+          true,
+          true,
+        );
+      } else if (isSender) {
+        // After 5 minutes: Delete only for sender
+        return this.privateChatService.updatePrivateMessageDelete(
+          message.id,
+          true,
+          false,
+        );
+      } else if (isReceiver) {
+        // Receiver deletes message for themselves
+        return this.privateChatService.updatePrivateMessageDelete(
+          message.id,
+          false,
+          true,
+        );
+      }
+
+      throw new BadRequestException(
+        'Invalid operation for one or more messages.',
+      );
+    });
+
+    // Execute all updates
+    return Promise.all(updates);
+  }
+  @Post('delete-group-message')
+  @ApiOperation({ summary: 'Delete Multiple Private Message' })
+  @UseGuards(AuthGuard)
+  async deleteGroupMessages(
+    @Body() deleteGroupMessage: DeleteMultiplePrivateGroupMessageDto,
+    @Req() req: any,
+  ) {
+    const userId: number = req.user.id;
+    let validMessageIds: number[] = [];
+    for (let messageId of deleteGroupMessage.messageId) {
+      const groupMessage =
+        await this.privateChatService.getGroupMessage(messageId);
+      const isOrgOwner = groupMessage.group.org.ownerId === userId;
+      const isGroupAdmin = groupMessage.group.OrgGroupAdmin.some(
+        (admin) => admin.memberId === userId,
+      );
+      if (groupMessage && (isOrgOwner || isGroupAdmin)) {
+        validMessageIds.push(messageId);
+      }
+    }
+    if (validMessageIds.length === 0) {
+      throw new BadRequestException(
+        'Invalid Message Ids or You are not authorized to delete these messages',
+      );
+    }
+    const message =
+      await this.privateChatService.deleteMultipleGroupMessage(validMessageIds);
+
+    return { message: 'Message Deleted successfully', data: message };
   }
 
   @Post('saved-message')

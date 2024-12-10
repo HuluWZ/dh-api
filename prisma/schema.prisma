@@ -268,15 +268,18 @@ enum MessageType {
 }
 
 model PrivateMessage {
-  id         Int         @id @default(autoincrement())
-  senderId   Int
-  receiverId Int
-  content    String
-  type       MessageType @default(Text)
-  is_seen    Boolean     @default(false)
-  is_pinned  Boolean     @default(false)
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  id                Int         @id @default(autoincrement())
+  senderId          Int
+  receiverId        Int
+  content           String
+  type              MessageType @default(Text)
+  is_seen           Boolean     @default(false)
+  is_pinned         Boolean     @default(false)
+  deletedBySender   Boolean     @default(false) // Deleted for sender
+  deletedByReceiver Boolean     @default(false) // Deleted for receiver
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   replyToId Int?
   replyTo   PrivateMessage?  @relation("Replies", fields: [replyToId], references: [id])
@@ -288,17 +291,19 @@ model PrivateMessage {
 }
 
 model GroupMessage {
-  id        Int         @id @default(autoincrement())
-  senderId  Int?
-  content   String
-  groupId   Int
-  type      MessageType @default(Text)
-  is_seen   Boolean     @default(false)
-  is_pinned Boolean     @default(false)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  sender    User?       @relation(name: "senderGroup", fields: [senderId], references: [id])
-  group     OrgGroup    @relation(fields: [groupId], references: [id])
+  id          Int         @id @default(autoincrement())
+  senderId    Int?
+  content     String
+  groupId     Int
+  type        MessageType @default(Text)
+  is_seen     Boolean     @default(false)
+  is_pinned   Boolean     @default(false)
+  is_archived Boolean     @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sender    User?    @relation(name: "senderGroup", fields: [senderId], references: [id])
+  group     OrgGroup @relation(fields: [groupId], references: [id])
 
   replyToId    Int?
   replyTo      GroupMessage?  @relation("Replies", fields: [replyToId], references: [id])

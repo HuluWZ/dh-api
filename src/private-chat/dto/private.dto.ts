@@ -1,5 +1,14 @@
-import { IsEnum, IsInt, IsOptional, IsString } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 enum MessageType {
   Text = 'Text',
   Video = 'Video',
@@ -67,7 +76,14 @@ export class CreateSavedMessageDto {
   @IsInt()
   messageId: number;
 }
-
+export class DeleteMultiplePrivateGroupMessageDto {
+  @ApiProperty({ example: ['1'], description: 'Private / Group Message Ids' })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayNotEmpty()
+  @Transform(({ value }) => value.map(Number))
+  messageId: number[];
+}
 export const GroupInclude = {
   sender: {
     select: {
@@ -85,6 +101,11 @@ export const GroupInclude = {
       id: true,
       name: true,
       color: true,
+      createdBy: true,
+      org: {
+        select: { ownerId: true },
+      },
+      OrgGroupAdmin: { select: { memberId: true } },
     },
   },
 };

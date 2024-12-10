@@ -128,6 +128,12 @@ export class PrivateChatService {
   async deleteMessage(id: number) {
     return this.prisma.privateMessage.delete({ where: { id } });
   }
+  async deleteMultipleMessage(ids: number[]) {
+    return this.prisma.privateMessage.deleteMany({
+      where: { id: { in: ids } },
+    });
+  }
+
   async updateMessageSeen(id: number) {
     return this.prisma.privateMessage.update({
       where: { id },
@@ -153,8 +159,18 @@ export class PrivateChatService {
     });
   }
   async deleteGroupMessage(id: number) {
-    return this.prisma.groupMessage.delete({ where: { id } });
+    return this.prisma.groupMessage.update({
+      where: { id },
+      data: { is_archived: true },
+    });
   }
+  async deleteMultipleGroupMessage(ids: number[]) {
+    return this.prisma.groupMessage.updateMany({
+      where: { id: { in: ids } },
+      data: { is_archived: true },
+    });
+  }
+
   async updateGroupMessageSeen(id: number) {
     return this.prisma.groupMessage.update({
       where: { id },
@@ -179,7 +195,7 @@ export class PrivateChatService {
 
   async getGroupMessageByGroupId(groupId: number) {
     return this.prisma.groupMessage.findMany({
-      where: { groupId },
+      where: { groupId, is_archived: false },
       include: GroupInclude,
       orderBy: {
         createdAt: 'desc',
@@ -205,6 +221,7 @@ export class PrivateChatService {
     const groupFilters: Prisma.GroupMessageWhereInput = {
       AND: [
         { content: { contains: content, mode: 'insensitive' } },
+        { is_archived: false },
         {
           OR: [
             { senderId: userId },
@@ -257,6 +274,19 @@ export class PrivateChatService {
       where: { userId },
       include: { groupMessage: true, privateMessage: true },
       orderBy: { savedAt: 'desc' },
+    });
+  }
+  async getMultiplePrivateMessages(ids: number[]) {
+    return this.prisma.privateMessage.findMany({ where: { id: { in: ids } } });
+  }
+  async updatePrivateMessageDelete(
+    id: number,
+    deletedBySender: boolean,
+    deletedByReceiver: boolean,
+  ) {
+    return this.prisma.privateMessage.update({
+      where: { id },
+      data: { deletedByReceiver, deletedBySender },
     });
   }
 }
