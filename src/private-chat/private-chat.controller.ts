@@ -30,13 +30,6 @@ import {
 export class PrivateChatController {
   constructor(private privateChatService: PrivateChatService) {}
 
-  isLessThanFiveMinutes = (created_at) => {
-    const createdAt = new Date(created_at);
-    const now = new Date();
-    const diffInMilliseconds = now.getTime() - createdAt.getTime();
-    const diffInMinutes = diffInMilliseconds / (1000 * 60);
-    return diffInMinutes < 5;
-  };
   @Post('private-message')
   @ApiOperation({ summary: 'Send Private Message' })
   @UseGuards(AuthGuard)
