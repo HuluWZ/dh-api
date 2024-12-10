@@ -126,5 +126,5 @@ export class ScheduledNotificationDto {
   @MinDate(new Date(), {
     message: `Scheduled notification deadline must be in the future.`,
   })
-  deadline?: Date;
+  schedule?: Date;
 }
