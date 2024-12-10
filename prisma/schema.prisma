@@ -199,12 +199,16 @@ model Task {
   groupId       Int
   monitoredBy   Int?
   position      Int?
+  parentId      Int? // Parent task ID for subtasks
   createdBy     Int
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   TaskAsignee   TaskAsignee[]
   group         OrgGroup        @relation(fields: [groupId], references: [id])
   ArchivedTasks ArchivedTasks[]
+
+  parent   Task?  @relation("Subtasks", fields: [parentId], references: [id])
+  subtasks Task[] @relation("Subtasks")
 }
 
 model TaskAsignee {

@@ -113,6 +113,11 @@ export class CreateTaskDto {
   @IsOptional()
   @IsNumber()
   monitoredBy: number;
+
+  @ApiProperty({ example: '1', description: 'Parent Task Id' })
+  @IsOptional()
+  @IsNumber()
+  parentId?: number;
 }
 
 export class UpdateTaskDto extends PartialType(CreateTaskDto) {}

@@ -21,6 +21,12 @@ export class TaskService {
 
   async createTask(taskDataDto: CreateTaskDto, createdBy: number) {
     const { assignedTo, ...taskData } = taskDataDto;
+    if (taskData.parentId) {
+      const parentTask = await this.getTaskById(taskData.parentId);
+      if (!parentTask) {
+        throw new UnauthorizedException('Invalid Parent Task Id');
+      }
+    }
     const task = await this.prisma.task.create({
       data: { ...taskData, createdBy },
     });
@@ -48,6 +54,8 @@ export class TaskService {
     return this.prisma.task.findFirst({
       where: { id: taskId },
       include: {
+        parent: true,
+        subtasks: true,
         TaskAsignee: {
           select: {
             memberId: true,
@@ -72,6 +80,8 @@ export class TaskService {
     return this.prisma.task.findMany({
       where,
       include: {
+        parent: true,
+        subtasks: true,
         TaskAsignee: {
           select: {
             memberId: true,
@@ -95,6 +105,8 @@ export class TaskService {
     return this.prisma.task.findMany({
       where,
       include: {
+        parent: true,
+        subtasks: true,
         TaskAsignee: {
           select: {
             memberId: true,
@@ -112,6 +124,8 @@ export class TaskService {
     return this.prisma.task.findMany({
       where: { createdBy },
       include: {
+        parent: true,
+        subtasks: true,
         TaskAsignee: {
           select: {
             memberId: true,
@@ -130,6 +144,8 @@ export class TaskService {
       include: {
         task: {
           include: {
+            parent: true,
+            subtasks: true,
             TaskAsignee: {
               select: {
                 memberId: true,
