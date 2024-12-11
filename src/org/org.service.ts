@@ -1,10 +1,17 @@
 import {
+  BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrgDto, UpdateOrgDto } from './dto/org.dto';
+import {
+  CreateOrgDto,
+  CreateOrgOwnershipTransfer,
+  UpdateOrgDto,
+  UpdateOrgOwnershipTransferStatus,
+} from './dto/org.dto';
 import { Org } from '@prisma/client';
 
 @Injectable()
@@ -170,5 +177,56 @@ export class OrgService {
         ],
       },
     });
+  }
+  async requestOwnershipTransfer(
+    requestedBy: number,
+    createOwnershipTransfer: CreateOrgOwnershipTransfer,
+  ) {
+    return this.prisma.ownershipTransfer.create({
+      data: {
+        requestedBy,
+        ...createOwnershipTransfer,
+      },
+    });
+  }
+  async approveOrRejectOwnershipRequest(
+    currentUserId: number,
+    requestId: number,
+    type: UpdateOrgOwnershipTransferStatus['type'],
+  ) {
+    const transfer = await this.prisma.ownershipTransfer.findUnique({
+      where: { id: requestId },
+      include: { org: true },
+    });
+
+    if (!transfer) {
+      throw new NotFoundException('Transfer request not found');
+    }
+
+    if (transfer.org.ownerId !== currentUserId) {
+      throw new ForbiddenException(
+        'Only the current owner can approve the transfer',
+      );
+    }
+
+    if (transfer.status !== 'Pending') {
+      throw new BadRequestException('Transfer request is not pending');
+    }
+    if (type === 'Rejected') {
+      return this.prisma.ownershipTransfer.update({
+        where: { id: requestId },
+        data: { status: 'Rejected' },
+      });
+    }
+    // Update Org  OwnerId
+    const updatedOrg = await this.prisma.org.update({
+      where: { id: transfer.orgId },
+      data: { ownerId: transfer.newOwnerId },
+    });
+    await this.prisma.ownershipTransfer.update({
+      where: { id: requestId },
+      data: { status: 'Approved' },
+    });
+    return updatedOrg;
   }
 }

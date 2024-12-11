@@ -388,16 +388,23 @@ model Advertisement {
   updatedAt   DateTime @updatedAt
 }
 
+enum TransferStatus {
+  Pending
+  Approved
+  Rejected
+}
+
 model OwnershipTransfer {
-  id          Int      @id @default(autoincrement())
-  orgId       Int
-  ownerId     Int
-  newOwnerId  Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  org         Org      @relation(fields: [orgId], references: [id])
-  orgOwner    User     @relation(name: "orgOwner", fields: [ownerId], references: [id])
-  newOrgOwner User     @relation(name: "newOrgOwner", fields: [newOwnerId], references: [id])
+  id              Int            @id @default(autoincrement())
+  orgId           Int
+  requestedBy     Int
+  newOwnerId      Int
+  status          TransferStatus @default(Pending)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  org             Org            @relation(fields: [orgId], references: [id])
+  requestedByUser User           @relation(name: "orgOwner", fields: [requestedBy], references: [id])
+  newOwner        User           @relation(name: "newOrgOwner", fields: [newOwnerId], references: [id])
 }
 
 model Poll {

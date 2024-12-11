@@ -9,9 +9,15 @@ import {
   Get,
   Delete,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { OrgService } from './org.service';
-import { CreateOrgDto, UpdateOrgDto } from './dto/org.dto';
+import {
+  CreateOrgDto,
+  CreateOrgOwnershipTransfer,
+  UpdateOrgDto,
+  UpdateOrgOwnershipTransferStatus,
+} from './dto/org.dto';
 import { AuthGuard } from '../auth/auth.guard';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { OrgMemberService } from 'src/org-member/org-member.service';
@@ -62,6 +68,30 @@ export class OrgController {
 
     return { message: 'Organization created successfully', org: organization };
   }
+  @Post('ownership-transfer-request')
+  @ApiOperation({ summary: 'Create Org Ownership Request' })
+  @UseGuards(AuthGuard)
+  async createOwnershipTransfer(
+    @Body() createOwnershipTransferDto: CreateOrgOwnershipTransfer,
+    @Req() req: any,
+  ) {
+    const ownerId = req.user.id;
+    const org = await this.orgService.getOne(createOwnershipTransferDto.orgId);
+    if (!org) {
+      throw new NotFoundException('Organization not found');
+    }
+    if (ownerId !== org.ownerId) {
+      throw new NotFoundException('You are not the owner of this organization');
+    }
+    const request = await this.orgService.requestOwnershipTransfer(
+      ownerId,
+      createOwnershipTransferDto,
+    );
+    return {
+      message: 'Ownership Request created successfully',
+      ownershipRequest: request,
+    };
+  }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update Organization' })
@@ -86,6 +116,27 @@ export class OrgController {
     );
 
     return { message: 'Organization updated successfully', org: organization };
+  }
+  @Patch(':requestId')
+  @ApiOperation({ summary: 'Update Ownership Request Status Approve / Reject' })
+  @UseGuards(AuthGuard)
+  async approveOrRejectOwnership(
+    @Param('requestId') requestId: number,
+    @Body() updateOrgDto: UpdateOrgOwnershipTransferStatus,
+    @Req() req: any,
+  ) {
+    const userId = req.user.id;
+
+    const request = await this.orgService.approveOrRejectOwnershipRequest(
+      userId,
+      requestId,
+      updateOrgDto.type,
+    );
+
+    return {
+      message: 'Ownership Transfer Status updated successfully',
+      ownershipRequest: request,
+    };
   }
   @Get()
   @ApiOperation({ summary: 'Get All Organization' })
