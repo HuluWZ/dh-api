@@ -23,6 +23,8 @@ import {
   CreateReactionDto,
   CreateSavedMessageDto,
   DeleteMultiplePrivateGroupMessageDto,
+  ForwardGroupMessageDto,
+  ForwardPrivateMessageDto,
 } from './dto/private.dto';
 
 @ApiTags('Chat')
@@ -175,6 +177,35 @@ export class PrivateChatController {
       createReaction,
     );
     return { message: 'Reaction created successfully', data: reaction };
+  }
+  @Post('forward-private-message')
+  @ApiOperation({ summary: 'Forward Private Message' })
+  @UseGuards(AuthGuard)
+  async forwardPrivateMessage(
+    @Req() req: any,
+    @Body() forwardPrivateMessage: ForwardPrivateMessageDto,
+  ) {
+    const userId: number = req.user.id;
+    const reaction = await this.privateChatService.forwardPrivateMessage(
+      userId,
+      forwardPrivateMessage,
+    );
+    return { message: 'Message forwarded successfully', data: reaction };
+  }
+
+  @Post('forward-group-message')
+  @ApiOperation({ summary: 'Forward Group Message' })
+  @UseGuards(AuthGuard)
+  async forwardGroupMessage(
+    @Req() req: any,
+    @Body() forwardGroupMessage: ForwardGroupMessageDto,
+  ) {
+    const userId: number = req.user.id;
+    const reaction = await this.privateChatService.forwardGroupMessage(
+      userId,
+      forwardGroupMessage,
+    );
+    return { message: 'Message forwarded successfully', data: reaction };
   }
   @Patch('private-message/:id')
   @ApiOperation({ summary: 'Update Message is_seen status' })

@@ -5,6 +5,8 @@ import {
   CreatePrivateMessageDto,
   CreateReactionDto,
   CreateSavedMessageDto,
+  ForwardGroupMessageDto,
+  ForwardPrivateMessageDto,
   GroupInclude,
   PrivateInclude,
 } from './dto/private.dto';
@@ -334,5 +336,49 @@ export class PrivateChatService {
       throw new Error('You are not authorized to remove this reaction');
     }
     return this.prisma.reaction.delete({ where: { id: reaction.id } });
+  }
+  async forwardPrivateMessage(
+    senderId: number,
+    { messageId, receiverId }: ForwardPrivateMessageDto,
+  ) {
+    const originalMessage = await this.prisma.privateMessage.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!originalMessage) {
+      throw new NotFoundException('Original message not found');
+    }
+
+    return this.prisma.privateMessage.create({
+      data: {
+        senderId,
+        receiverId,
+        content: originalMessage.content,
+        type: originalMessage.type,
+        forwardedFromId: messageId,
+      },
+    });
+  }
+  async forwardGroupMessage(
+    senderId: number,
+    { messageId, groupId }: ForwardGroupMessageDto,
+  ) {
+    const originalMessage = await this.prisma.groupMessage.findUnique({
+      where: { id: messageId },
+    });
+
+    if (!originalMessage) {
+      throw new NotFoundException('Original message not found');
+    }
+
+    return this.prisma.groupMessage.create({
+      data: {
+        senderId,
+        groupId,
+        content: originalMessage.content,
+        type: originalMessage.type,
+        forwardedFromId: messageId,
+      },
+    });
   }
 }

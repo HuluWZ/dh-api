@@ -100,6 +100,26 @@ export class CreateReactionDto {
   @IsEnum(ChatType)
   messageType: ChatType;
 }
+export class CommonForwardMessageDto {
+  @ApiProperty({ example: 1, description: 'Message Id' })
+  @IsInt()
+  @IsNotEmpty()
+  messageId: number;
+}
+
+export class ForwardPrivateMessageDto extends CommonForwardMessageDto {
+  @ApiProperty({ example: 1, description: 'Receiver Id' })
+  @IsInt()
+  @IsNotEmpty()
+  receiverId: number;
+}
+
+export class ForwardGroupMessageDto extends CommonForwardMessageDto {
+  @ApiProperty({ example: 1, description: 'Group Id' })
+  @IsInt()
+  @IsNotEmpty()
+  groupId: number;
+}
 export const GroupInclude = {
   sender: {
     select: {
