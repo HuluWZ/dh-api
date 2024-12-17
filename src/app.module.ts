@@ -20,6 +20,7 @@ import { ContactModule } from './contact/contact.module';
 import { UpdateLastSeenMiddleware } from './update-last-seen.middleware';
 import { AdvertisementModule } from './advertisement/advertisement.module';
 import { PollModule } from './poll/poll.module';
+import { MinioModule } from './minio/minio.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { PollModule } from './poll/poll.module';
     ContactModule,
     AdvertisementModule,
     PollModule,
+    MinioModule,
   ],
   controllers: [],
   providers: [RedisService],
