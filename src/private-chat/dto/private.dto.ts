@@ -1,13 +1,16 @@
 import {
   ArrayNotEmpty,
   IsArray,
+  IsDate,
   IsEnum,
+  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
   IsString,
+  MinDate,
 } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 enum MessageType {
   Text = 'Text',
@@ -113,7 +116,38 @@ export class ForwardPrivateMessageDto extends CommonForwardMessageDto {
   @IsNotEmpty()
   receiverId: number;
 }
+export class MutePrivateChatDto {
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '2',
+    description: 'Private Chat Id',
+  })
+  @IsInt()
+  chatUserId: number;
 
+  @ApiProperty({
+    example: '2025-09-30T00:00:00.000Z',
+    description: 'Muted Until',
+  })
+  @IsNotEmpty()
+  @Transform(({ value }) => value && new Date(value))
+  @IsDate()
+  @MinDate(new Date(), {
+    message: `Muting Chat date cannot be in the past.`,
+  })
+  mutedUntil: Date;
+}
+export class MuteGroupChatDto extends OmitType(MutePrivateChatDto, [
+  'chatUserId',
+]) {
+  @IsNotEmpty()
+  @ApiProperty({
+    example: '4',
+    description: 'Group Id',
+  })
+  @IsInt()
+  groupId: number;
+}
 export class ForwardGroupMessageDto extends CommonForwardMessageDto {
   @ApiProperty({ example: 1, description: 'Group Id' })
   @IsInt()

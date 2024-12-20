@@ -53,6 +53,9 @@ model User {
   PollVote               PollVote[]
   SavedMessage           SavedMessage[]
   Reaction               Reaction[]
+  MutedByPrivateChat     MutedPrivateChat[]    @relation(name: "MutedBy")
+  MutedChatPrivateChat   MutedPrivateChat[]    @relation(name: "MutedChatUser")
+  MutedGroupChat         MutedGroupChat[]
 }
 
 model Industry {
@@ -146,6 +149,7 @@ model OrgGroup {
   GroupMessage   GroupMessage[]
   Task           Task[]
   Poll           Poll[]
+  MutedGroupChat MutedGroupChat[]
 }
 
 model OrgGroupMember {
@@ -472,4 +476,28 @@ model Reaction {
 
   @@unique([userId, privateMessageId, type], map: "unique_private_message_reaction")
   @@unique([userId, groupMessageId, type], map: "unique_group_message_reaction")
+}
+
+model MutedPrivateChat {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  chatUserId Int
+  mutedUntil DateTime?
+
+  user     User @relation(name: "MutedBy", fields: [userId], references: [id])
+  chatUser User @relation(name: "MutedChatUser", fields: [chatUserId], references: [id])
+
+  @@unique([userId, chatUserId])
+}
+
+model MutedGroupChat {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  groupId    Int
+  mutedUntil DateTime?
+
+  user  User     @relation(fields: [userId], references: [id])
+  group OrgGroup @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId]) // Ensure one mute per user-group relationship
 }

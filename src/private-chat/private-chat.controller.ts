@@ -25,6 +25,8 @@ import {
   DeleteMultiplePrivateGroupMessageDto,
   ForwardGroupMessageDto,
   ForwardPrivateMessageDto,
+  MuteGroupChatDto,
+  MutePrivateChatDto,
 } from './dto/private.dto';
 
 @ApiTags('Chat')
@@ -164,6 +166,58 @@ export class PrivateChatController {
     );
     return { message: 'Message saved successfully', data: savedMessage };
   }
+
+  @Post('mute-private-chat')
+  @ApiOperation({ summary: 'Mute Private Chat' })
+  @UseGuards(AuthGuard)
+  async mutePrivateChat(
+    @Req() req: any,
+    @Body() mutePrivateChat: MutePrivateChatDto,
+  ) {
+    const userId: number = req.user.id;
+    const mutedChat = await this.privateChatService.mutePrivateChat(
+      userId,
+      mutePrivateChat,
+    );
+    return { message: 'Chat Muted successfully', data: mutedChat };
+  }
+  @Post('unmute-private-chat/:chatId')
+  @ApiOperation({ summary: 'Unmute Private Chat' })
+  @UseGuards(AuthGuard)
+  async unmutePrivateChat(@Req() req: any, @Param('chatId') chatId: number) {
+    const userId: number = req.user.id;
+    const unmutedChat = await this.privateChatService.unmutePrivateChat(
+      userId,
+      chatId,
+    );
+    return { message: 'Chat Unmuted successfully', data: unmutedChat };
+  }
+  @Post('mute-group-chat')
+  @ApiOperation({ summary: 'Mute Group Chat' })
+  @UseGuards(AuthGuard)
+  async muteGroupChat(
+    @Req() req: any,
+    @Body() muteGroupChat: MuteGroupChatDto,
+  ) {
+    const userId: number = req.user.id;
+    const mutedChat = await this.privateChatService.muteGroupChat(
+      userId,
+      muteGroupChat,
+    );
+    return { message: 'Group Chat Muted successfully', data: mutedChat };
+  }
+  @Post('unmute-group-chat/:groupId')
+  @ApiOperation({ summary: 'Unmute Group Chat' })
+  @UseGuards(AuthGuard)
+  async unmuteGroupChat(@Req() req: any, @Param('groupId') groupId: number) {
+    const userId: number = req.user.id;
+    const unmutedChat = await this.privateChatService.unmuteGroupChat(
+      userId,
+      groupId,
+    );
+    return { message: 'Group Chat Unmuted successfully', data: unmutedChat };
+  }
+
   @Post('create-reaction')
   @ApiOperation({ summary: 'React to Private / Group Message' })
   @UseGuards(AuthGuard)

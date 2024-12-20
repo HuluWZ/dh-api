@@ -8,6 +8,8 @@ import {
   ForwardGroupMessageDto,
   ForwardPrivateMessageDto,
   GroupInclude,
+  MuteGroupChatDto,
+  MutePrivateChatDto,
   PrivateInclude,
 } from './dto/private.dto';
 import { Prisma } from '@prisma/client';
@@ -379,6 +381,40 @@ export class PrivateChatService {
         type: originalMessage.type,
         forwardedFromId: messageId,
       },
+    });
+  }
+  async mutePrivateChat(userId: number, mutePrivate: MutePrivateChatDto) {
+    return this.prisma.mutedPrivateChat.upsert({
+      where: {
+        userId_chatUserId: { userId, chatUserId: mutePrivate.chatUserId },
+      },
+      update: { mutedUntil: mutePrivate.mutedUntil },
+      create: {
+        userId,
+        ...mutePrivate,
+      },
+    });
+  }
+  async unmutePrivateChat(userId: number, chatUserId: number) {
+    return this.prisma.mutedPrivateChat.deleteMany({
+      where: { userId, chatUserId },
+    });
+  }
+  async muteGroupChat(userId: number, mutedGroupChat: MuteGroupChatDto) {
+    return this.prisma.mutedGroupChat.upsert({
+      where: {
+        userId_groupId: { userId, groupId: mutedGroupChat.groupId },
+      },
+      update: { mutedUntil: mutedGroupChat.mutedUntil },
+      create: {
+        userId,
+        ...mutedGroupChat,
+      },
+    });
+  }
+  async unmuteGroupChat(userId: number, groupId: number) {
+    return this.prisma.mutedGroupChat.deleteMany({
+      where: { userId, groupId },
     });
   }
 }
