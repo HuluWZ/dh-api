@@ -28,6 +28,7 @@ import {
   MuteGroupChatDto,
   MutePrivateChatDto,
 } from './dto/private.dto';
+import { extractMentionedUsers } from './utils/chat.utls';
 
 @ApiTags('Chat')
 @ApiBearerAuth()
@@ -316,6 +317,22 @@ export class PrivateChatController {
       userId,
       content,
       type,
+    );
+  }
+  @Post('group-chat-mention/:groupId')
+  @ApiOperation({ summary: 'Mention in GroupChat Notification' })
+  @UseGuards(AuthGuard)
+  async mentionGroupChatNotification(
+    @Req() req: any,
+    @Param('groupId') groupId: number,
+    @Query('content') content: string,
+  ) {
+    const userId = req.user.id; // Extract userId from JWT payload
+    const contents = extractMentionedUsers(content);
+    return this.privateChatService.sendMentionNotification(
+      contents,
+      userId,
+      groupId,
     );
   }
 

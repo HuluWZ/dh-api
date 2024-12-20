@@ -13,10 +13,15 @@ import {
   PrivateInclude,
 } from './dto/private.dto';
 import { Prisma } from '@prisma/client';
+import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/dto/notification.dto';
 
 @Injectable()
 export class PrivateChatService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   async createPrivateMessage(
     senderId: number,
@@ -416,5 +421,37 @@ export class PrivateChatService {
     return this.prisma.mutedGroupChat.deleteMany({
       where: { userId, groupId },
     });
+  }
+  async sendMentionNotification(
+    name: string[],
+    mentioner: number,
+    groupId: number,
+  ) {
+    const mentionerDetails = await this.prisma.user.findUnique({
+      where: { id: mentioner },
+    });
+    const group = await this.prisma.orgGroup.findUnique({
+      where: { id: groupId },
+    });
+    if (!group) {
+      return true;
+    }
+    const mentionedUsers = await this.prisma.user.findMany({
+      where: { userName: { in: name } },
+      include: { FCM: true },
+    });
+    if (mentionedUsers.length) {
+      const tokens = mentionedUsers.map((user) => user.FCM[0].deviceId);
+      await this.notificationService.sendNotificationToMultipleTokens({
+        tokens,
+        title: `${mentionerDetails.firstName} mentioned you in ${group.name}`,
+        body: `${mentionerDetails.firstName} mentioned you in ${group.name}`,
+        type: NotificationType.Communication,
+        icon: 'https://code.enf',
+      });
+      return true;
+    }
+
+    return true;
   }
 }
