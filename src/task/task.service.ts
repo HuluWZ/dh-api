@@ -315,4 +315,25 @@ export class TaskService {
       );
     });
   }
+  async validateTaskMention(identifier: string | number, userId: number) {
+    const isId = typeof identifier === 'number';
+
+    const task = await this.prisma.task.findFirst({
+      where: {
+        AND: [
+          isId
+            ? { id: identifier }
+            : { name: { contains: identifier, mode: 'insensitive' } },
+          {
+            OR: [
+              { createdBy: userId },
+              { group: { OrgGroupMember: { some: { memberId: userId } } } },
+            ],
+          },
+        ],
+      },
+    });
+
+    return task || null;
+  }
 }

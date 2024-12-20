@@ -211,6 +211,14 @@ export class TaskController {
     // const userId: number = req.user.id;
     return this.taskService.searchTasks(search);
   }
+  @Get('mention')
+  @ApiOperation({ summary: 'Mention Tasks  With @task  ' })
+  @UseGuards(AuthGuard)
+  async mentionTask(@Query('content') content: string, @Req() req: any) {
+    const identifier = extractTaskIdentifier(content);
+    const userId: number = req.user.id;
+    return this.taskService.validateTaskMention(identifier, userId);
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get Task By Id' })
