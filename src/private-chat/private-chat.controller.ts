@@ -193,6 +193,62 @@ export class PrivateChatController {
     );
     return { message: 'Chat Unmuted successfully', data: unmutedChat };
   }
+  @Post('unsend-private-message/:id')
+  @ApiOperation({ summary: 'Unsend Private Chat' })
+  @UseGuards(AuthGuard)
+  async unsendPrivateMessage(@Req() req: any, @Param('id') id: number) {
+    const userId: number = req.user.id;
+    const privateMessage = await this.privateChatService.getMessage(id);
+    if (!privateMessage) {
+      throw new NotFoundException(`Message with Id #${id} not found!`);
+    }
+    if (privateMessage.senderId !== userId) {
+      throw new ForbiddenException('Only Sender can unsend the message.');
+    }
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    if (privateMessage.createdAt < fiveMinutesAgo) {
+      throw new ForbiddenException(
+        'You can only unsend messages sent within the last 5 minutes.',
+      );
+    }
+    if (privateMessage.is_seen) {
+      throw new ForbiddenException(
+        'You can only unsend messages that have not been seen by the receiver yet.',
+      );
+    }
+
+    const unmutedChat = await this.privateChatService.deleteMessage(id);
+    return { message: 'Message Unsent successfully', data: unmutedChat };
+  }
+  @Post('unsend-group-message/:id')
+  @ApiOperation({ summary: 'Unsend Group Message' })
+  @UseGuards(AuthGuard)
+  async unsendGroupMessage(@Req() req: any, @Param('id') id: number) {
+    const userId: number = req.user.id;
+    const groupMessage = await this.privateChatService.getGroupMessage(id);
+    if (!groupMessage) {
+      throw new NotFoundException(`Message with Id #${id} not found!`);
+    }
+    if (groupMessage.senderId !== userId) {
+      throw new ForbiddenException('Only Sender can unsend the message.');
+    }
+    const now = new Date();
+    const fiveMinutesAgo = new Date(now.getTime() - 5 * 60 * 1000);
+    if (groupMessage.createdAt < fiveMinutesAgo) {
+      throw new ForbiddenException(
+        'You can only unsend messages sent within the last 5 minutes.',
+      );
+    }
+    if (groupMessage.is_seen) {
+      throw new ForbiddenException(
+        'You can only unsend messages that have not been seen by the receiver yet.',
+      );
+    }
+
+    const unmutedChat = await this.privateChatService.deleteGroupMessage(id);
+    return { message: 'Message Unsent successfully', data: unmutedChat };
+  }
   @Post('mute-group-chat')
   @ApiOperation({ summary: 'Mute Group Chat' })
   @UseGuards(AuthGuard)
