@@ -89,8 +89,8 @@ export class OrgMemberController {
     );
     return { message: 'Members Added TO Org successfully', members };
   }
-  @Post('add-customer-as-member')
-  @ApiOperation({ summary: 'Add  Multiple Org Member' })
+  @Post('add-connector')
+  @ApiOperation({ summary: 'Add Connector as Org Member' })
   @UseGuards(AuthGuard, OrgMemberGuard)
   async addConnectorAsMember(
     @Body() createCustomerMemberDto: CreateOrgMemberWithCustomersDto,
@@ -124,9 +124,14 @@ export class OrgMemberController {
         isUserAlreadyExist.id,
       );
       return { message: 'Connector Added TO Org successfully', member };
+    } else {
+      const user = await this.authService.createUserWithPhone(phoneNumber);
+      const member = await this.orgMemberService.addMemberForCustomer(
+        orgId,
+        user.id,
+      );
+      return { message: 'Connector Added TO Org successfully', member };
     }
-
-    return { message: 'Connectors Added TO Org successfully' };
   }
 
   @Patch('role/:orgId/:memberId')

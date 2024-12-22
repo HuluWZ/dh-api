@@ -39,6 +39,21 @@ export class AuthService {
       where: { phone },
     });
   }
+  async createUserWithPhone(phone_number: string) {
+    const { isValid, phoneNumber } = phone(phone_number, { country: 'ETH' });
+    if (!isValid) {
+      throw new BadRequestException(`Invalid phone number : ${phone}`);
+    }
+    const user = await this.prisma.user.findUnique({
+      where: { phone: phoneNumber },
+    });
+    if (user) {
+      throw new BadRequestException('User already exists');
+    }
+    return this.prisma.user.create({
+      data: { phone: phoneNumber },
+    });
+  }
 
   async verifyOtp(verifyOtpDto: VerifyOtpDto) {
     const formattedPhone = formatPhone(verifyOtpDto.phone);
