@@ -37,6 +37,15 @@ export class CreateOrgMemberDto {
   role: OrgMemberStatus;
 }
 
+export class CreateOrgMemberWithCustomersDto extends OmitType(
+  CreateOrgMemberDto,
+  ['memberId', 'role'] as const,
+) {
+  @ApiProperty({ example: '+251945678908', description: 'Phone Number' })
+  @IsNotEmpty()
+  @IsString()
+  phone_number: string;
+}
 export class UpdateOrgMemberDto {
   @ApiProperty({
     example: 'General Manager',

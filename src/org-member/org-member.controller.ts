@@ -16,18 +16,24 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import {
   CreateMultipleOrgMemberDto,
+  CreateOrgMemberWithCustomersDto,
   DeleteOrgMembersDto,
   UpdateMemberRoleDto,
   UpdateOrgMemberDto,
 } from './dto/org-member.dto';
 import { OrgMemberGuard } from './org-member.guard';
 import { OrgMemberService } from './org-member.service';
+import { AuthService } from 'src/auth/auth.service';
+import phone from 'phone';
 
 @ApiTags('Org Members')
 @ApiBearerAuth()
 @Controller('org-member')
 export class OrgMemberController {
-  constructor(private orgMemberService: OrgMemberService) {}
+  constructor(
+    private orgMemberService: OrgMemberService,
+    private readonly authService: AuthService,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Add  Multiple Org Member' })
@@ -82,6 +88,45 @@ export class OrgMemberController {
       createOrgMemberDtoFiltered,
     );
     return { message: 'Members Added TO Org successfully', members };
+  }
+  @Post('add-customer-as-member')
+  @ApiOperation({ summary: 'Add  Multiple Org Member' })
+  @UseGuards(AuthGuard, OrgMemberGuard)
+  async addConnectorAsMember(
+    @Body() createCustomerMemberDto: CreateOrgMemberWithCustomersDto,
+    @Req() req: any,
+  ) {
+    const orgs = req.orgs as number[];
+    const { orgId, phone_number } = createCustomerMemberDto;
+    if (orgs.length && !orgs.includes(orgId)) {
+      throw new UnauthorizedException('You are not the owner of the Org');
+    }
+    const { isValid, phoneNumber } = phone(phone_number);
+    if (!isValid) {
+      throw new BadRequestException(`Invalid Phone Number ${phone_number}.`);
+    }
+
+    const isUserAlreadyExist =
+      await this.authService.findUserByPhone(phoneNumber);
+    if (isUserAlreadyExist) {
+      const isAlreadyMemberExists =
+        await this.orgMemberService.isAlreadyMemberExists(
+          orgId,
+          isUserAlreadyExist.id,
+        );
+      if (isAlreadyMemberExists) {
+        throw new NotFoundException(
+          'User is already a member of the organization',
+        );
+      }
+      const member = await this.orgMemberService.addMemberForCustomer(
+        orgId,
+        isUserAlreadyExist.id,
+      );
+      return { message: 'Connector Added TO Org successfully', member };
+    }
+
+    return { message: 'Connectors Added TO Org successfully' };
   }
 
   @Patch('role/:orgId/:memberId')

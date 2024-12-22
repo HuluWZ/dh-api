@@ -7,6 +7,7 @@ import { PrismaService } from 'src/prisma';
 import {
   CreateMultipleOrgMemberDto,
   CreateOrgMemberDto,
+  CreateOrgMemberWithCustomersDto,
   OrgMemberStatus,
   UpdateMemberRoleDto,
   UpdateOrgMemberDto,
@@ -37,6 +38,11 @@ export class OrgMemberService {
 
     return this.prisma.orgMember.createMany({
       data: members,
+    });
+  }
+  async addMemberForCustomer(orgId: number, memberId: number) {
+    return this.prisma.orgMember.create({
+      data: { orgId, memberId, role: 'Connector' },
     });
   }
   async getOrgMembers(orgId: number, memberId: number) {
