@@ -149,6 +149,9 @@ export class OrgGroupService {
   async deleteGroup(id: number) {
     return this.prisma.orgGroup.delete({
       where: { id },
+      include: {
+        Task: true,
+      },
     });
   }
   async getMyGroups(userId: number) {
