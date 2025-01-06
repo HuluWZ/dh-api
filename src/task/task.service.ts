@@ -65,7 +65,7 @@ export class TaskService {
           },
         },
       },
-      orderBy: [{ position: 'asc', updatedAt: 'desc' }],
+      orderBy: [{ position: 'asc' }, { updatedAt: 'desc' }],
     });
   }
 
@@ -91,7 +91,7 @@ export class TaskService {
           },
         },
       },
-      orderBy: [{ position: 'asc', updatedAt: 'desc' }],
+      orderBy: [{ position: 'asc' }, { updatedAt: 'desc' }],
     });
   }
 
@@ -116,7 +116,7 @@ export class TaskService {
           },
         },
       },
-      orderBy: [{ isPinned: 'desc', createdAt: 'desc' }],
+      orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
     });
   }
 
@@ -135,7 +135,7 @@ export class TaskService {
           },
         },
       },
-      orderBy: [{ isPinned: 'desc', createdAt: 'desc' }],
+      orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
     });
   }
   async getMyAssignedTasks(memberId: number) {
