@@ -212,7 +212,7 @@ model Task {
   group         OrgGroup        @relation(fields: [groupId], references: [id])
   ArchivedTasks ArchivedTasks[]
 
-  parent   Task?  @relation("Subtasks", fields: [parentId], references: [id])
+  parent   Task?  @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
   subtasks Task[] @relation("Subtasks")
 }
 
