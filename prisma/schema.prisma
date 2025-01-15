@@ -209,7 +209,7 @@ model Task {
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
   TaskAsignee   TaskAsignee[]
-  group         OrgGroup        @relation(fields: [groupId], references: [id])
+  group         OrgGroup        @relation(fields: [groupId], references: [id], onDelete: Cascade)
   ArchivedTasks ArchivedTasks[]
 
   parent   Task?  @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
