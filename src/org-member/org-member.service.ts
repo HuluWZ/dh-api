@@ -45,6 +45,17 @@ export class OrgMemberService {
       data: { orgId, memberId, role: 'Connector' },
     });
   }
+  async addMemberWithPhone(orgId: number, memberIds: number[]) {
+    const members = memberIds.map((id, index) => ({
+      orgId,
+      memberId: id,
+    }));
+
+    return this.prisma.orgMember.createMany({
+      data: members,
+    });
+  }
+
   async getOrgMembers(orgId: number, memberId: number) {
     return this.prisma.orgMember.findFirst({
       where: { orgId, memberId },

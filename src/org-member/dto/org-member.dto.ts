@@ -92,3 +92,15 @@ export class DeleteOrgMembersDto extends OmitType(CreateMultipleOrgMemberDto, [
   'orgId',
   'role',
 ] as const) {}
+
+export class CreateOrgMemberWithPhoneNoDto extends OmitType(
+  CreateOrgMemberDto,
+  ['memberId', 'role'] as const,
+) {
+  @ApiProperty({ example: ['+251945678908'], description: 'Phone Numbers' })
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsString({ each: true })
+  phone_numbers: string[];
+}

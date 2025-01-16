@@ -17,6 +17,7 @@ import { AuthGuard } from 'src/auth/auth.guard';
 import {
   CreateMultipleOrgMemberDto,
   CreateOrgMemberWithCustomersDto,
+  CreateOrgMemberWithPhoneNoDto,
   DeleteOrgMembersDto,
   UpdateMemberRoleDto,
   UpdateOrgMemberDto,
@@ -88,6 +89,64 @@ export class OrgMemberController {
       createOrgMemberDtoFiltered,
     );
     return { message: 'Members Added TO Org successfully', members };
+  }
+  @Post('add-multiple-members')
+  @ApiOperation({ summary: 'Add Multiple Members By Phone Numbers' })
+  @UseGuards(AuthGuard, OrgMemberGuard)
+  async addMultipleMemberFromPhone(
+    @Body() createCustomerPhoneNoDto: CreateOrgMemberWithPhoneNoDto,
+    @Req() req: any,
+  ) {
+    const orgs = req.orgs as number[];
+    const { orgId, phone_numbers } = createCustomerPhoneNoDto;
+    if (orgs.length && !orgs.includes(orgId)) {
+      throw new UnauthorizedException('You are not the owner of the Org');
+    }
+    const validPhoneNumbers = phone_numbers
+      .map((phone_number) => {
+        const { isValid, phoneNumber } = phone(phone_number);
+        return isValid ? phoneNumber : null;
+      })
+      .filter((phoneNumber) => phoneNumber !== null);
+    if (validPhoneNumbers.length === 0) {
+      throw new BadRequestException('All provided phone numbers are invalid');
+    }
+    const registeredUsers = await Promise.all(
+      validPhoneNumbers.map((phoneNumber) =>
+        this.authService.findUserByPhone(phoneNumber),
+      ),
+    );
+    const existingUsers = registeredUsers.filter((user) => user !== null);
+    const newPhoneNumbers = validPhoneNumbers.filter(
+      (_, index) => !registeredUsers[index],
+    );
+
+    const existingUserIds = await Promise.all(
+      existingUsers.map(async (user) => {
+        const isAlreadyMemberExists =
+          await this.orgMemberService.isAlreadyMemberExists(orgId, user.id);
+        return isAlreadyMemberExists ? null : user.id;
+      }),
+    ).then((ids) => ids.filter((id) => id !== null));
+
+    const newUsers = await Promise.all(
+      newPhoneNumbers.map((phoneNumber) =>
+        this.authService.createUserWithPhone(phoneNumber),
+      ),
+    );
+
+    const newUserIds = newUsers.map((user) => user.id);
+
+    if (newUserIds.length > 0) {
+      await this.orgMemberService.addMemberWithPhone(orgId, newUserIds);
+    }
+    if (newUserIds.length == 0 && existingUserIds.length == 0) {
+      throw new BadRequestException('All Members are already added');
+    }
+    return {
+      message: `${existingUserIds.length + newUserIds.length} Members added  TO Org successfully`,
+      members: [...existingUserIds, ...newUserIds],
+    };
   }
   @Post('add-connector')
   @ApiOperation({ summary: 'Add Connector as Org Member' })
