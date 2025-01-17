@@ -247,6 +247,7 @@ export class TaskService {
   async removeTask(taskId: number) {
     return await this.prisma.$transaction(async (prisma) => {
       await prisma.taskAsignee.deleteMany({ where: { taskId } });
+      await prisma.archivedTasks.deleteMany({ where: { taskId } });
       await prisma.task.delete({ where: { id: taskId } });
     });
   }
