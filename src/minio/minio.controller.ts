@@ -15,7 +15,7 @@ import { MinioFileUploadService } from './minio.service';
 
 @ApiTags('Minio File Upload')
 @Controller('minio-file-upload')
-export class FileUploadController {
+export class MinioFileUploadController {
   constructor(private readonly fileUploadService: MinioFileUploadService) {}
 
   @Post('upload')
