@@ -15,7 +15,7 @@ export class CloudinaryController {
   constructor(private readonly uploadService: CloudinaryService) {}
 
   @Post('upload')
-  @ApiOperation({ summary: 'Upload Single File' })
+  @ApiOperation({ summary: 'Cloudinary Upload Single File' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
