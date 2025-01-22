@@ -248,6 +248,7 @@ model FCM {
 
 enum NotificationType {
   Task
+  Invitation
   Communication
   System
   Others

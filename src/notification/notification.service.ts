@@ -32,13 +32,25 @@ export class NotificationService {
     const tokens = await this.prismaService.fCM.findMany({
       where: { userId: { in: userIds } },
     });
+    const title = `Invitation to Org  # ${orgName} Requested`;
+    const body = "You've been invited to join an organization";
+    const icon = 'https://example.com/icon.png';
     await Promise.all(
       tokens.map(async ({ deviceId }) => {
+        await this.prismaService.notification.create({
+          data: {
+            title,
+            body,
+            icon,
+            type: NotificationType.Invitation,
+            userId: userIds[0],
+          },
+        });
         const notification = {
           token: deviceId,
-          title: `Invitation to Org  # ${orgName} Requested`,
-          body: "You've been invited to join an organization",
-          icon: 'https://example.com/icon.png',
+          title,
+          body,
+          icon,
         };
         await this.sendNotification(notification, userIds[0]);
       }),
