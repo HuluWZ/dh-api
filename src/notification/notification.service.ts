@@ -28,7 +28,22 @@ export class NotificationService {
       }),
     });
   }
-
+  async sendInvitationNotification(userIds: number[], orgName: string) {
+    const tokens = await this.prismaService.fCM.findMany({
+      where: { userId: { in: userIds } },
+    });
+    await Promise.all(
+      tokens.map(async ({ deviceId }) => {
+        const notification = {
+          token: deviceId,
+          title: `Invitation to Org  # ${orgName} Requested`,
+          body: "You've been invited to join an organization",
+          icon: 'https://example.com/icon.png',
+        };
+        await this.sendNotification(notification, userIds[0]);
+      }),
+    );
+  }
   async sendNotification(
     { token, title, body, icon }: NotificationDto,
     userId: number,

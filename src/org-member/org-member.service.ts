@@ -13,12 +13,14 @@ import {
   UpdateOrgMemberDto,
 } from './dto/org-member.dto';
 import { OrgService } from 'src/org/org.service';
+import { NotificationService } from 'src/notification/notification.service';
 
 @Injectable()
 export class OrgMemberService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly orgService: OrgService,
+    private readonly notificationService: NotificationService,
   ) {}
   async isAlreadyMemberExists(orgId: number, memberId: number) {
     return this.prisma.orgMember.findFirst({
@@ -218,6 +220,36 @@ export class OrgMemberService {
         orgId,
         memberId: { in: validMemberIds },
       },
+    });
+  }
+  async isAlreadyInvitationExists(orgId: number, inviteeId: number) {
+    return this.prisma.orgInvite.findFirst({
+      where: {
+        orgId,
+        inviteeId,
+        status: 'Pending',
+      },
+    });
+  }
+
+  async createMultipleInvite(
+    orgId: number,
+    ownerId: number,
+    inviteeIds: number[],
+    orgName: string,
+  ) {
+    const multipleInviteData = inviteeIds.map((inviteeId) => ({
+      orgId,
+      inviteeId,
+      ownerId,
+    }));
+    // TODO: Add notification telling them to join the org
+    await this.notificationService.sendInvitationNotification(
+      inviteeIds,
+      orgName,
+    );
+    return this.prisma.orgInvite.createMany({
+      data: multipleInviteData,
     });
   }
 }

@@ -26,6 +26,8 @@ import { OrgMemberGuard } from './org-member.guard';
 import { OrgMemberService } from './org-member.service';
 import { AuthService } from 'src/auth/auth.service';
 import phone from 'phone';
+import { OrgInviteService } from 'src/org-invite/org-invite.service';
+import { OrgService } from 'src/org/org.service';
 
 @ApiTags('Org Members')
 @ApiBearerAuth()
@@ -34,6 +36,7 @@ export class OrgMemberController {
   constructor(
     private orgMemberService: OrgMemberService,
     private readonly authService: AuthService,
+    private readonly orgService: OrgService,
   ) {}
 
   @Post()
@@ -98,9 +101,14 @@ export class OrgMemberController {
     @Req() req: any,
   ) {
     const orgs = req.orgs as number[];
+    const ownerId: number = req.user.id;
     const { orgId, phone_numbers } = createCustomerPhoneNoDto;
     if (orgs.length && !orgs.includes(orgId)) {
       throw new UnauthorizedException('You are not the owner of the Org');
+    }
+    const org = await this.orgService.getOne(orgId);
+    if (!org) {
+      throw new NotFoundException('Org not found');
     }
     const validPhoneNumbers = phone_numbers
       .map((phone_number) => {
@@ -123,9 +131,9 @@ export class OrgMemberController {
 
     const existingUserIds = await Promise.all(
       existingUsers.map(async (user) => {
-        const isAlreadyMemberExists =
-          await this.orgMemberService.isAlreadyMemberExists(orgId, user.id);
-        return isAlreadyMemberExists ? null : user.id;
+        const isAlreadyPendingInvitation =
+          await this.orgMemberService.isAlreadyInvitationExists(orgId, user.id);
+        return isAlreadyPendingInvitation ? null : user.id;
       }),
     ).then((ids) => ids.filter((id) => id !== null));
 
@@ -138,13 +146,18 @@ export class OrgMemberController {
     const newUserIds = newUsers.map((user) => user.id);
 
     if (newUserIds.length > 0) {
-      await this.orgMemberService.addMemberWithPhone(orgId, newUserIds);
+      await this.orgMemberService.createMultipleInvite(
+        orgId,
+        ownerId,
+        newUserIds,
+        org.name,
+      );
     }
     if (newUserIds.length == 0 && existingUserIds.length == 0) {
-      throw new BadRequestException('All Members are already added');
+      throw new BadRequestException('All Members are already invited');
     }
     return {
-      message: `${existingUserIds.length + newUserIds.length} Members added  TO Org successfully`,
+      message: `${existingUserIds.length + newUserIds.length} Members Invited  TO Org successfully`,
       members: [...existingUserIds, ...newUserIds],
     };
   }
