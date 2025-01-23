@@ -19,6 +19,7 @@ import { AuthService } from 'src/auth/auth.service';
 import { User } from '@prisma/client';
 import { PrivateChatGuard } from './private-chat.guard';
 import { OrgGroupService } from 'src/org-group/org-group.service';
+import { JwtService } from '@nestjs/jwt';
 
 @WebSocketGateway({
   cors: {
@@ -36,6 +37,7 @@ export class PrivateChatGateway
     private privateChatService: PrivateChatService,
     private readonly redisService: RedisService,
     private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
     private readonly orgGroupService: OrgGroupService,
   ) {}
 
@@ -52,7 +54,8 @@ export class PrivateChatGateway
     }
     console.log({ token });
     try {
-      const resp = await this.authService.validateToken(token);
+      const resp = await this.jwtService.verify(token);
+      console.log({ resp });
       if (!resp) {
         client.emit('error', { message: 'Unauthorized Access' });
       }

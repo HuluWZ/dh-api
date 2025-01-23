@@ -167,7 +167,7 @@ export class AuthService {
 
   async validateToken(token: string) {
     try {
-      const decoded = this.authJwtService.verify(token);
+      const decoded = this.authJwtService.verify(token, {});
       return decoded;
     } catch (e: any) {
       console.error(e);
