@@ -50,22 +50,29 @@ export class PrivateChatGateway
     if (!token) {
       client.emit('error', { message: 'Please provide token' });
     }
-    const resp = await this.authService.validateToken(token);
-    if (!resp) {
-      client.emit('error', { message: 'Unauthorized Access' });
-    }
-    const user = await this.authService.getMe(+resp.sub);
-    client['user'] = user;
-    if (user) {
-      await this.redisService.setUserSocket(user.id, client.id); // Store socketId
-      const groupIds = await this.orgGroupService.getMyGroups(user.id);
-      groupIds.forEach((groupId) => {
-        client.join(`group:${groupId}`);
-        console.log(`User ${user.id} joined group ${groupId}`);
-      });
-      console.log(`Client connected:  ${user.id}, SocketId: ${client.id}`);
-    } else {
-      console.log('Unauthorized user connected');
+    console.log({ token });
+    try {
+      const resp = await this.authService.validateToken(token);
+      if (!resp) {
+        client.emit('error', { message: 'Unauthorized Access' });
+      }
+      const user = await this.authService.getMe(+resp.sub);
+      client['user'] = user;
+      if (user) {
+        await this.redisService.setUserSocket(user.id, client.id); // Store socketId
+        const groupIds = await this.orgGroupService.getMyGroups(user.id);
+        groupIds.forEach((groupId) => {
+          client.join(`group:${groupId}`);
+          console.log(`User ${user.id} joined group ${groupId}`);
+        });
+        console.log(`Client connected:  ${user.id}, SocketId: ${client.id}`);
+      } else {
+        console.log('Unauthorized user connected');
+        client.emit('error', { message: 'Unauthorized Access' });
+        client.disconnect();
+      }
+    } catch (e) {
+      console.error('Token validation error:', e.message);
       client.emit('error', { message: 'Unauthorized Access' });
       client.disconnect();
     }
