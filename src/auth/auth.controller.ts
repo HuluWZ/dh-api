@@ -104,6 +104,7 @@ export class AuthController {
   @Get('users')
   @ApiOperation({ summary: 'Get all users' })
   async getAllUsers() {
+    console.log('get all users');
     return this.authService.getAllUsers();
   }
   @Get('search')
