@@ -114,6 +114,7 @@ export class AuthController {
     return this.authService.searchUser(search);
   }
   @Get(':id')
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get User By Id' })
   @UseGuards(AuthGuard)
   async getOne(@Param('id') id: string) {
