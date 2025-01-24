@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -7,11 +8,17 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   Req,
   UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { CreateOrgGroupDto, UpdateOrgGroupDto } from './dto/org-group.dto';
 import { OrgGroupService } from './org-group.service';
@@ -97,6 +104,27 @@ export class OrgGroupController {
     );
     return { message: 'Org Group updated successfully', group };
   }
+  @Patch('pin_unpin/:id')
+  @ApiOperation({ summary: 'Pin Unpin Org Group' })
+  @ApiQuery({ name: 'action', enum: ['pin', 'unpin'] })
+  @UseGuards(AuthGuard, OrgGroupGuard)
+  async pinUnpinOrgGroup(
+    @Param('id') id: string,
+    @Query('action') action: string,
+    @Req() req: any,
+  ) {
+    const orgs = req.orgs as number[];
+    const orgGroup = await this.orgGroupService.getGroup(+id);
+    if (orgs.length && orgGroup && !orgs.includes(orgGroup.orgId)) {
+      throw new UnauthorizedException('Only Owner can pin unpin the group');
+    }
+    if (action !== 'pin' && action !== 'unpin') {
+      throw new BadRequestException('Invalid action. Use "pin" or "unpin".');
+    }
+    const group = await this.orgGroupService.pinUnpinGroup(+id, action);
+    return { message: `Org Group updated successfully`, group };
+  }
+
   @Get('my-groups')
   @ApiOperation({ summary: 'Get All My Groups' })
   @UseGuards(AuthGuard)

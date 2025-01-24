@@ -145,6 +145,13 @@ export class OrgGroupService {
       data: { ...updateOrgGroupDto },
     });
   }
+  async pinUnpinGroup(id: number, action: string) {
+    const pin = action.toLowerCase() === 'pin' ? true : false;
+    return this.prisma.orgGroup.update({
+      where: { id },
+      data: { isPinned: pin },
+    });
+  }
 
   async deleteGroup(id: number) {
     return this.prisma.orgGroup.delete({
