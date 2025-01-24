@@ -132,12 +132,15 @@ export class TaskService {
     const where = {
       ...(groupIds &&
         groupIds.length > 0 &&
-        today && { createdAt: new Date().toISOString().split('T')[0] }),
-      ...(groupIds && groupIds.length > 0
-        ? { groupId: { in: groupIds } }
-        : { createdAt: new Date().toISOString().split('T')[0] }),
+        today && {
+          createdAt: {
+            gte: new Date().toISOString().split('T')[0] + 'T00:00:00.000Z',
+            lte: new Date().toISOString().split('T')[0] + 'T23:59:59.999Z',
+          },
+        }),
       ...(assignedToMe && { TaskAsignee: { every: { memberId: userId } } }),
       ...(scheduled && { deadline: { not: null } }),
+      ...(groupIds && groupIds.length > 0 ? { groupId: { in: groupIds } } : {}),
     };
     return this.prisma.task.findMany({
       where,
