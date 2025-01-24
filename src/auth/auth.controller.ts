@@ -112,7 +112,7 @@ export class AuthController {
       const result = await this.authService.findUsersByPhones(
         checkPhoneNos.phones,
       );
-      return { result, message: 'OTP sent successfully' };
+      return { result };
     } catch {
       throw new BadRequestException('Invalid phone number');
     }
