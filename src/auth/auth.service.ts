@@ -39,6 +39,14 @@ export class AuthService {
       where: { phone },
     });
   }
+  async findUsersByPhones(phones: string[]) {
+    const results = {};
+    for (const phone of phones) {
+      const user = await this.findUserByPhone(phone);
+      results[phone] = user;
+    }
+    return results;
+  }
   async createUserWithPhone(phone_number: string) {
     const { isValid, phoneNumber } = phone(phone_number, { country: 'ETH' });
     if (!isValid) {

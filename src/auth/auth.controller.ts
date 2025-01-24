@@ -15,7 +15,12 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { SendOtpDto, VerifyOtpDto, verifyPhoneChange } from './dto/otp.dto';
+import {
+  CheckPhoneNoDto,
+  SendOtpDto,
+  VerifyOtpDto,
+  verifyPhoneChange,
+} from './dto/otp.dto';
 import { CompleteProfileDto, QRCodeDto } from './dto/complete-profile.dto';
 import { formatPhone } from 'phone-formater-eth';
 import { User } from '@prisma/client';
@@ -99,6 +104,18 @@ export class AuthController {
       file,
     );
     return { message: 'Profile updated successfully', user: updatedUser };
+  }
+  @Post('check-phone-nos')
+  @ApiOperation({ summary: 'check If Phones Exist in Our System' })
+  async checkPhoneNos(@Body() checkPhoneNos: CheckPhoneNoDto) {
+    try {
+      const result = await this.authService.findUsersByPhones(
+        checkPhoneNos.phones,
+      );
+      return { result, message: 'OTP sent successfully' };
+    } catch {
+      throw new BadRequestException('Invalid phone number');
+    }
   }
 
   @Get('users')

@@ -56,3 +56,10 @@ export class verifyPhoneChange extends OmitType(VerifyOtpDto, [
   'model',
   'platform',
 ] as const) {}
+
+export class CheckPhoneNoDto {
+  @ApiProperty({ example: ['+251910214243'], description: 'Phone Number' })
+  @IsNotEmpty()
+  @IsPhoneNumber('ET')
+  phones: string[];
+}
