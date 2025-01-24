@@ -56,6 +56,7 @@ model User {
   MutedByPrivateChat     MutedPrivateChat[]    @relation(name: "MutedBy")
   MutedChatPrivateChat   MutedPrivateChat[]    @relation(name: "MutedChatUser")
   MutedGroupChat         MutedGroupChat[]
+  PinnedGroups           PinnedGroups[]
 }
 
 model Industry {
@@ -140,6 +141,7 @@ model OrgGroup {
   color          String?
   orgId          Int?
   createdBy      Int?
+  isPinned       Boolean          @default(false)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   org            Org?             @relation(fields: [orgId], references: [id])
@@ -150,6 +152,7 @@ model OrgGroup {
   Task           Task[]
   Poll           Poll[]
   MutedGroupChat MutedGroupChat[]
+  PinnedGroups   PinnedGroups[]
 }
 
 model OrgGroupMember {
@@ -501,4 +504,17 @@ model MutedGroupChat {
   group OrgGroup @relation(fields: [groupId], references: [id])
 
   @@unique([userId, groupId]) // Ensure one mute per user-group relationship
+}
+
+model PinnedGroups {
+  id      Int @id @default(autoincrement())
+  groupId Int
+  userId  Int
+
+  createdAt DateTime @default(now())
+
+  user  User     @relation(fields: [userId], references: [id])
+  group OrgGroup @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId])
 }
