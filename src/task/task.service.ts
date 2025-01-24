@@ -1,7 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 import { CreateTaskDto, UpdateTaskDto } from './dto/task.dto';
-import { FilterTaskDto } from './dto/filter-task.dto';
+import {
+  FilterTaskByDateScheduledAssignedToMeDto,
+  FilterTaskDto,
+} from './dto/filter-task.dto';
 import { OrgGroupService } from 'src/org-group/org-group.service';
 import { OrgMemberService } from 'src/org-member/org-member.service';
 
@@ -102,6 +105,40 @@ export class TaskService {
       ...(priority && { priority }),
     };
 
+    return this.prisma.task.findMany({
+      where,
+      include: {
+        parent: true,
+        subtasks: true,
+        TaskAsignee: {
+          select: {
+            memberId: true,
+            member: {
+              select: { firstName: true, lastName: true, phone: true },
+            },
+          },
+        },
+      },
+      orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  async filterTasks(
+    filterTaskDto: FilterTaskByDateScheduledAssignedToMeDto,
+    userId: number,
+    groupIds: number[],
+  ) {
+    const { today, assignedToMe, scheduled } = filterTaskDto;
+    const where = {
+      ...(groupIds &&
+        groupIds.length > 0 &&
+        today && { createdAt: new Date().toISOString().split('T')[0] }),
+      ...(groupIds && groupIds.length > 0
+        ? { groupId: { in: groupIds } }
+        : { createdAt: new Date().toISOString().split('T')[0] }),
+      ...(assignedToMe && { TaskAsignee: { every: { memberId: userId } } }),
+      ...(scheduled && { deadline: { not: null } }),
+    };
     return this.prisma.task.findMany({
       where,
       include: {

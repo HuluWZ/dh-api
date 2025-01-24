@@ -23,7 +23,10 @@ import { TaskService } from './task.service';
 import { TaskGuard } from './task.guard';
 import { CreateTaskDto, ReorderTasksDto, UpdateTaskDto } from './dto/task.dto';
 import { OrgGroupService } from 'src/org-group/org-group.service';
-import { FilterTaskDto } from './dto/filter-task.dto';
+import {
+  FilterTaskByDateScheduledAssignedToMeDto,
+  FilterTaskDto,
+} from './dto/filter-task.dto';
 import { OrgMemberService } from 'src/org-member/org-member.service';
 
 @ApiTags('Task')
@@ -203,6 +206,20 @@ export class TaskController {
   @UseGuards(AuthGuard)
   async getAll(@Query() filterTaskDto: FilterTaskDto) {
     return this.taskService.getAllTasks(filterTaskDto);
+  }
+  @Get('filter')
+  @ApiQuery({ name: 'today', required: false, type: Boolean })
+  @ApiQuery({ name: 'assignedToMe', required: false, type: Boolean })
+  @ApiQuery({ name: 'scheduled', required: false, type: Boolean })
+  @ApiOperation({ summary: 'Filter Tasks' })
+  @UseGuards(AuthGuard)
+  async filterTask(
+    @Req() req: any,
+    @Query() filterTaskDto: FilterTaskByDateScheduledAssignedToMeDto,
+  ) {
+    const userId: number = req.user.id;
+    const memberIds = await this.orgGroupService.getMyGroups(userId);
+    return this.taskService.filterTasks(filterTaskDto, userId, memberIds);
   }
   @Get('search')
   @ApiOperation({ summary: 'Search Tasks ' })
