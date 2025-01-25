@@ -113,6 +113,9 @@ export class PrivateChatGateway
           `User ${payload.receiverId} is offline, message saved to DB`,
         );
       }
+      client.emit('notif', {
+        message: `Message sent to  user # ${payload.receiverId} successfully`,
+      });
     } catch (error) {
       console.error('Error sending message:', error);
       client.emit('error', { message: 'Failed to send message' });
@@ -144,12 +147,13 @@ export class PrivateChatGateway
   @SubscribeMessage('findMessages')
   async handleFindMessages(client: Socket, payload: { receiverId: number }) {
     try {
+      console.log({ client: client['user'] });
       const senderId: number = client['user'].id;
       const messages = await this.privateChatService.findMessages(
         senderId,
         payload.receiverId,
       );
-
+      console.log({ messages });
       client.emit('messageHistory', messages);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -162,8 +166,10 @@ export class PrivateChatGateway
   @SubscribeMessage('getMyChats')
   async handleGetMyChats(client: Socket) {
     try {
+      console.log({ client: client['user'] });
       const senderId: number = client['user'].id;
       const chatUsers = await this.privateChatService.getMyChats(senderId);
+      console.log({ chatUsers });
       client.emit('myChats', chatUsers);
     } catch (error) {
       console.error('Error fetching chat list:', error);
