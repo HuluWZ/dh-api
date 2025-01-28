@@ -84,6 +84,9 @@ model Org {
   industryId        Int
   regionId          Int?
   logo              String?
+  address           String?
+  website           String?
+  contact           String?
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
   owner             User?               @relation(fields: [ownerId], references: [id])

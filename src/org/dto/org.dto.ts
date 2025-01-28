@@ -6,6 +6,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUrl,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, OmitType } from '@nestjs/swagger';
 
@@ -34,6 +35,34 @@ export class CreateOrgDto {
   @IsArray()
   @IsNumber({}, { each: true })
   members?: number[];
+
+  @ApiProperty({
+    example: '123 Main St',
+    description: 'Organization Address',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  address?: string;
+
+  @ApiProperty({
+    example: 'https://example.com',
+    description: 'Organization Website',
+    required: false,
+  })
+  @IsOptional()
+  @IsUrl()
+  @IsString()
+  website?: string;
+
+  @ApiProperty({
+    example: 'contact@example.com',
+    description: 'Organization Contact',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  contact?: string;
 }
 
 export class UpdateOrgDto extends OmitType(CreateOrgDto, [
