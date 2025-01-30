@@ -96,6 +96,7 @@ model Org {
   OrgMember         OrgMember[]
   OrgGroup          OrgGroup[]
   OwnershipTransfer OwnershipTransfer[]
+  Catalog           Catalog[]
 }
 
 model OrgInvite {
@@ -520,4 +521,15 @@ model PinnedGroups {
   group OrgGroup @relation(fields: [groupId], references: [id])
 
   @@unique([userId, groupId])
+}
+
+model Catalog {
+  id               Int      @id @default(autoincrement())
+  orgId            Int
+  image_video_link String
+  name             String
+  description      String?
+  is_hidden        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  org              Org      @relation(fields: [orgId], references: [id])
 }

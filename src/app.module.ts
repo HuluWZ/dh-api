@@ -21,6 +21,7 @@ import { UpdateLastSeenMiddleware } from './update-last-seen.middleware';
 import { AdvertisementModule } from './advertisement/advertisement.module';
 import { PollModule } from './poll/poll.module';
 import { MinioModule } from './minio/minio.module';
+import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { MinioModule } from './minio/minio.module';
     AdvertisementModule,
     PollModule,
     MinioModule,
+    CatalogModule,
   ],
   controllers: [],
   providers: [RedisService],
