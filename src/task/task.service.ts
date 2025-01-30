@@ -22,8 +22,12 @@ export class TaskService {
     });
   }
 
-  async createTask(taskDataDto: CreateTaskDto, createdBy: number) {
-    const { assignedTo, ...taskData } = taskDataDto;
+  async createTask(
+    taskDataDto: CreateTaskDto,
+    createdBy: number,
+    voice_note: string | null,
+  ) {
+    const { assignedTo, file, ...taskData } = taskDataDto;
     if (taskData.parentId) {
       const parentTask = await this.getTaskById(taskData.parentId);
       if (!parentTask) {
@@ -31,7 +35,7 @@ export class TaskService {
       }
     }
     const task = await this.prisma.task.create({
-      data: { ...taskData, createdBy },
+      data: { ...taskData, createdBy, voice_note },
     });
     if (task) {
       let assignes;

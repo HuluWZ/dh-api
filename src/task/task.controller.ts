@@ -2,32 +2,36 @@ import {
   Body,
   Controller,
   Delete,
-  Post,
-  Req,
-  Param,
-  UnauthorizedException,
-  UseGuards,
-  NotFoundException,
   Get,
+  NotFoundException,
+  Param,
   Patch,
+  Post,
   Query,
+  Req,
+  UnauthorizedException,
+  UploadedFile,
+  UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { AuthGuard } from 'src/auth/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiBearerAuth,
+  ApiConsumes,
   ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { TaskService } from './task.service';
-import { TaskGuard } from './task.guard';
-import { CreateTaskDto, ReorderTasksDto, UpdateTaskDto } from './dto/task.dto';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { MinioFileUploadService } from 'src/minio/minio.service';
 import { OrgGroupService } from 'src/org-group/org-group.service';
+import { OrgMemberService } from 'src/org-member/org-member.service';
 import {
   FilterTaskByDateScheduledAssignedToMeDto,
   FilterTaskDto,
 } from './dto/filter-task.dto';
-import { OrgMemberService } from 'src/org-member/org-member.service';
+import { CreateTaskDto, ReorderTasksDto, UpdateTaskDto } from './dto/task.dto';
+import { TaskService } from './task.service';
 
 @ApiTags('Task')
 @ApiBearerAuth()
@@ -37,14 +41,18 @@ export class TaskController {
     private readonly taskService: TaskService,
     private readonly orgGroupService: OrgGroupService,
     private readonly orgMemberService: OrgMemberService,
+    private readonly minioService: MinioFileUploadService,
   ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create Task' })
   @UseGuards(AuthGuard)
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('file')) // Apply the FileInterceptor
   async addOrgMemberToGroup(
     @Body() createTaskDto: CreateTaskDto,
     @Req() req: any,
+    @UploadedFile() file?: Express.Multer.File, // Get the uploaded file
   ) {
     const createdBy: number = req.user.id;
     const orgGroup = await this.orgGroupService.getGroup(createTaskDto.groupId);
@@ -95,7 +103,15 @@ export class TaskController {
         'Invalid Members in assignedTo, Please check the members',
       );
     }
-    const task = await this.taskService.createTask(createTaskDto, createdBy);
+    let path = null;
+    if (file) {
+      let { path } = await this.minioService.uploadSingleFile(file, 'public');
+    }
+    const task = await this.taskService.createTask(
+      createTaskDto,
+      createdBy,
+      path,
+    );
     return { message: 'Task Created successfully', task };
   }
   @Post(':id/archive')

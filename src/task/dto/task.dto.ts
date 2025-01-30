@@ -118,6 +118,14 @@ export class CreateTaskDto {
   @IsOptional()
   @IsNumber()
   parentId?: number;
+
+  @ApiProperty({
+    description: 'Task Voice Note',
+    type: 'string',
+    format: 'binary',
+    required: false,
+  })
+  file?: Express.Multer.File;
 }
 
 export class UpdateTaskDto extends PartialType(CreateTaskDto) {}
