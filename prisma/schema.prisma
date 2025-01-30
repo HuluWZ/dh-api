@@ -57,6 +57,7 @@ model User {
   MutedChatPrivateChat   MutedPrivateChat[]    @relation(name: "MutedChatUser")
   MutedGroupChat         MutedGroupChat[]
   PinnedGroups           PinnedGroups[]
+  QuickReply             QuickReply[]
 }
 
 model Industry {
@@ -532,4 +533,15 @@ model Catalog {
   is_hidden        Boolean  @default(false)
   createdAt        DateTime @default(now())
   org              Org      @relation(fields: [orgId], references: [id])
+}
+
+model QuickReply {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  shortcut  String
+  message   String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, shortcut])
 }

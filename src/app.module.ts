@@ -22,6 +22,7 @@ import { AdvertisementModule } from './advertisement/advertisement.module';
 import { PollModule } from './poll/poll.module';
 import { MinioModule } from './minio/minio.module';
 import { CatalogModule } from './catalog/catalog.module';
+import { QuickReplyModule } from './quick-reply/quick-reply.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { CatalogModule } from './catalog/catalog.module';
     PollModule,
     MinioModule,
     CatalogModule,
+    QuickReplyModule,
   ],
   controllers: [],
   providers: [RedisService],
