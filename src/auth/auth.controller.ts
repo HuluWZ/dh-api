@@ -78,6 +78,78 @@ export class AuthController {
       qrCode,
     };
   }
+  @Post('connect-another-phones')
+  @ApiOperation({ summary: 'Connect Another Phones' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async connectAnotherPhones(
+    @Req() request,
+    @Body() phoneNumbers: CheckPhoneNoDto,
+  ) {
+    const userId: number = request.user.id;
+    phoneNumbers.phones.forEach(async (phone) => {
+      const user = await this.authService.findUserByPhone(phone);
+      if (user) {
+        if (user.id === userId) {
+          throw new BadRequestException(
+            'Phone number already linked as primary contact for you!',
+          );
+        } else {
+          throw new BadRequestException(
+            `Phone number ${phone} linked with another user`,
+          );
+        }
+      }
+      const phoneNumberUser =
+        await this.authService.findUserPhoneNumbersByPhone(phone);
+      if (phoneNumberUser) {
+        if (phoneNumberUser.userId === userId) {
+          throw new BadRequestException(
+            'Phone number already linked as additional verification method for you!',
+          );
+        } else {
+          throw new BadRequestException(
+            `Phone number ${phone} linked as additional verification method`,
+          );
+        }
+      }
+    });
+    const phoneNos = await this.authService.addAdditionalPhoneNumbers(
+      userId,
+      phoneNumbers.phones,
+    );
+    return {
+      phoneNos,
+    };
+  }
+  @Post('disconnect-existing-phones')
+  @ApiOperation({ summary: 'Disconnect Existing Phones' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  async disconnectExistingPhones(
+    @Req() request,
+    @Body() phoneNumbers: CheckPhoneNoDto,
+  ) {
+    const userId: number = request.user.id;
+    phoneNumbers.phones.forEach(async (phone) => {
+      const phoneNumberUser =
+        await this.authService.findUserPhoneNumbersByPhone(phone);
+      if (phoneNumberUser) {
+        if (phoneNumberUser.userId !== userId) {
+          throw new BadRequestException('Phone number doesnt belongs to you');
+        }
+      } else {
+        throw new BadRequestException(`Phone No ${phone} is not connected  `);
+      }
+    });
+    const phoneNos = await this.authService.disconnectExistingPhoneNumbers(
+      userId,
+      phoneNumbers.phones,
+    );
+    return {
+      phoneNos,
+    };
+  }
 
   @Post('validate')
   @ApiOperation({ summary: 'Validate & Scan QR Code' })
@@ -225,6 +297,15 @@ export class AuthController {
       }
       throw new InternalServerErrorException('An unexpected error occurred');
     }
+  }
+  @Get('my/additional-phones')
+  @UseGuards(AuthGuard)
+  @ApiOperation({ summary: 'Get My Additional Phones' })
+  @ApiBearerAuth()
+  async getMyAdditionalPhones(@Req() request) {
+    const id = request.user.id;
+    const phones = await this.authService.getMyAdditionalPhones(id);
+    return { phones };
   }
   @Get('/logout')
   @ApiOperation({ summary: 'Logout' })

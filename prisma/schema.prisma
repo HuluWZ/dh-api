@@ -59,6 +59,14 @@ model User {
   PinnedGroups           PinnedGroups[]
   QuickReply             QuickReply[]
   UserBackupSetting      UserBackupSetting[]
+  phoneNumbers           PhoneNumber[]
+}
+
+model PhoneNumber {
+  id     Int    @id @default(autoincrement())
+  number String @unique
+  userId Int
+  user   User   @relation(fields: [userId], references: [id])
 }
 
 model Industry {
