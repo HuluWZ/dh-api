@@ -23,6 +23,7 @@ import { PollModule } from './poll/poll.module';
 import { MinioModule } from './minio/minio.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { QuickReplyModule } from './quick-reply/quick-reply.module';
+import { BackupSettingModule } from './backup-setting/backup-setting.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { QuickReplyModule } from './quick-reply/quick-reply.module';
     MinioModule,
     CatalogModule,
     QuickReplyModule,
+    BackupSettingModule,
   ],
   controllers: [],
   providers: [RedisService],

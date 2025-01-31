@@ -58,6 +58,7 @@ model User {
   MutedGroupChat         MutedGroupChat[]
   PinnedGroups           PinnedGroups[]
   QuickReply             QuickReply[]
+  UserBackupSetting      UserBackupSetting[]
 }
 
 model Industry {
@@ -545,4 +546,25 @@ model QuickReply {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId, shortcut])
+}
+
+enum BackupSchedule {
+  Daily
+  Weekly
+  Monthly
+}
+
+model UserBackupSetting {
+  userId          Int
+  auto_backup     Boolean        @default(false)
+  including_video Boolean        @default(false)
+  cellular_backup Boolean        @default(false)
+  backup_schedule BackupSchedule
+  backup_time     DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId])
 }
