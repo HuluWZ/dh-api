@@ -39,6 +39,17 @@ export class AuthService {
       where: { phone },
     });
   }
+  async findUserPhoneNumbersByPhone(number: string) {
+    return this.prisma.phoneNumber.findUnique({
+      where: { number },
+    });
+  }
+  async findUserPhoneNumbersByMultiplePhones(numbers: string[]) {
+    return this.prisma.phoneNumber.findMany({
+      where: { number: { in: numbers } },
+    });
+  }
+
   async findUsersByPhones(phones: string[]) {
     const results = {};
     for (const phone of phones) {
@@ -269,5 +280,32 @@ export class AuthService {
     } catch (error) {
       throw new BadRequestException('Invalid QR code.');
     }
+  }
+  async addAdditionalPhoneNumbers(userId: number, phoneNumbers: string[]) {
+    const existingPhoneNumbers = await this.prisma.phoneNumber.findMany({
+      where: { number: { in: phoneNumbers } },
+    });
+    if (existingPhoneNumbers.length > 0) {
+      throw new BadRequestException(
+        'Phone numbers already linked with another',
+      );
+    }
+    const phoneNumbersToCreate = phoneNumbers.map((number) => {
+      return {
+        number,
+        userId,
+      };
+    });
+    return this.prisma.phoneNumber.createMany({
+      data: phoneNumbersToCreate,
+    });
+  }
+  async disconnectExistingPhoneNumbers(userId: number, phoneNumbers: string[]) {
+    return this.prisma.phoneNumber.deleteMany({
+      where: { userId, number: { in: phoneNumbers } },
+    });
+  }
+  async getMyAdditionalPhones(userId: number) {
+    return this.prisma.phoneNumber.findMany({ where: { userId } });
   }
 }
