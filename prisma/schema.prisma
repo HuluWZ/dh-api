@@ -60,6 +60,8 @@ model User {
   QuickReply             QuickReply[]
   UserBackupSetting      UserBackupSetting[]
   phoneNumbers           PhoneNumber[]
+  OrgConnecterRequest    OrgConnecterRequest[]
+  OrgConnecter           OrgConnecter[]
 }
 
 model PhoneNumber {
@@ -88,25 +90,27 @@ model Region {
 }
 
 model Org {
-  id                Int                 @id @default(autoincrement())
-  name              String
-  ownerId           Int
-  industryId        Int
-  regionId          Int?
-  logo              String?
-  address           String?
-  website           String?
-  contact           String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  owner             User?               @relation(fields: [ownerId], references: [id])
-  industry          Industry            @relation(fields: [industryId], references: [id])
-  region            Region?             @relation(fields: [regionId], references: [id])
-  orgInvite         OrgInvite[]
-  OrgMember         OrgMember[]
-  OrgGroup          OrgGroup[]
-  OwnershipTransfer OwnershipTransfer[]
-  Catalog           Catalog[]
+  id                  Int                   @id @default(autoincrement())
+  name                String
+  ownerId             Int
+  industryId          Int
+  regionId            Int?
+  logo                String?
+  address             String?
+  website             String?
+  contact             String?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  owner               User?                 @relation(fields: [ownerId], references: [id])
+  industry            Industry              @relation(fields: [industryId], references: [id])
+  region              Region?               @relation(fields: [regionId], references: [id])
+  orgInvite           OrgInvite[]
+  OrgMember           OrgMember[]
+  OrgGroup            OrgGroup[]
+  OwnershipTransfer   OwnershipTransfer[]
+  Catalog             Catalog[]
+  OrgConnecterRequest OrgConnecterRequest[]
+  OrgConnecter        OrgConnecter[]
 }
 
 model OrgInvite {
@@ -575,4 +579,26 @@ model UserBackupSetting {
   user      User     @relation(fields: [userId], references: [id])
 
   @@unique([userId])
+}
+
+model OrgConnecterRequest {
+  id          Int            @id @default(autoincrement())
+  orgId       Int
+  connecterId Int
+  status      TransferStatus @default(Pending)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  org         Org            @relation(fields: [orgId], references: [id])
+  connecter   User           @relation(fields: [connecterId], references: [id])
+}
+
+model OrgConnecter {
+  id          Int      @id @default(autoincrement())
+  orgId       Int
+  connecterId Int
+  org         Org      @relation(fields: [orgId], references: [id])
+  connecter   User     @relation(fields: [connecterId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([orgId, connecterId])
 }

@@ -24,6 +24,7 @@ import { MinioModule } from './minio/minio.module';
 import { CatalogModule } from './catalog/catalog.module';
 import { QuickReplyModule } from './quick-reply/quick-reply.module';
 import { BackupSettingModule } from './backup-setting/backup-setting.module';
+import { ConnectorModule } from './connector/connector.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { BackupSettingModule } from './backup-setting/backup-setting.module';
     CatalogModule,
     QuickReplyModule,
     BackupSettingModule,
+    ConnectorModule,
   ],
   controllers: [],
   providers: [RedisService],
