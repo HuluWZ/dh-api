@@ -91,6 +91,9 @@ export class CreateTaskDto {
     description: 'Is The Task Pinned',
     required: false,
   })
+  @Transform(({ value }) =>
+    value === 'true' ? true : value === 'false' ? false : false,
+  )
   @IsOptional()
   @IsBoolean()
   isPinned?: boolean;
