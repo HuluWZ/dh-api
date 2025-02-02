@@ -47,6 +47,7 @@ export class CreateTaskDto {
   @ApiProperty({
     example: 'Detailed Task Description',
     description: 'Task Description',
+    required: false,
   })
   @IsOptional()
   desc?: string;
@@ -54,6 +55,7 @@ export class CreateTaskDto {
   @ApiProperty({
     example: '2025-09-30T00:00:00.000Z',
     description: 'Task Deadline',
+    required: false,
   })
   @Transform(({ value }) => value && new Date(value))
   @IsOptional()
@@ -64,6 +66,7 @@ export class CreateTaskDto {
   @ApiProperty({
     example: 'NoPriority / Low / Medium / High / Urgent',
     description: 'Task Priority',
+    required: false,
   })
   @IsEnum(TaskPriority)
   @IsOptional()
@@ -72,6 +75,7 @@ export class CreateTaskDto {
   @ApiProperty({
     example: 'Backlog / Todo / InProgress / AwaitingReview / InReview / Done',
     description: 'Task Status',
+    required: false,
   })
   @IsEnum(TaskStatus)
   @IsOptional()
@@ -82,7 +86,11 @@ export class CreateTaskDto {
   @IsNumber()
   groupId: number;
 
-  @ApiProperty({ example: 'false', description: 'Is The Task Pinned' })
+  @ApiProperty({
+    example: 'false',
+    description: 'Is The Task Pinned',
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   isPinned?: boolean;
@@ -90,6 +98,7 @@ export class CreateTaskDto {
   @ApiProperty({
     example: '[2,4]',
     description: 'Task Assignee User IDs',
+    required: false,
   })
   @IsArray()
   @ArrayMinSize(0)
@@ -109,12 +118,13 @@ export class CreateTaskDto {
   @ApiProperty({
     example: '5',
     description: 'Task Monitor User ID / Group Admin Id',
+    required: false,
   })
   @IsOptional()
   @IsNumber()
   monitoredBy: number;
 
-  @ApiProperty({ example: '1', description: 'Parent Task Id' })
+  @ApiProperty({ example: '1', description: 'Parent Task Id', required: false })
   @IsOptional()
   @IsNumber()
   parentId?: number;
