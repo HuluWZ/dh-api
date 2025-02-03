@@ -68,7 +68,7 @@ export class TaskController {
         !(
           (members.length > 0 && members.includes(createdBy)) ||
           (orgGroup && orgGroup.org.ownerId === createdBy) ||
-          (orgGroup && orgGroup.personal.id === createdBy)
+          (orgGroup && orgGroup.personal && orgGroup.personal.id === createdBy)
         )
       ) {
         throw new UnauthorizedException(
@@ -80,7 +80,7 @@ export class TaskController {
       if (
         !(
           (groupMembers.length > 0 && groupMembers.includes(createdBy)) ||
-          (orgGroup && orgGroup.personal.id === createdBy)
+          (orgGroup && orgGroup.personal && orgGroup.personal.id === createdBy)
         )
       ) {
         throw new UnauthorizedException(
