@@ -4,13 +4,16 @@ import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { PrismaExceptionFilter } from './common/prisma-exception/prisma-exception.filter';
 import { IoAdapter } from '@nestjs/platform-socket.io';
-import { UpdateLastSeenMiddleware } from './update-last-seen.middleware';
+import { urlencoded, json } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log'],
   });
   app.enableCors();
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ extended: true, limit: '50mb' }));
+
   app.useGlobalFilters(new PrismaExceptionFilter());
 
   app.useGlobalPipes(
