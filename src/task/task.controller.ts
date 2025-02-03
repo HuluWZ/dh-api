@@ -103,13 +103,11 @@ export class TaskController {
         'Invalid Members in assignedTo, Please check the members',
       );
     }
-    let path = null;
-    console.log({ file });
+    let path: string | null = null;
     if (file) {
-      let { path } = await this.minioService.uploadSingleFile(file, 'public');
-      console.log({ path });
+      const result = await this.minioService.uploadSingleFile(file, 'public');
+      path = result.path;
     }
-    console.log({ file, path });
     const task = await this.taskService.createTask(
       createTaskDto,
       createdBy,
