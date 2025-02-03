@@ -28,6 +28,7 @@ export class TaskService {
     voice_note: string | null,
   ) {
     const { assignedTo, file, ...taskData } = taskDataDto;
+    console.log(' File Form ', file);
     if (taskData.parentId) {
       const parentTask = await this.getTaskById(taskData.parentId);
       if (!parentTask) {

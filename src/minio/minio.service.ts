@@ -49,12 +49,15 @@ export class MinioFileUploadService implements OnModuleInit {
 
   async uploadSingleFile(file: Express.Multer.File, bucketName: FileBucket) {
     try {
+      console.log({ file, bucketName });
       const extension = file.originalname.split('.').pop();
       const fileName = `${cuid()}.${extension}`;
       const filePath = `${bucketName}/${fileName}`;
       const metaData = {
         'Content-Type': file.mimetype,
       };
+      console.log({ metaData, filePath });
+
       await this.minioClient.putObject(
         bucketName,
         fileName,
