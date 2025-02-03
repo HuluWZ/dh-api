@@ -82,6 +82,7 @@ export class CreateTaskDto {
   status: TaskStatus;
 
   @ApiProperty({ example: '1', description: 'Org Group Id' })
+  @Transform(({ value }) => Number(value))
   @IsNotEmpty()
   @IsNumber()
   groupId: number;
@@ -123,6 +124,7 @@ export class CreateTaskDto {
     description: 'Task Monitor User ID / Group Admin Id',
     required: false,
   })
+  @Transform(({ value }) => Number(value))
   @IsOptional()
   @IsNumber()
   monitoredBy: number;
@@ -130,6 +132,7 @@ export class CreateTaskDto {
   @ApiProperty({ example: '1', description: 'Parent Task Id', required: false })
   @IsOptional()
   @IsNumber()
+  @Transform(({ value }) => Number(value))
   parentId?: number;
 
   @ApiProperty({
