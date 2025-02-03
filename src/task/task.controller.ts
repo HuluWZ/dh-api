@@ -107,6 +107,7 @@ export class TaskController {
     if (file) {
       let { path } = await this.minioService.uploadSingleFile(file, 'public');
     }
+    console.log({file,path})
     const task = await this.taskService.createTask(
       createTaskDto,
       createdBy,

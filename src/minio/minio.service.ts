@@ -69,7 +69,7 @@ export class MinioFileUploadService implements OnModuleInit {
       //     meta_data: metaData,
       //   },
       // });
-
+      console.log({ filePath, fileName });
       return {
         path: filePath,
         fileName: fileName,
