@@ -83,6 +83,7 @@ export class TaskService {
       ...(status && { status }),
       ...(priority && { priority }),
       groupId,
+      parentId: null,
     };
 
     return this.prisma.task.findMany({
@@ -108,6 +109,7 @@ export class TaskService {
     const where = {
       ...(status && { status }),
       ...(priority && { priority }),
+      parentId: null,
     };
 
     return this.prisma.task.findMany({
@@ -146,6 +148,7 @@ export class TaskService {
       ...(assignedToMe && { TaskAsignee: { every: { memberId: userId } } }),
       ...(scheduled && { deadline: { not: null } }),
       ...(groupIds && groupIds.length > 0 ? { groupId: { in: groupIds } } : {}),
+      parentId: null,
     };
     return this.prisma.task.findMany({
       where,
