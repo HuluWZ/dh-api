@@ -160,6 +160,7 @@ model OrgGroup {
   orgId          Int?
   createdBy      Int?
   isPinned       Boolean          @default(false)
+  isConnector    Boolean          @default(false)
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   org            Org?             @relation(fields: [orgId], references: [id])

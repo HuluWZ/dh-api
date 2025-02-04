@@ -6,6 +6,18 @@ import { PrismaService } from 'src/prisma';
 export class ConnectorService {
   constructor(private readonly prismaService: PrismaService) {}
 
+  isPendingRequestExist(orgId: number, connecterId: number) {
+    return this.prismaService.orgConnecterRequest.findFirst({
+      where: { orgId, connecterId, status: 'Pending' },
+    });
+  }
+
+  isAlreadyOrgMembers(orgId: number, connecterId: number) {
+    return this.prismaService.orgGroup.findFirst({
+      where: { orgId, OrgGroupMember: { every: { memberId: connecterId } } },
+    });
+  }
+
   create(createConnectorDto: CreateConnectorDto, connecterId: number) {
     return this.prismaService.orgConnecterRequest.create({
       data: {
@@ -44,16 +56,31 @@ export class ConnectorService {
     });
   }
 
-  update(
+  async update(
     id: number,
     updateConnectorDto: UpdateConnectorDto,
-    connecterId?: number,
-    orgId?: number,
+    connecterId: number,
+    orgId: number,
+    ownerId: number,
+    name: string,
   ) {
     if (updateConnectorDto.status == 'Approved') {
-      this.prismaService.orgConnecter.create({
-        data: { connecterId, orgId },
-      });
+      const [_, orgGroup] = await this.prismaService.$transaction([
+        this.prismaService.orgConnecter.create({
+          data: { connecterId, orgId },
+        }),
+        this.prismaService.orgGroup.create({
+          data: { name, orgId, isConnector: true },
+        }),
+      ]);
+      if (orgGroup && orgGroup.id) {
+        return this.prismaService.orgGroupMember.createMany({
+          data: [
+            { groupId: orgGroup.id, memberId: ownerId },
+            { groupId: orgGroup.id, memberId: connecterId },
+          ],
+        });
+      }
     }
 
     return this.prismaService.orgConnecterRequest.update({

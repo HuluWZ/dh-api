@@ -26,6 +26,15 @@ export class ConnectorController {
   @UseGuards(AuthGuard)
   create(@Req() req: any, @Body() createConnectorDto: CreateConnectorDto) {
     const userId: number = req.user.id;
+    const isPendingRequestExist = this.connectorService.isPendingRequestExist(
+      createConnectorDto.orgId,
+      userId,
+    );
+    if (isPendingRequestExist) {
+      throw new NotFoundException(
+        'Pending Request already exist Wait until it is approved or rejected',
+      );
+    }
     return this.connectorService.create(createConnectorDto, userId);
   }
 
@@ -67,12 +76,18 @@ export class ConnectorController {
         'You are not authorized to approve or reject this request',
       );
     }
-    return this.connectorService.update(
+    if (connectorRequest.status !== 'Pending') {
+      throw new NotFoundException('Request is already approved or rejected');
+    }
+    const result = await this.connectorService.update(
       +id,
       updateConnectorDto,
       connecterId,
       connectorRequest.orgId,
+      connectorRequest.org.ownerId,
+      `${connectorRequest.connecter.firstName} X ${connectorRequest.org.name}`,
     );
+    return result;
   }
 
   @Delete(':id')
