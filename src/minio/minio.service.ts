@@ -106,6 +106,20 @@ export class MinioFileUploadService implements OnModuleInit {
     }
   }
 
+  async getPresignedFile(bucketName: string, objectName: string) {
+    try {
+      return this.minioClient.presignedUrl(
+        'GET',
+        bucketName,
+        objectName,
+        5 * 24 * 60 * 60,
+      );
+    } catch (error) {
+      console.log({ error });
+      throw new NotFoundException('Error Generating Presigned Url');
+    }
+  }
+
   async deleteFile(bucketName: string, objectName: string) {
     return this.minioClient.removeObject(bucketName, objectName);
   }

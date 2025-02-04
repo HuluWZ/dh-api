@@ -38,6 +38,25 @@ export class MinioFileUploadController {
     return this.fileUploadService.uploadSingleFile(file, 'public');
   }
 
+  @Get('signed_url/:folder/:filename')
+  @ApiOperation({ summary: 'Get Presigned URL by Folder and Filename' })
+  async getSignedFile(
+    @Param('folder') folder: string,
+    @Param('filename') filename: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const url = await this.fileUploadService.getPresignedFile(
+        folder,
+        filename,
+      );
+      console.log({ url });
+      return url;
+    } catch (error) {
+      console.error('Error Getting presigned url:', error);
+      res.status(500).send('Error Getting presigned file');
+    }
+  }
   @Get(':folder/:filename')
   @ApiOperation({ summary: 'Get Minio File by Folder and Filename' })
   async getFile(
