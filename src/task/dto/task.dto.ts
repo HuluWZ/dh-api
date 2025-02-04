@@ -68,6 +68,7 @@ export class CreateTaskDto {
     description: 'Task Priority',
     required: false,
   })
+  @Transform(({ value }) => TaskPriority[value])
   @IsEnum(TaskPriority)
   @IsOptional()
   priority: TaskPriority;
@@ -77,6 +78,7 @@ export class CreateTaskDto {
     description: 'Task Status',
     required: false,
   })
+  @Transform(({ value }) => TaskStatus[value])
   @IsEnum(TaskStatus)
   @IsOptional()
   status: TaskStatus;
@@ -100,7 +102,7 @@ export class CreateTaskDto {
   isPinned?: boolean;
 
   @ApiProperty({
-    example: '[2,4]',
+    example: [2, 4],
     description: 'Task Assignee User IDs',
     required: false,
   })
