@@ -44,6 +44,7 @@
     "cuid": "^3.0.0",
     "firebase-admin": "^12.6.0",
     "ioredis": "^5.4.1",
+    "mime": "^4.0.6",
     "mime-type": "^5.0.0",
     "minio": "^8.0.1",
     "nestjs-minio-client": "^2.2.0",
