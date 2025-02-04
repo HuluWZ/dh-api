@@ -247,13 +247,19 @@ export class TaskService {
     }
     let invalidMembers;
     if (orgGroup.orgId) {
-      invalidMembers = updateTask.assignedTo.filter(
-        (memberId) => !members.includes(memberId),
-      );
+      invalidMembers =
+        updateTask.assignedTo?.length > 0
+          ? updateTask.assignedTo.filter(
+              (memberId) => !members.includes(memberId),
+            )
+          : [];
     } else {
-      invalidMembers = updateTask.assignedTo.filter(
-        (memberId) => !groupMembers.includes(memberId),
-      );
+      invalidMembers =
+        updateTask.assignedTo?.length > 0
+          ? updateTask.assignedTo.filter(
+              (memberId) => !groupMembers.includes(memberId),
+            )
+          : [];
     }
     if (invalidMembers.length > 0) {
       throw new UnauthorizedException(
