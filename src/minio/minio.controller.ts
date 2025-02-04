@@ -38,9 +38,9 @@ export class MinioFileUploadController {
     return this.fileUploadService.uploadSingleFile(file, 'public');
   }
 
-  @Get('signed_url/:folder/:filename')
-  @ApiOperation({ summary: 'Get Presigned URL by Folder and Filename' })
-  async getSignedFile(
+  @Get(':folder/:filename')
+  @ApiOperation({ summary: 'Get Minio File by Folder and Filename' })
+  async getFile(
     @Param('folder') folder: string,
     @Param('filename') filename: string,
     @Res() res: Response,
@@ -50,34 +50,7 @@ export class MinioFileUploadController {
         folder,
         filename,
       );
-      console.log({ url });
       return url;
-    } catch (error) {
-      console.error('Error Getting presigned url:', error);
-      res.status(500).send('Error Getting presigned file');
-    }
-  }
-  @Get(':folder/:filename')
-  @ApiOperation({ summary: 'Get Minio File by Folder and Filename' })
-  async getFile(
-    @Param('folder') folder: string,
-    @Param('filename') filename: string,
-    @Res() res: Response,
-  ) {
-    try {
-      console.log({ folder, filename });
-      const fileStream = await this.fileUploadService.getFile(folder, filename);
-      console.log({ fileStream });
-      const file_path = `${folder}/${filename}`;
-      const ContentType = mime.lookup(file_path);
-      console.log({ ContentType, file_path });
-
-      res.set({
-        'Content-Type': ContentType ?? 'application/octet-stream',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-      });
-
-      fileStream.pipe(res);
     } catch (error) {
       console.error('Error fetching file:', error);
       res.status(500).send('Error fetching file');
