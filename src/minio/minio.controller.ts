@@ -12,7 +12,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { MinioFileUploadService } from './minio.service';
-import mime from 'mime';
+import mime from 'mime-types';
 
 @ApiTags('Minio File Upload')
 @Controller('minio-file-upload')
@@ -45,16 +45,22 @@ export class MinioFileUploadController {
     @Param('filename') filename: string,
     @Res() res: Response,
   ) {
-    const fileStream = await this.fileUploadService.getFile(folder, filename);
-    const file_path = `${folder}/${filename}`;
-    const ContentType = mime.getType(file_path);
-    console.log({ ContentType, file_path });
-    res.set({
-      'Content-Type': ContentType ?? 'application/octet-stream',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-    });
+    try {
+      const fileStream = await this.fileUploadService.getFile(folder, filename);
+      const file_path = `${folder}/${filename}`;
+      const ContentType = mime.lookup(file_path);
+      console.log({ ContentType, file_path });
 
-    fileStream.pipe(res);
+      res.set({
+        'Content-Type': ContentType ?? 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      });
+
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error fetching file:', error);
+      res.status(500).send('Error fetching file');
+    }
   }
 
   @Delete(':folder/:filename')
