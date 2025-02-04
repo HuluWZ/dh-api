@@ -46,7 +46,9 @@ export class MinioFileUploadController {
     @Res() res: Response,
   ) {
     try {
+      console.log({ folder, filename });
       const fileStream = await this.fileUploadService.getFile(folder, filename);
+      console.log({ fileStream });
       const file_path = `${folder}/${filename}`;
       const ContentType = mime.lookup(file_path);
       console.log({ ContentType, file_path });
