@@ -43,17 +43,16 @@ export class MinioFileUploadController {
   async getFile(
     @Param('folder') folder: string,
     @Param('filename') filename: string,
-    @Res() res: Response,
   ) {
     try {
       const url = await this.fileUploadService.getPresignedFile(
         folder,
         filename,
       );
+      console.log({ url });
       return url;
     } catch (error) {
       console.error('Error fetching file:', error);
-      res.status(500).send('Error fetching file');
     }
   }
 
