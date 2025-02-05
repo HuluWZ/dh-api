@@ -58,8 +58,11 @@ export class MinioFileUploadController {
     try {
       const file = await this.fileUploadService.getFile(folder, filename);
       const ContentType = mime.lookup(`${folder}/${filename}`);
-      const contentDisposition = disposition && disposition.toLocaleLowerCase() === 'inline' ? 'inline' : 'attachment';
-
+      const contentDisposition =
+        disposition && disposition.toLocaleLowerCase() === 'inline'
+          ? 'inline'
+          : 'attachment';
+      console.log('Pipeline Trigger');
       res.set({
         'Accept-Ranges': 'bytes',
         'Content-Type': ContentType ?? 'application/octet-stream',
