@@ -23,3 +23,13 @@ jobs:
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
           MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
           MINIO_PORT: ${{ secrets.MINIO_PORT}}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          MINIO_FETCH_PORT: ${{ secrets.MINIO_FETCH_PORT }}
+          MINIO_SSL: ${{ secrets.MINIO_SSL }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+          MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
