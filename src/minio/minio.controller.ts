@@ -23,7 +23,7 @@ import {
 import * as mime from 'mime-types';
 import { MinioFileUploadService } from './minio.service';
 
-@ApiTags('Minio File Upload')
+@ApiTags('Minio AWS File Upload')
 @Controller('minio-file-upload')
 export class MinioFileUploadController {
   constructor(private readonly fileUploadService: MinioFileUploadService) {}
