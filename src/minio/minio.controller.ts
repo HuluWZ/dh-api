@@ -4,15 +4,24 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Res,
+  StreamableFile,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiResetContentResponse,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import * as mime from 'mime-types';
 import { MinioFileUploadService } from './minio.service';
-import mime from 'mime-types';
 
 @ApiTags('Minio File Upload')
 @Controller('minio-file-upload')
@@ -38,9 +47,35 @@ export class MinioFileUploadController {
     return this.fileUploadService.uploadSingleFile(file, 'public');
   }
 
-  @Get(':folder/:filename')
+  @Get('file/:folder/:filename')
   @ApiOperation({ summary: 'Get Minio File by Folder and Filename' })
   async getFile(
+    @Res() res: Response,
+    @Param('folder') folder: string,
+    @Param('filename') filename: string,
+    @Query('disposition') disposition: string,
+  ) {
+    try {
+      const file = await this.fileUploadService.getFile(folder, filename);
+      const ContentType = mime.lookup(`${folder}/${filename}`);
+      const contentDisposition =
+        disposition.toLocaleLowerCase() === 'inline' ? 'inline' : 'attachment';
+
+      res.set({
+        'Accept-Ranges': 'bytes',
+        'Content-Type': ContentType ?? 'application/octet-stream',
+        'Content-Disposition': `${contentDisposition}; filename="${filename}"`,
+      });
+
+      file.pipe(res);
+    } catch (error) {
+      console.error('Error fetching file:', error);
+    }
+  }
+
+  @Get('url/:folder/:filename')
+  @ApiOperation({ summary: 'Get Temporary URL by Folder and Filename' })
+  async getFileUrl(
     @Param('folder') folder: string,
     @Param('filename') filename: string,
   ) {
@@ -49,8 +84,7 @@ export class MinioFileUploadController {
         folder,
         filename,
       );
-      console.log({ url });
-      return url;
+      return { url };
     } catch (error) {
       console.error('Error fetching file:', error);
     }
