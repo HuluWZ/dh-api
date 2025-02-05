@@ -17,7 +17,7 @@ jobs:
         run: docker build -t my-image:latest .
 
       - name: Push Docker image
-        run: docker compose up -d
+        run: docker compose up -d --force-recreate
         env:
           MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
           MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
