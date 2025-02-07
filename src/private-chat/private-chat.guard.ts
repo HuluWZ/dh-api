@@ -12,6 +12,7 @@ export class PrivateChatGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const ctx = context.switchToWs();
     const client = ctx.getClient();
+    console.log({ client });
     console.log({ client: client.handshake });
     const token =
       client.handshake.auth.token?.split(' ')[1] ??

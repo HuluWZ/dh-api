@@ -20,6 +20,7 @@ import { User } from '@prisma/client';
 import { PrivateChatGuard } from './private-chat.guard';
 import { OrgGroupService } from 'src/org-group/org-group.service';
 import { JwtService } from '@nestjs/jwt';
+import { CloudFunctionConfig } from 'minio';
 
 @WebSocketGateway({
   cors: {
@@ -46,6 +47,7 @@ export class PrivateChatGateway
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {
+    console.log(' Client ', client);
     const token =
       client.handshake.auth.token?.split(' ')[1] ??
       (client.handshake.query.token as string).split(' ')[1];
