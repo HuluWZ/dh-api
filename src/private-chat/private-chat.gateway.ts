@@ -50,7 +50,7 @@ export class PrivateChatGateway
     console.log(' Client ', client);
     const token =
       (client.handshake.headers.authorization &&
-        client.handshake.headers?.authorization?.split('')[1]) ??
+        client.handshake.headers?.authorization?.split(' ')[1]) ??
       (client.handshake.query?.token as string).split(' ')[1];
     console.log({ token: client.handshake.headers.authorization });
     if (!token) {
