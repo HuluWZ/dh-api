@@ -270,14 +270,14 @@ export class TaskService {
     const existingAssignees = task.TaskAsignee.map(
       (assignee) => assignee.memberId,
     );
-    if (assignedTo.length) {
+    if (assignedTo && assignedTo.length) {
       const newAssignees = assignedTo.filter(
         (assignee) => !existingAssignees.includes(assignee),
       );
       const removedAssignees = existingAssignees.filter(
         (assignee) => !assignedTo.includes(assignee),
       );
-      if (newAssignees.length) {
+      if (newAssignees && newAssignees.length) {
         await this.prisma.taskAsignee.createMany({
           data: newAssignees.map((memberId) => ({
             taskId,
@@ -285,7 +285,7 @@ export class TaskService {
           })),
         });
       }
-      if (removedAssignees.length) {
+      if (removedAssignees && removedAssignees.length) {
         await this.prisma.taskAsignee.deleteMany({
           where: { taskId, memberId: { in: removedAssignees } },
         });
