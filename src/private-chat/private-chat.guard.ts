@@ -14,9 +14,9 @@ export class PrivateChatGuard implements CanActivate {
     const client = ctx.getClient();
     console.log({ client: client.handshake });
     const token =
-      (client.handshake.headers.authorization &&
-        client.handshake.headers?.authorization?.split(' ')[1]) ??
-      (client.handshake.query?.token as string).split(' ')[1];
+      client.handshake.headers.authorization &&
+      client.handshake.headers?.authorization?.split(' ')[1];
+    console.log({ token });
     if (!token) {
       throw new UnauthorizedException('Token not provided');
     }
