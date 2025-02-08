@@ -13,19 +13,27 @@ export class PrivateChatGuard implements CanActivate {
     const ctx = context.switchToWs();
     const client = ctx.getClient();
     console.log({ client: client.handshake });
-    const token =
-      client.handshake.headers.authorization &&
-      client.handshake.headers?.authorization?.split(' ')[1];
-    console.log({ token });
-    if (!token) {
-      throw new UnauthorizedException('Token not provided');
+    try {
+      const token =
+        client.handshake.headers.authorization &&
+        client.handshake.headers?.authorization?.split(' ')[1];
+      console.log({ token });
+
+      if (!token) {
+        throw new UnauthorizedException('Token not provided');
+      }
+
+      const resp = await this.authService.validateToken(token);
+      if (!resp) {
+        throw new UnauthorizedException('Invalid or Expired Token');
+      }
+
+      const user = await this.authService.getMe(+resp.sub);
+      client['user'] = user;
+      return true;
+    } catch (error) {
+      console.error('Error in canActivate:', error.message);
+      throw new UnauthorizedException(error.message);
     }
-    const resp = await this.authService.validateToken(token);
-    if (!resp) {
-      throw new UnauthorizedException('Unauthorized Access');
-    }
-    const user = await this.authService.getMe(+resp.sub);
-    client['user'] = user;
-    return true;
   }
 }
