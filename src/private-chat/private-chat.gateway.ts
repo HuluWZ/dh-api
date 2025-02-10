@@ -13,14 +13,13 @@ import {
   CreateGroupMessageDto,
   CreatePrivateMessageDto,
 } from './dto/private.dto';
-import { UnauthorizedException, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
 import { AuthService } from 'src/auth/auth.service';
 import { User } from '@prisma/client';
 import { PrivateChatGuard } from './private-chat.guard';
 import { OrgGroupService } from 'src/org-group/org-group.service';
 import { JwtService } from '@nestjs/jwt';
-import { CloudFunctionConfig } from 'minio';
 
 @WebSocketGateway({
   cors: {
@@ -47,7 +46,6 @@ export class PrivateChatGateway
   }
 
   async handleConnection(@ConnectedSocket() client: Socket) {
-    console.log(' Client ', client);
     const token =
       client.handshake.headers.authorization &&
       client.handshake.headers?.authorization?.split(' ')[1];
@@ -97,6 +95,7 @@ export class PrivateChatGateway
   @SubscribeMessage('sendMessage')
   async handleMessage(client: Socket, payload: CreatePrivateMessageDto) {
     try {
+      console.log(' Sender Client ', client['user']);
       const sender: User = client['user'];
       // Create the message in the service layer
       const newMessage = await this.privateChatService.createPrivateMessage(
