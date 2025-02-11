@@ -95,6 +95,7 @@ export class PrivateChatGateway
   @SubscribeMessage('sendMessage')
   async handleMessage(client: Socket, payload: CreatePrivateMessageDto) {
     try {
+      console.log(' Chat Payload ', payload, client['user']);
       console.log(' Sender Client ', client['user']);
       const sender: User = client['user'];
       // Create the message in the service layer
