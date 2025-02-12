@@ -35,7 +35,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { DeviceService } from 'src/common/device/device.service';
 import phone from 'phone';
 
-@ApiTags('Auth')
+@ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
   constructor(
