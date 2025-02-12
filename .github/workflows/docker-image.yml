@@ -16,7 +16,7 @@ jobs:
 
       - name: Create .env file
         run: |
-          echo "MINIO_ENDPOINT=${{ secrets.A }}" 
+          echo "MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}"  >> /root/actions-runner/dh/dh-api/dh-api/.env
           echo "MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}" >> /root/actions-runner/dh/dh-api/dh-api/.env
           echo "MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}" >> /root/actions-runner/dh/dh-api/dh-api/.env
           echo "MINIO_PORT=${{ secrets.MINIO_PORT }}" >> /root/actions-runner/dh/dh-api/dh-api/.env
@@ -33,9 +33,6 @@ jobs:
 
       - name: Build Docker image
         run: docker build -t my-image:latest .
-
-      - name: Push Docker image
-        run: docker push my-image:latest
 
       - name: Deploy Docker image
         run: docker compose up -d --force-recreate
