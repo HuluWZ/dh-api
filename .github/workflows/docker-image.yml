@@ -17,6 +17,9 @@ jobs:
         run: docker build -t my-image:latest .
 
       - name: Push Docker image
+        run: docker push my-image:latest
+
+      - name: Deploy Docker image
         run: docker compose up -d --force-recreate
         env:
           MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
