@@ -10,8 +10,6 @@ on:
 jobs:
   build:
     runs-on: self-hosted
-    run: env
-    run: echo $VAR
 
     steps:
       - uses: actions/checkout@v4
