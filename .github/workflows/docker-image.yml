@@ -21,17 +21,17 @@ jobs:
       - name: Push Docker image
         run: docker compose up -d --force-recreate
         env:
-          MINIO_ENDPOINT: ${{ vars.MINIO_ENDPOINT }}
-          MINIO_ACCESS_KEY: ${{ vars.MINIO_ACCESS_KEY }}
-          MINIO_SECRET_KEY: ${{ vars.MINIO_SECRET_KEY }}
-          MINIO_PORT: ${{ vars.MINIO_PORT}}
-          REDIS_HOST: ${{ vars.REDIS_HOST }}
-          REDIS_PORT: ${{ vars.REDIS_PORT }}
-          MINIO_FETCH_PORT: ${{ vars.MINIO_FETCH_PORT }}
-          MINIO_SSL: ${{ vars.MINIO_SSL }}
-          NODE_ENV: ${{ vars.NODE_ENV }}
-          POSTGRES_USER: ${{ vars.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ vars.POSTGRES_PASSWORD }}
-          POSTGRES_DB: ${{ vars.POSTGRES_DB }}
-          MINIO_ROOT_PASSWORD: ${{ vars.MINIO_ROOT_PASSWORD }}
-          MINIO_ROOT_USER: ${{ vars.MINIO_ROOT_USER }}
+          MINIO_ENDPOINT: ${{ secrets.MINIO_ENDPOINT }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
+          MINIO_PORT: ${{ secrets.MINIO_PORT}}
+          REDIS_HOST: ${{ secrets.REDIS_HOST }}
+          REDIS_PORT: ${{ secrets.REDIS_PORT }}
+          MINIO_FETCH_PORT: ${{ secrets.MINIO_FETCH_PORT }}
+          MINIO_SSL: ${{ secrets.MINIO_SSL }}
+          NODE_ENV: ${{ secrets.NODE_ENV }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          MINIO_ROOT_PASSWORD: ${{ secrets.MINIO_ROOT_PASSWORD }}
+          MINIO_ROOT_USER: ${{ secrets.MINIO_ROOT_USER }}
