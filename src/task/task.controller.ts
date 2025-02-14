@@ -258,12 +258,11 @@ export class TaskController {
     };
   }
   @Get()
-  @ApiQuery({ name: 'status', required: false, type: String })
-  @ApiQuery({ name: 'priority', required: false, type: String })
-  @ApiOperation({ summary: 'Get All Tasks' })
+  @ApiOperation({ summary: 'Get Personalized Tasks' })
   @UseGuards(AuthGuard)
-  async getAll(@Query() filterTaskDto: FilterTaskDto) {
-    return this.taskService.getAllTasks(filterTaskDto);
+  async getAll(@Req() req: any) {
+    const userId: number = req.user.id;
+    return this.taskService.getAllTasks(userId);
   }
   @Get('filter')
   @ApiQuery({ name: 'today', required: false, type: Boolean })

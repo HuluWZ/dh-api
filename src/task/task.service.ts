@@ -104,16 +104,18 @@ export class TaskService {
     });
   }
 
-  async getAllTasks(filterTaskDto: FilterTaskDto) {
-    const { status, priority } = filterTaskDto;
-    const where = {
-      ...(status && { status }),
-      ...(priority && { priority }),
-      parentId: null,
-    };
-
+  async getAllTasks(userId: number) {
+    //  created by me
+    //  Assigned to me
+    //  tasks in my group
     return this.prisma.task.findMany({
-      where,
+      where: {
+        OR: [
+          { createdBy: userId },
+          { group: { OrgGroupMember: { some: { memberId: userId } } } },
+          { TaskAsignee: { some: { memberId: userId } } },
+        ],
+      },
       include: {
         parent: true,
         subtasks: true,
@@ -126,7 +128,7 @@ export class TaskService {
           },
         },
       },
-      orderBy: [{ isPinned: 'desc' }, { createdAt: 'desc' }],
+      orderBy: [{ createdAt: 'desc' }, { isPinned: 'desc' }],
     });
   }
 
