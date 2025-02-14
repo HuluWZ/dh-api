@@ -408,6 +408,7 @@ model ArchivedTasks {
   updatedAt DateTime @updatedAt
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id])
+  deleted   Boolean  @default(false)
 
   @@unique([userId, taskId])
   @@index([userId, taskId])

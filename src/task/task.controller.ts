@@ -131,6 +131,26 @@ export class TaskController {
     const archivedTask = await this.taskService.archiveTask(userId, id);
     return { message: 'Task Archived successfully', task: archivedTask };
   }
+  @Post('archive-unarchive/toggle/:archivedId')
+  @ApiOperation({ summary: 'Toggle Archive Unarchive Task' })
+  @UseGuards(AuthGuard)
+  async toggleArchiveUnarchiveTask(
+    @Req() req: any,
+    @Param('archivedId') archivedId: number,
+  ) {
+    const userId: number = req.user.id;
+    const isArchivedTask =
+      await this.taskService.getArchivedTaskById(archivedId);
+    if (!isArchivedTask) {
+      throw new NotFoundException('Archived Task Not Found');
+    }
+    const archivedTask = await this.taskService.toggleArchiveUnArchiveTask(
+      archivedId,
+      !isArchivedTask.deleted,
+    );
+    return { message: 'Task Archive Toggled successfully', task: archivedTask };
+  }
+
   @Post(':archivedId/unarchive')
   @ApiOperation({ summary: 'Unarchive Task' })
   @UseGuards(AuthGuard)
@@ -149,7 +169,28 @@ export class TaskController {
     const task = await this.taskService.unArchiveTask(archivedId);
     return { message: 'Task UnArchived successfully', task: task };
   }
-  @Post(':archivedId/unarchive')
+  @Patch(':archivedId/delete')
+  @ApiOperation({ summary: 'Delete Archived Task' })
+  @UseGuards(AuthGuard)
+  async deleteArchiveTask(
+    @Req() req: any,
+    @Param('archivedId') archivedId: number,
+  ) {
+    const userId: number = req.user.id;
+    const archivedTask = await this.taskService.getArchivedTaskById(archivedId);
+    if (!archivedTask) {
+      throw new UnauthorizedException('Archived Task not found');
+    }
+    if (archivedTask.userId !== userId) {
+      throw new UnauthorizedException(
+        'You are not authorized to delete archived task',
+      );
+    }
+    const task = await this.taskService.deleteArchiveTask(archivedId);
+    return { message: 'Task Removed from unarchived successfully', task: task };
+  }
+
+  @Post('reorder')
   @ApiOperation({ summary: 'Reorder Tasks' })
   @UseGuards(AuthGuard)
   async reorderTasks(@Req() req: any, @Body() reorderTasks: ReorderTasksDto) {

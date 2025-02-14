@@ -335,6 +335,23 @@ export class TaskService {
   async archiveTask(userId: number, taskId: number) {
     return this.prisma.archivedTasks.create({ data: { userId, taskId } });
   }
+  async unArchiveTask(archivedId: number) {
+    return this.prisma.archivedTasks.update({
+      where: { id: archivedId },
+      data: { deleted: false },
+    });
+  }
+  async toggleArchiveUnArchiveTask(archivedId: number, deleted: boolean) {
+    return this.prisma.archivedTasks.update({
+      where: { id: archivedId },
+      data: { deleted },
+    });
+  }
+
+  async deleteArchiveTask(archivedId: number) {
+    return this.prisma.archivedTasks.delete({ where: { id: archivedId } });
+  }
+
   async getMyArchivedTasks(userId: number) {
     return this.prisma.archivedTasks.findMany({
       where: { userId },
@@ -354,9 +371,6 @@ export class TaskService {
         },
       },
     });
-  }
-  async unArchiveTask(archivedId: number) {
-    return this.prisma.archivedTasks.delete({ where: { id: archivedId } });
   }
   async reorderTasks(taskIds: number[]) {
     return this.prisma.$transaction(async (prisma) => {
