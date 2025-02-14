@@ -310,6 +310,7 @@ model PrivateMessage {
   type              MessageType @default(Text)
   is_seen           Boolean     @default(false)
   is_pinned         Boolean     @default(false)
+  pinnedAt          DateTime?
   deletedBySender   Boolean     @default(false) // Deleted for sender
   deletedByReceiver Boolean     @default(false) // Deleted for receiver
 
@@ -339,6 +340,7 @@ model GroupMessage {
   is_seen     Boolean     @default(false)
   is_pinned   Boolean     @default(false)
   is_archived Boolean     @default(false)
+  pinnedAt          DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

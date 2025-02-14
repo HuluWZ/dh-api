@@ -2,6 +2,7 @@ import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaClient } from '@prisma/client';
 import { databaseConfigType } from 'src/config/database.config';
+import { setPinnedAtOnChatUpdateMiddleware } from './set-pinnedAt-chat-middleware';
 
 @Injectable()
 export class PrismaService
@@ -18,6 +19,7 @@ export class PrismaService
         },
       },
     });
+    this.$use(setPinnedAtOnChatUpdateMiddleware);
   }
 
   async onModuleInit() {
