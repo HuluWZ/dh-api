@@ -23,6 +23,35 @@ export class PrivateChatService {
     private readonly notificationService: NotificationService,
   ) {}
 
+  async getMyRecentConversations(userId: number) {
+    const privateMessages = await this.prisma.privateMessage.findMany({
+      where: {
+        OR: [{ senderId: userId }, { receiverId: userId }],
+      },
+      include: PrivateInclude,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      distinct: ['senderId', 'receiverId'],
+    });
+    const groupMessages = await this.prisma.groupMessage.findMany({
+      where: {
+        OR: [
+          { senderId: userId },
+          { group: { OrgGroupMember: { some: { memberId: userId } } } },
+        ],
+      },
+      include: GroupInclude,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      distinct: ['groupId'],
+    });
+    const allMessages = [...privateMessages, ...groupMessages].sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+    );
+    return allMessages;
+  }
   async createPrivateMessage(
     senderId: number,
     createPrivateMessageDto: CreatePrivateMessageDto,

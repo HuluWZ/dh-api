@@ -347,6 +347,15 @@ export class PrivateChatController {
       updatedMessage,
     };
   }
+  @Get('my-conversations')
+  @ApiOperation({ summary: 'Get My Conversations' })
+  @UseGuards(AuthGuard)
+  async getMyConversations(@Req() req: any) {
+    const userId: number = req.user.id;
+    const conversations = await this.privateChatService.getMyRecentConversations(userId);
+    return { conversations };
+  }
+
   @Get('my-private-chat-users')
   @ApiOperation({ summary: 'Get My Chat lists' })
   @UseGuards(AuthGuard)
