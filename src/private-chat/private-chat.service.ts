@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
   CreateGroupMessageDto,
@@ -330,34 +334,40 @@ export class PrivateChatService {
     });
   }
   async createReactions(userId: number, createReaction: CreateReactionDto) {
-    const { messageType, ...reactionDate } = createReaction;
-    const createReactionRecord = async (data) => {
+    const { messageType, messageId, type } = createReaction;
+    if (['PrivateMessage', 'GroupMessage'].indexOf(messageType) === -1) {
+      throw new BadRequestException('Invalid message type');
+    }
+    if (messageType === 'GroupMessage') {
+      const message = await this.prisma.groupMessage.findUnique({
+        where: { id: messageId },
+      });
+      if (!message) {
+        throw new NotFoundException('Group Message not found');
+      }
       return this.prisma.reaction.create({
         data: {
-          ...data,
+          type,
+          groupMessageId: messageId,
           userId,
         },
       });
-    };
-
-    if (messageType === 'GroupMessage') {
-      const message = await this.prisma.groupMessage.findUnique({
-        where: { id: reactionDate.messageId },
-      });
-      if (!message) {
-        throw new NotFoundException('Message not found');
-      }
-      return createReactionRecord(reactionDate);
     }
 
     if (messageType === 'PrivateMessage') {
-      const message = await this.prisma.groupMessage.findUnique({
-        where: { id: reactionDate.messageId },
+      const message = await this.prisma.privateMessage.findUnique({
+        where: { id: messageId },
       });
       if (!message) {
-        throw new NotFoundException('Message not found');
+        throw new NotFoundException('Private Message not found');
       }
-      return createReactionRecord(reactionDate);
+      return this.prisma.reaction.create({
+        data: {
+          type,
+          privateMessageId: messageId,
+          userId,
+        },
+      });
     }
   }
   async getReaction(id: number) {

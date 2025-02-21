@@ -296,6 +296,7 @@ enum MessageType {
   Text
   Image
   Video
+  Voice
   Audio
   File
   Link
@@ -340,7 +341,7 @@ model GroupMessage {
   is_seen     Boolean     @default(false)
   is_pinned   Boolean     @default(false)
   is_archived Boolean     @default(false)
-  pinnedAt          DateTime?
+  pinnedAt    DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

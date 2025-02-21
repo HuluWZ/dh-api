@@ -14,8 +14,11 @@ import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 enum MessageType {
   Text = 'Text',
+  Image = 'Image',
   Video = 'Video',
+  Voice = 'Voice',
   Audio = 'Audio',
+  File = 'File',
 }
 enum ChatType {
   PrivateMessage = 'PrivateMessage',
@@ -28,7 +31,7 @@ export class CreatePrivateMessageDto {
   content: string;
 
   @ApiProperty({
-    example: 'Text | Image | Video',
+    example: 'Text | Image | Video | File | Voice',
     description: 'Message Type',
   })
   @IsEnum(MessageType)
