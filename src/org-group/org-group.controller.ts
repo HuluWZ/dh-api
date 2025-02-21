@@ -125,6 +125,23 @@ export class OrgGroupController {
     return { message: `Org Group updated successfully`, group };
   }
 
+  @Get('search-my-connector-groups')
+  @ApiOperation({ summary: 'Search My Connector B2C Groups' })
+  @UseGuards(AuthGuard)
+  async searchMyConnectorGroups(
+    @Req() req: any,
+    @Query('search') search?: string,
+  ) {
+    const ownerId: number = req.user.id;
+    // Get My Groups that are connector and i am a member or owner of group
+
+    const groups = await this.orgGroupService.getMyConnectorGroups(
+      ownerId,
+      search,
+    );
+    return { groups };
+  }
+
   @Get('my-groups')
   @ApiOperation({ summary: 'Get All My Groups' })
   @UseGuards(AuthGuard)

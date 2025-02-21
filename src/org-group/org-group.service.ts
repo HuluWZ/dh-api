@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma';
 import { OrgService } from 'src/org/org.service';
 import { CreateOrgGroupDto, UpdateOrgGroupDto } from './dto/org-group.dto';
+import { GroupInclude } from 'src/private-chat/dto/private.dto';
 
 @Injectable()
 export class OrgGroupService {
@@ -116,6 +117,29 @@ export class OrgGroupService {
       },
     });
     return { groups, myGroups };
+  }
+
+  async getMyConnectorGroups(memberId: number, search?: string) {
+    // Get My Groups that are connector and i am a member or owner of group
+    const nameSearch = search ? { name: { contains: search } } : {};
+    return this.prisma.orgGroup.findMany({
+      where: {
+        ...nameSearch,
+        isConnector: true,
+        OR: [
+          { OrgGroupMember: { some: { memberId } } },
+          { createdBy: memberId },
+        ],
+      },
+      include: {
+        GroupMessage: {
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: GroupInclude,
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 
   async getMyPersonalGroups(memberId: number) {
