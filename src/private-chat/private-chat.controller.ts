@@ -352,7 +352,8 @@ export class PrivateChatController {
   @UseGuards(AuthGuard)
   async getMyConversations(@Req() req: any) {
     const userId: number = req.user.id;
-    const conversations = await this.privateChatService.getMyRecentConversations(userId);
+    const conversations =
+      await this.privateChatService.getMyRecentConversations(userId);
     return { conversations };
   }
 
@@ -391,13 +392,15 @@ export class PrivateChatController {
     @Req() req: any,
     @Param('groupId') groupId: number,
     @Query('content') content: string,
+    @Query('mention') mention: string,
   ) {
     const userId = req.user.id; // Extract userId from JWT payload
-    const contents = extractMentionedUsers(content);
+    const mentions = extractMentionedUsers(mention);
     return this.privateChatService.sendMentionNotification(
-      contents,
+      mentions,
       userId,
       groupId,
+      content,
     );
   }
 

@@ -462,9 +462,10 @@ export class PrivateChatService {
     });
   }
   async sendMentionNotification(
-    name: string[],
+    userNames: string[],
     mentioner: number,
     groupId: number,
+    content: string,
   ) {
     const mentionerDetails = await this.prisma.user.findUnique({
       where: { id: mentioner },
@@ -476,7 +477,7 @@ export class PrivateChatService {
       return true;
     }
     const mentionedUsers = await this.prisma.user.findMany({
-      where: { userName: { in: name } },
+      where: { userName: { in: userNames } },
       include: { FCM: true },
     });
     if (mentionedUsers.length) {
@@ -484,7 +485,7 @@ export class PrivateChatService {
       await this.notificationService.sendNotificationToMultipleTokens({
         tokens,
         title: `${mentionerDetails.firstName} mentioned you in ${group.name}`,
-        body: `${mentionerDetails.firstName} mentioned you in ${group.name}`,
+        body: content,
         type: NotificationType.Communication,
         icon: 'https://code.enf',
       });
