@@ -169,7 +169,19 @@ export const GroupInclude = {
     },
   },
   replies: true,
-  Reaction: true,
+  Reaction: {
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          userName: true,
+          profile: true,
+        },
+      },
+    },
+  },
   group: {
     select: {
       id: true,
@@ -195,7 +207,19 @@ export const PrivateInclude = {
     },
   },
   replies: true,
-  Reaction: true,
+  Reaction:  {
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                middleName: true,
+                userName: true,
+                profile: true,
+              },
+            },
+          },
+        },
   receiver: {
     select: {
       id: true,
