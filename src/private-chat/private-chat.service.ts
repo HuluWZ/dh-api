@@ -28,16 +28,41 @@ export class PrivateChatService {
   ) {}
 
   async getMyRecentConversations(userId: number) {
-    const privateMessages = await this.prisma.privateMessage.findMany({
+    const uniqueConversations = await this.prisma.privateMessage.groupBy({
+      by: ['senderId', 'receiverId'],
       where: {
         OR: [{ senderId: userId }, { receiverId: userId }],
       },
-      include: PrivateInclude,
-      orderBy: {
-        createdAt: 'desc',
+      _max: {
+        createdAt: true,
       },
-      distinct: ['senderId', 'receiverId'],
     });
+    console.log({ uniqueConversations });
+    const privateMessages = await Promise.all(
+      uniqueConversations.map(async (group) => {
+        const { senderId, receiverId, _max } = group;
+        const latestMessage = await this.prisma.privateMessage.findFirst({
+          where: {
+            senderId,
+            receiverId,
+            createdAt: _max.createdAt,
+          },
+          include: PrivateInclude,
+        });
+        return latestMessage;
+      }),
+    );
+
+    // const privateMessageIds = uniqueConversation.map((conversation) => { conversation.})
+    // const privateMessages = await this.prisma.privateMessage.findMany({
+    //   where: {
+    //     OR: [{ senderId: userId }, { receiverId: userId }],
+    //   },
+    //   orderBy: {
+    //     createdAt: 'desc',
+    //   },
+    // });
+    console.log({ privateMessages });
     const groupMessages = await this.prisma.groupMessage.findMany({
       where: {
         OR: [
