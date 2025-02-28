@@ -44,6 +44,10 @@ export class PrivateChatController {
     @Req() req: any,
   ) {
     const userId: number = req.user.id;
+    if (userId === createPrivateMsg.receiverId) {
+      throw new BadRequestException(`You cannot send a message to yourself!`);
+    }
+
     if (createPrivateMsg.replyToId) {
       const replyMessage = await this.privateChatService.getMessage(
         createPrivateMsg.replyToId,

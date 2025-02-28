@@ -37,7 +37,6 @@ export class PrivateChatService {
         createdAt: true,
       },
     });
-    console.log({ uniqueConversations });
     const uniquePairs = new Set();
     const filteredConversations = uniqueConversations.filter((group) => {
       const { senderId, receiverId } = group;
@@ -52,7 +51,6 @@ export class PrivateChatService {
         return true;
       }
     });
-    console.log({ filteredConversations });
     const privateMessages = await Promise.all(
       filteredConversations.map(async (group) => {
         const { senderId, receiverId, _max } = group;
@@ -67,17 +65,6 @@ export class PrivateChatService {
         return latestMessage;
       }),
     );
-
-    // const privateMessageIds = uniqueConversation.map((conversation) => { conversation.})
-    // const privateMessages = await this.prisma.privateMessage.findMany({
-    //   where: {
-    //     OR: [{ senderId: userId }, { receiverId: userId }],
-    //   },
-    //   orderBy: {
-    //     createdAt: 'desc',
-    //   },
-    // });
-    console.log({ privateMessages });
     const groupMessages = await this.prisma.groupMessage.findMany({
       where: {
         OR: [
