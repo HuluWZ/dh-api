@@ -20,9 +20,13 @@ enum MessageType {
   Audio = 'Audio',
   File = 'File',
 }
-enum ChatType {
+export enum ChatType {
   PrivateMessage = 'PrivateMessage',
   GroupMessage = 'GroupMessage',
+}
+export enum ActionType {
+  Pin = 'Pin',
+  Unpin = 'Unpin',
 }
 
 export class CreatePrivateMessageDto {
@@ -157,6 +161,40 @@ export class ForwardGroupMessageDto extends CommonForwardMessageDto {
   @IsNotEmpty()
   groupId: number;
 }
+export class CreatePinUnpinMessageDto {
+  @ApiProperty({ example: 1, description: 'Message Id' })
+  @IsInt()
+  @IsNotEmpty()
+  id: number;
+
+  @ApiProperty({
+    example: 'GroupMessage | PrivateMessage',
+    description: 'Message Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
+
+  @ApiProperty({
+    example: 'Pin | Unpin',
+    description: 'Action Type',
+  })
+  @IsEnum(ActionType)
+  action: ActionType;
+}
+export class CreateDeleteMessageDto {
+  @ApiProperty({ example: 1, description: 'Message Id' })
+  @IsInt()
+  @IsNotEmpty()
+  id: number;
+
+  @ApiProperty({
+    example: 'GroupMessage | PrivateMessage',
+    description: 'Message Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
+
+}
 export const GroupInclude = {
   sender: {
     select: {
@@ -207,19 +245,19 @@ export const PrivateInclude = {
     },
   },
   replies: true,
-  Reaction:  {
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                middleName: true,
-                userName: true,
-                profile: true,
-              },
-            },
-          },
+  Reaction: {
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          userName: true,
+          profile: true,
         },
+      },
+    },
+  },
   receiver: {
     select: {
       id: true,

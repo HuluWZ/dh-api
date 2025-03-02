@@ -244,7 +244,7 @@ model TaskAsignee {
   memberId  Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  task      Task     @relation(fields: [taskId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   member    User     @relation(fields: [memberId], references: [id])
 
   @@unique([taskId, memberId])
@@ -319,11 +319,11 @@ model PrivateMessage {
   updatedAt DateTime @updatedAt
 
   replyToId Int?
-  replyTo   PrivateMessage?  @relation("Replies", fields: [replyToId], references: [id])
+  replyTo   PrivateMessage?  @relation("Replies", fields: [replyToId], references: [id], onDelete: Cascade)
   replies   PrivateMessage[] @relation("Replies")
 
   forwardedFromId Int?
-  forwardedFrom   PrivateMessage?  @relation("Forwards", fields: [forwardedFromId], references: [id])
+  forwardedFrom   PrivateMessage?  @relation("Forwards", fields: [forwardedFromId], references: [id], onDelete: Cascade)
   forwards        PrivateMessage[] @relation("Forwards")
 
   sender       User           @relation(name: "sender", fields: [senderId], references: [id])
@@ -345,15 +345,15 @@ model GroupMessage {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  sender    User?    @relation(name: "senderGroup", fields: [senderId], references: [id])
-  group     OrgGroup @relation(fields: [groupId], references: [id])
+  sender    User?    @relation(name: "senderGroup", fields: [senderId], references: [id], onDelete: Cascade)
+  group     OrgGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   forwardedFromId Int?
   forwardedFrom   GroupMessage?  @relation("Forwards", fields: [forwardedFromId], references: [id])
   forwards        GroupMessage[] @relation("Forwards")
 
   replyToId    Int?
-  replyTo      GroupMessage?  @relation("Replies", fields: [replyToId], references: [id])
+  replyTo      GroupMessage?  @relation("Replies", fields: [replyToId], references: [id], onDelete: Cascade)
   replies      GroupMessage[] @relation("Replies")
   SavedMessage SavedMessage[]
   Reaction     Reaction[]
@@ -486,8 +486,8 @@ model SavedMessage {
   savedAt     DateTime @default(now())
 
   user           User            @relation(fields: [userId], references: [id])
-  privateMessage PrivateMessage? @relation(fields: [messageId], references: [id], map: "SavedMessage_privateMessageId_fkey")
-  groupMessage   GroupMessage?   @relation(fields: [messageId], references: [id], map: "SavedMessage_groupMessageId_fkey")
+  privateMessage PrivateMessage? @relation(fields: [messageId], references: [id], map: "SavedMessage_privateMessageId_fkey", onDelete: Cascade)
+  groupMessage   GroupMessage?   @relation(fields: [messageId], references: [id], map: "SavedMessage_groupMessageId_fkey", onDelete: Cascade)
 }
 
 model Reaction {
@@ -499,8 +499,8 @@ model Reaction {
   groupMessageId   Int?
 
   user           User            @relation(fields: [userId], references: [id])
-  privateMessage PrivateMessage? @relation(fields: [privateMessageId], references: [id])
-  groupMessage   GroupMessage?   @relation(fields: [groupMessageId], references: [id])
+  privateMessage PrivateMessage? @relation(fields: [privateMessageId], references: [id], onDelete: Cascade)
+  groupMessage   GroupMessage?   @relation(fields: [groupMessageId], references: [id], onDelete: Cascade)
 
   @@unique([userId, privateMessageId, type], map: "unique_private_message_reaction")
   @@unique([userId, groupMessageId, type], map: "unique_group_message_reaction")
@@ -538,7 +538,7 @@ model PinnedGroups {
   createdAt DateTime @default(now())
 
   user  User     @relation(fields: [userId], references: [id])
-  group OrgGroup @relation(fields: [groupId], references: [id])
+  group OrgGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
 
   @@unique([userId, groupId])
 }
