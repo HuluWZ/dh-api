@@ -113,6 +113,9 @@ export class PrivateChatGateway
       );
       // If the receiver is online, send the message to their socket
       if (receiverSocketId) {
+        if (payload.replyToId) {
+          this.server.to(receiverSocketId).emit('replyMessage', newMessage);
+        }
         this.server.to(receiverSocketId).emit('newMessage', newMessage);
         console.log(`Message sent to user: ${payload.receiverId}`);
       } else {
@@ -137,9 +140,15 @@ export class PrivateChatGateway
         sender.id,
         payload,
       );
+      if (payload.replyToId) {
+        this.server
+          .to(`group:${payload.groupId}`)
+          .emit('replyGroupMessage', groupMessage);
+      }
       this.server
         .to(`group:${payload.groupId}`)
         .emit('newGroupMessage', groupMessage);
+
       console.log(
         `Group message sent to group ${payload.groupId} from ${sender.firstName} ${sender.middleName}.`,
       );
@@ -201,8 +210,16 @@ export class PrivateChatGateway
         senderId,
         payload,
       );
+      if (payload.messageType == ChatType.GroupMessage) {
+        this.server
+          .to(`group:${reactions.groupMessage.groupId}`)
+          .emit('reactions', reactions);
+      } else {
+        this.server
+          .to(`${reactions.privateMessage.receiverId}`)
+          .emit('reactions', reactions);
+      }
       console.log({ reactions });
-      client.emit('reactions', reactions);
     } catch (error) {
       console.error('Error fetching chat list:', error);
       client.emit('error', { message: 'Failed to react on chat list' });
@@ -239,7 +256,10 @@ export class PrivateChatGateway
             id,
             is_pinned,
           );
-        client.emit('pin-unpin-message', reactions);
+        this.server
+          .to(`group:${reactions.groupId}`)
+          .emit('pin-unpin-message', reactions);
+        console.log({ reactions });
       }
       if (messageType == ChatType.PrivateMessage) {
         const reactions =
@@ -247,7 +267,10 @@ export class PrivateChatGateway
             id,
             is_pinned,
           );
-        client.emit('pin-unpin-message', reactions);
+        this.server
+          .to(`group:${reactions.receiverId}`)
+          .emit('pin-unpin-message', reactions);
+        console.log({ reactions });
       }
       client.emit('error', {
         message: 'Invalid Option  to pin message on chat list',
@@ -266,11 +289,13 @@ export class PrivateChatGateway
 
       if (ChatType.GroupMessage == messageType) {
         const message = await this.privateChatService.deleteGroupMessage(id);
-        client.emit('delete-message', message);
+        this.server
+          .to(`group:${message.groupId}`)
+          .emit('delete-message', message);
       }
       if (ChatType.PrivateMessage == messageType) {
         const message = await this.privateChatService.deleteMessage(id);
-        client.emit('delete-message', message);
+        this.server.to(`${message.receiverId}`).emit('delete-message', message);
       }
       client.emit('error', {
         message: 'invalid to delete message on chat list',
