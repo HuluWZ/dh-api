@@ -10,8 +10,12 @@ import {
 import { Socket, Server } from 'socket.io';
 import { PrivateChatService } from './private-chat.service';
 import {
+  ChatType,
+  CreateDeleteMessageDto,
   CreateGroupMessageDto,
+  CreatePinUnpinMessageDto,
   CreatePrivateMessageDto,
+  CreateReactionDto,
 } from './dto/private.dto';
 import { UseGuards } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
@@ -109,6 +113,9 @@ export class PrivateChatGateway
       );
       // If the receiver is online, send the message to their socket
       if (receiverSocketId) {
+        if (payload.replyToId) {
+          this.server.to(receiverSocketId).emit('replyMessage', newMessage);
+        }
         this.server.to(receiverSocketId).emit('newMessage', newMessage);
         console.log(`Message sent to user: ${payload.receiverId}`);
       } else {
@@ -133,9 +140,15 @@ export class PrivateChatGateway
         sender.id,
         payload,
       );
+      if (payload.replyToId) {
+        this.server
+          .to(`group:${payload.groupId}`)
+          .emit('replyGroupMessage', groupMessage);
+      }
       this.server
         .to(`group:${payload.groupId}`)
         .emit('newGroupMessage', groupMessage);
+
       console.log(
         `Group message sent to group ${payload.groupId} from ${sender.firstName} ${sender.middleName}.`,
       );
@@ -177,6 +190,121 @@ export class PrivateChatGateway
     } catch (error) {
       console.error('Error fetching chat list:', error);
       client.emit('error', { message: 'Failed to fetch chat list' });
+    }
+  }
+  /**
+   *  Reaction
+   *  RemoveReaction
+   *  Pin
+   *  Reply
+   *  Delete
+   * @param client
+   * @param payload
+   */
+  @UseGuards(PrivateChatGuard)
+  @SubscribeMessage('react')
+  async sendReaction(client: Socket, payload: CreateReactionDto) {
+    try {
+      const senderId: number = client['user'].id;
+      const reactions = await this.privateChatService.createReactions(
+        senderId,
+        payload,
+      );
+      if (payload.messageType == ChatType.GroupMessage) {
+        this.server
+          .to(`group:${reactions.groupMessage.groupId}`)
+          .emit('reactions', reactions);
+      } else {
+        this.server
+          .to(`${reactions.privateMessage.receiverId}`)
+          .emit('reactions', reactions);
+      }
+      console.log({ reactions });
+    } catch (error) {
+      console.error('Error fetching chat list:', error);
+      client.emit('error', { message: 'Failed to react on chat list' });
+    }
+  }
+
+  @UseGuards(PrivateChatGuard)
+  @SubscribeMessage('remove-reaction')
+  async removeReaction(client: Socket, payload: { id: number }) {
+    try {
+      const senderId: number = client['user'].id;
+      const reactions = await this.privateChatService.removeReaction(
+        senderId,
+        payload.id,
+      );
+      console.log({ reactions });
+      client.emit('remove-reactions', reactions);
+    } catch (error) {
+      console.error('Error fetching chat list:', error);
+      client.emit('error', { message: 'Failed to remove react on chat list' });
+    }
+  }
+
+  @UseGuards(PrivateChatGuard)
+  @SubscribeMessage('pin-unpin')
+  async unpin(client: Socket, payload: CreatePinUnpinMessageDto) {
+    try {
+      const { id, action, messageType } = payload;
+      const senderId: number = client['user'].id;
+      const is_pinned = action == 'Pin';
+      if (messageType == ChatType.GroupMessage) {
+        const reactions =
+          await this.privateChatService.updateGroupMessageIsPinned(
+            id,
+            is_pinned,
+          );
+        this.server
+          .to(`group:${reactions.groupId}`)
+          .emit('pin-unpin-message', reactions);
+        console.log({ reactions });
+      }
+      if (messageType == ChatType.PrivateMessage) {
+        const reactions =
+          await this.privateChatService.updatePrivateMessageIsPinned(
+            id,
+            is_pinned,
+          );
+        this.server
+          .to(`group:${reactions.receiverId}`)
+          .emit('pin-unpin-message', reactions);
+        console.log({ reactions });
+      }
+      client.emit('error', {
+        message: 'Invalid Option  to pin message on chat list',
+      });
+    } catch (error) {
+      console.error('Error fetching chat list:', error);
+      client.emit('error', { message: 'Failed to pin message on chat list' });
+    }
+  }
+  @UseGuards(PrivateChatGuard)
+  @SubscribeMessage('delete')
+  async deleteMessage(client: Socket, payload: CreateDeleteMessageDto) {
+    try {
+      const { id, messageType } = payload;
+      const senderId: number = client['user'].id;
+
+      if (ChatType.GroupMessage == messageType) {
+        const message = await this.privateChatService.deleteGroupMessage(id);
+        this.server
+          .to(`group:${message.groupId}`)
+          .emit('delete-message', message);
+      }
+      if (ChatType.PrivateMessage == messageType) {
+        const message = await this.privateChatService.deleteMessage(id);
+        this.server.to(`${message.receiverId}`).emit('delete-message', message);
+      }
+      client.emit('error', {
+        message: 'invalid to delete message on chat list',
+      });
+    } catch (error) {
+      console.error('Error fetching chat list:', error);
+      client.emit('error', {
+        message: 'Failed to Delete message on chat list',
+      });
     }
   }
 }
