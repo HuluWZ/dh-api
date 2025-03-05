@@ -193,8 +193,21 @@ export class CreateDeleteMessageDto {
   })
   @IsEnum(ChatType)
   messageType: ChatType;
-
 }
+
+export class SetMessageSeenDto {
+  @ApiProperty({ example: 1, description: 'Message Id' })
+  @IsInt()
+  id: number;
+
+  @ApiProperty({
+    example: 'GroupMessage | PrivateMessage',
+    description: 'Message Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
+}
+
 export const GroupInclude = {
   sender: {
     select: {

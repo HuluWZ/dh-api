@@ -16,6 +16,7 @@ import {
   CreatePinUnpinMessageDto,
   CreatePrivateMessageDto,
   CreateReactionDto,
+  SetMessageSeenDto,
 } from './dto/private.dto';
 import { UseGuards } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
@@ -34,7 +35,6 @@ export class PrivateChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() server: Server;
-  // Store userId and their corresponding socketId
   private userSocketMap: Map<number, string> = new Map();
 
   constructor(
@@ -86,7 +86,6 @@ export class PrivateChatGateway
     }
   }
 
-  // On client disconnect, remove their userId from the map
   async handleDisconnect(@ConnectedSocket() client: Socket) {
     const user: User = client['user']; // Assuming the Auth Guard populates user
     if (user) {
@@ -100,9 +99,7 @@ export class PrivateChatGateway
   async handleMessage(client: Socket, payload: CreatePrivateMessageDto) {
     try {
       console.log(' Chat Payload ', payload, client['user']);
-      console.log(' Sender Client ', client['user']);
       const sender: User = client['user'];
-      // Create the message in the service layer
       const newMessage = await this.privateChatService.createPrivateMessage(
         sender.id,
         payload,
@@ -118,9 +115,10 @@ export class PrivateChatGateway
         this.server.to(receiverSocketId).emit('replyMessage', newMessage);
       }
       console.log(`Message sent to user: ${payload.receiverId}`);
-      this.server.to(receiverSocketId).emit('newMessage', newMessage);
-      this.server.to(senderSocketId).emit('newMessage', newMessage);
-      console.log(`Message sent to user: ${payload.receiverId}`);
+      this.server
+        .to(receiverSocketId)
+        .to(senderSocketId)
+        .emit('newMessage', newMessage);
       client.emit('notif', {
         message: `Message sent to  user # ${payload.receiverId} successfully`,
       });
@@ -160,7 +158,6 @@ export class PrivateChatGateway
     }
   }
 
-  // Handle fetching messages between two users (async handling)
   @UseGuards(PrivateChatGuard)
   @SubscribeMessage('findMessages')
   async handleFindMessages(client: Socket, payload: { receiverId: number }) {
@@ -171,7 +168,6 @@ export class PrivateChatGateway
         senderId,
         payload.receiverId,
       );
-      console.log({ messages });
       client.emit('messageHistory', messages);
     } catch (error) {
       console.error('Error fetching messages:', error);
@@ -189,7 +185,6 @@ export class PrivateChatGateway
       console.log({ client: client['user'] });
       const senderId: number = client['user'].id;
       const chatUsers = await this.privateChatService.getMyChats(senderId);
-      console.log({ chatUsers });
       client.emit('myChats', chatUsers);
     } catch (error) {
       console.error('Error fetching chat list:', error);
@@ -223,6 +218,7 @@ export class PrivateChatGateway
       } else {
         this.server
           .to(`${reactions.privateMessage.receiverId}`)
+          .to(`${reactions.privateMessage.senderId}`)
           .emit('reactions', reactions);
       }
       console.log({ reactions });
@@ -278,7 +274,8 @@ export class PrivateChatGateway
             is_pinned,
           );
         this.server
-          .to(`group:${reactions.receiverId}`)
+          .to(`${reactions.receiverId}`)
+          .to(`${reactions.senderId}`)
           .emit('pin-unpin-message', reactions);
         console.log({ reactions });
       }
@@ -304,12 +301,50 @@ export class PrivateChatGateway
       }
       if (ChatType.PrivateMessage == messageType) {
         const message = await this.privateChatService.deleteMessage(id);
-        this.server.to(`${message.receiverId}`).emit('delete-message', message);
+        this.server
+          .to(`${message.receiverId}`)
+          .to(`${message.senderId}`)
+          .emit('delete-message', message);
       }
     } catch (error) {
       console.error('Error fetching chat list:', error?.response?.message);
       client.emit('error', {
         message: `Failed to Delete message on chat list :${error?.response?.message}`,
+      });
+    }
+  }
+  @UseGuards(PrivateChatGuard)
+  @SubscribeMessage('seen')
+  async messageSeen(client: Socket, payload: SetMessageSeenDto) {
+    try {
+      const senderId: number = client['user'].id;
+      if (payload.messageType == ChatType.GroupMessage) {
+        const message = await this.privateChatService.getGroupMessage(
+          payload.id,
+        );
+        if (!message.is_seen) {
+          const updatedMessage =
+            await this.privateChatService.updateGroupMessageSeen(payload.id);
+          this.server
+            .to(`group:${message.groupId}`)
+            .emit('message_seen', updatedMessage);
+        }
+      } else {
+        const message = await this.privateChatService.getMessage(payload.id);
+        if (!message.is_seen) {
+          const updatedMessage =
+            await this.privateChatService.updateMessageSeen(payload.id);
+
+          this.server
+            .to(`${message.receiverId}`)
+            .to(`${message.senderId}`)
+            .emit('message_seen', updatedMessage);
+        }
+      }
+    } catch (error) {
+      console.error('Error Seeing Message:', error?.response?.message);
+      client.emit('error', {
+        message: `Failed to set message seen :${error?.response?.message}`,
       });
     }
   }
