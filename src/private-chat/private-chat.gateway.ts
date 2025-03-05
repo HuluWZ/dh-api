@@ -67,7 +67,7 @@ export class PrivateChatGateway
       const user = await this.authService.getMe(+resp.sub);
       client['user'] = user;
       if (user) {
-        await this.redisService.setUserSocket(user.id, client.id); // Store socketId
+        await this.redisService.setUserSocket(user.id, user.id.toString()); // Store socketId
         const groupIds = await this.orgGroupService.getMyGroups(user.id);
         groupIds.forEach((groupId) => {
           client.join(`group:${groupId}`);
@@ -105,19 +105,17 @@ export class PrivateChatGateway
         payload,
       );
 
-      const receiverSocketId = await this.redisService.getUserSocket(
-        payload.receiverId,
-      );
-      const senderSocketId = await this.redisService.getUserSocket(sender.id);
-
       // If the receiver is online, send the message to their socket
       if (payload.replyToId) {
-        this.server.to(receiverSocketId).emit('replyMessage', newMessage);
+        this.server
+          .to(`${payload.receiverId}`)
+          .to(`${sender.id}`)
+          .emit('replyMessage', newMessage);
       }
       console.log(`Message sent to user: ${payload.receiverId}`);
       this.server
-        .to(receiverSocketId)
-        .to(senderSocketId)
+        .to(`${payload.receiverId}`)
+        .to(`${sender.id}`)
         .emit('newMessage', newMessage);
       client.emit('notif', {
         message: `Message sent to  user # ${payload.receiverId} successfully`,
