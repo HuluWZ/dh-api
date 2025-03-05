@@ -111,18 +111,16 @@ export class PrivateChatGateway
       const receiverSocketId = await this.redisService.getUserSocket(
         payload.receiverId,
       );
+      const senderSocketId = await this.redisService.getUserSocket(sender.id);
+
       // If the receiver is online, send the message to their socket
-      if (receiverSocketId) {
-        if (payload.replyToId) {
+       if (payload.replyToId) {
           this.server.to(receiverSocketId).emit('replyMessage', newMessage);
-        }
-        this.server.to(receiverSocketId).emit('newMessage', newMessage);
-        console.log(`Message sent to user: ${payload.receiverId}`);
-      } else {
-        console.log(
-          `User ${payload.receiverId} is offline, message saved to DB`,
-        );
-      }
+       }
+      console.log(`Message sent to user: ${payload.receiverId}`);
+      this.server.to(receiverSocketId).emit('newMessage', newMessage);
+      this.server.to(senderSocketId).emit('newMessage', newMessage);
+      console.log(`Message sent to user: ${payload.receiverId}`);
       client.emit('notif', {
         message: `Message sent to  user # ${payload.receiverId} successfully`,
       });
