@@ -114,9 +114,9 @@ export class PrivateChatGateway
       const senderSocketId = await this.redisService.getUserSocket(sender.id);
 
       // If the receiver is online, send the message to their socket
-       if (payload.replyToId) {
-          this.server.to(receiverSocketId).emit('replyMessage', newMessage);
-       }
+      if (payload.replyToId) {
+        this.server.to(receiverSocketId).emit('replyMessage', newMessage);
+      }
       console.log(`Message sent to user: ${payload.receiverId}`);
       this.server.to(receiverSocketId).emit('newMessage', newMessage);
       this.server.to(senderSocketId).emit('newMessage', newMessage);
@@ -125,8 +125,10 @@ export class PrivateChatGateway
         message: `Message sent to  user # ${payload.receiverId} successfully`,
       });
     } catch (error) {
-      console.error('Error sending message:', error);
-      client.emit('error', { message: 'Failed to send message' });
+      console.error('Error sending message:', error?.response?.message);
+      client.emit('error', {
+        message: `Failed to send message :${error?.response?.message}`,
+      });
     }
   }
   @UseGuards(PrivateChatGuard)
@@ -151,8 +153,10 @@ export class PrivateChatGateway
         `Group message sent to group ${payload.groupId} from ${sender.firstName} ${sender.middleName}.`,
       );
     } catch (error) {
-      console.error('Error sending group message:', error);
-      client.emit('error', { message: 'Failed to send group message' });
+      console.error('Error sending group message:', error?.response?.message);
+      client.emit('error', {
+        message: `Failed to send group message : ${error?.response?.message}`,
+      });
     }
   }
 
@@ -171,7 +175,9 @@ export class PrivateChatGateway
       client.emit('messageHistory', messages);
     } catch (error) {
       console.error('Error fetching messages:', error);
-      client.emit('error', { message: 'Failed to fetch messages' });
+      client.emit('error', {
+        message: `Failed to fetch messages :${error?.response?.message}`,
+      });
     }
   }
 
@@ -187,7 +193,9 @@ export class PrivateChatGateway
       client.emit('myChats', chatUsers);
     } catch (error) {
       console.error('Error fetching chat list:', error);
-      client.emit('error', { message: 'Failed to fetch chat list' });
+      client.emit('error', {
+        message: `Failed to fetch chat list :${error?.response?.message}`,
+      });
     }
   }
   /**
@@ -219,8 +227,10 @@ export class PrivateChatGateway
       }
       console.log({ reactions });
     } catch (error) {
-      console.error('Error fetching chat list:', error);
-      client.emit('error', { message: 'Failed to react on chat list' });
+      console.error('Error fetching chat list:', error?.response?.message);
+      client.emit('error', {
+        message: `Failed to react on chat list :${error?.response?.message}`,
+      });
     }
   }
 
@@ -236,8 +246,10 @@ export class PrivateChatGateway
       console.log({ reactions });
       client.emit('remove-reactions', reactions);
     } catch (error) {
-      console.error('Error fetching chat list:', error);
-      client.emit('error', { message: 'Failed to remove react on chat list' });
+      console.error('Error fetching chat list:', error?.response?.message);
+      client.emit('error', {
+        message: `Failed to remove react on chat list ${error?.response?.message}`,
+      });
     }
   }
 
@@ -270,12 +282,11 @@ export class PrivateChatGateway
           .emit('pin-unpin-message', reactions);
         console.log({ reactions });
       }
-      client.emit('error', {
-        message: 'Invalid Option  to pin message on chat list',
-      });
     } catch (error) {
-      console.error('Error fetching chat list:', error);
-      client.emit('error', { message: 'Failed to pin message on chat list' });
+      console.error('Error fetching chat list:', error?.response?.message);
+      client.emit('error', {
+        message: `Failed to pin message on chat list : ${error?.response?.message}`,
+      });
     }
   }
   @UseGuards(PrivateChatGuard)
@@ -295,13 +306,10 @@ export class PrivateChatGateway
         const message = await this.privateChatService.deleteMessage(id);
         this.server.to(`${message.receiverId}`).emit('delete-message', message);
       }
-      client.emit('error', {
-        message: 'invalid to delete message on chat list',
-      });
     } catch (error) {
-      console.error('Error fetching chat list:', error);
+      console.error('Error fetching chat list:', error?.response?.message);
       client.emit('error', {
-        message: 'Failed to Delete message on chat list',
+        message: `Failed to Delete message on chat list :${error?.response?.message}`,
       });
     }
   }
