@@ -221,7 +221,11 @@ export class PrivateChatGateway
       }
       console.log({ reactions });
     } catch (error) {
-      console.error('Error fetching chat list:', error?.response?.message);
+      console.error(
+        'Error fetching chat list:',
+        error?.response,
+        error?.message,
+      );
       client.emit('error', {
         message: `Failed to react on chat list :${error?.response?.message}`,
       });
