@@ -67,7 +67,8 @@ export class PrivateChatGateway
       const user = await this.authService.getMe(+resp.sub);
       client['user'] = user;
       if (user) {
-        await this.redisService.setUserSocket(user.id, user.id.toString()); // Store socketId
+        // Store socketId
+        client.join(`user:${user.id}`);
         const groupIds = await this.orgGroupService.getMyGroups(user.id);
         groupIds.forEach((groupId) => {
           client.join(`group:${groupId}`);
@@ -108,14 +109,14 @@ export class PrivateChatGateway
       // If the receiver is online, send the message to their socket
       if (payload.replyToId) {
         this.server
-          .to(`${payload.receiverId}`)
-          .to(`${sender.id}`)
+          .to(`user:${payload.receiverId}`)
+          .to(`user:${sender.id}`)
           .emit('replyMessage', newMessage);
       }
       console.log(`Message sent to user: ${payload.receiverId}`);
       this.server
-        .to(`${payload.receiverId}`)
-        .to(`${sender.id}`)
+        .to(`user:${payload.receiverId}`)
+        .to(`user:${sender.id}`)
         .emit('newMessage', newMessage);
       client.emit('notif', {
         message: `Message sent to  user # ${payload.receiverId} successfully`,
@@ -215,8 +216,8 @@ export class PrivateChatGateway
           .emit('reactions', reactions);
       } else {
         this.server
-          .to(`${reactions.privateMessage.receiverId}`)
-          .to(`${reactions.privateMessage.senderId}`)
+          .to(`user:${reactions.privateMessage.senderId}`)
+          .to(`user:${reactions.privateMessage.receiverId}`)
           .emit('reactions', reactions);
       }
       console.log({ reactions });
@@ -276,8 +277,8 @@ export class PrivateChatGateway
             is_pinned,
           );
         this.server
-          .to(`${reactions.receiverId}`)
-          .to(`${reactions.senderId}`)
+          .to(`user:${reactions.receiverId}`)
+          .to(`user:${reactions.senderId}`)
           .emit('pin-unpin-message', reactions);
         console.log({ reactions });
       }
@@ -304,8 +305,8 @@ export class PrivateChatGateway
       if (ChatType.PrivateMessage == messageType) {
         const message = await this.privateChatService.deleteMessage(id);
         this.server
-          .to(`${message.receiverId}`)
-          .to(`${message.senderId}`)
+          .to(`user:${message.receiverId}`)
+          .to(`user:${message.senderId}`)
           .emit('delete-message', message);
       }
     } catch (error) {
@@ -338,8 +339,8 @@ export class PrivateChatGateway
             await this.privateChatService.updateMessageSeen(payload.id);
 
           this.server
-            .to(`${message.receiverId}`)
-            .to(`${message.senderId}`)
+            .to(`user:${message.receiverId}`)
+            .to(`user:${message.senderId}`)
             .emit('message_seen', updatedMessage);
         }
       }
