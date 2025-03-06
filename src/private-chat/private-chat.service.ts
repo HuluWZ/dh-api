@@ -378,7 +378,11 @@ export class PrivateChatService {
           groupMessageId: messageId,
           userId,
         },
-        include: { groupMessage: true, privateMessage: true },
+        include: {
+          groupMessage: { include: GroupInclude },
+          user: true,
+          privateMessage: { include: PrivateInclude },
+        },
       });
     }
 
@@ -395,7 +399,11 @@ export class PrivateChatService {
           privateMessageId: messageId,
           userId,
         },
-        include: { groupMessage: true, privateMessage: true },
+        include: {
+          groupMessage: { include: GroupInclude },
+          user: true,
+          privateMessage: { include: PrivateInclude },
+        },
       });
     }
   }
