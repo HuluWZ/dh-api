@@ -246,7 +246,7 @@ export class PrivateChatGateway
       if (reactions.groupMessageId) {
         this.server
           .to(`group:${reactions.groupMessage.groupId}`)
-          .emit('reactions', reactions);
+          .emit('remove-reactions', reactions);
       } else {
         this.server
           .to(`user:${reactions.privateMessage.sender}`)
