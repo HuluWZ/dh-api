@@ -89,10 +89,10 @@ export class PrivateChatGateway
 
   async handleDisconnect(@ConnectedSocket() client: Socket) {
     const user: User = client['user']; // Assuming the Auth Guard populates user
-    if (user) {
-      await this.redisService.removeUserSocket(user.id); // Remove on disconnect
-      console.log(`User disconnected: ${user.id}, socketId: ${client.id}`);
-    }
+    // if (user) {
+    //   await this.redisService.removeUserSocket(user.id); // Remove on disconnect
+    console.log(`User disconnected: ${user?.id}, socketId: ${client.id}`);
+    // }
   }
 
   @UseGuards(PrivateChatGuard)
