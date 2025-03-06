@@ -169,7 +169,7 @@ export class PrivateChatGateway
       );
       client.emit('messageHistory', messages);
     } catch (error) {
-      console.error('Error fetching messages:', error);
+      console.error('Error fetching message history:', error);
       client.emit('error', {
         message: `Failed to fetch messages :${error?.response?.message}`,
       });
@@ -223,7 +223,7 @@ export class PrivateChatGateway
       console.log({ reactions });
     } catch (error) {
       console.error(
-        'Error fetching chat list:',
+        'Error react on chat list:',
         error?.response,
         error?.message,
       );
@@ -245,7 +245,10 @@ export class PrivateChatGateway
       console.log({ reactions });
       client.emit('remove-reactions', reactions);
     } catch (error) {
-      console.error('Error fetching chat list:', error?.response?.message);
+      console.error(
+        'Error removing reaction chat list:',
+        error?.response?.message,
+      );
       client.emit('error', {
         message: `Failed to remove react on chat list ${error?.response?.message}`,
       });
@@ -283,7 +286,10 @@ export class PrivateChatGateway
         console.log({ reactions });
       }
     } catch (error) {
-      console.error('Error fetching chat list:', error?.response?.message);
+      console.error(
+        'Error on event pin unpin message fetching chat list:',
+        error?.response?.message,
+      );
       client.emit('error', {
         message: `Failed to pin message on chat list : ${error?.response?.message}`,
       });
@@ -310,7 +316,10 @@ export class PrivateChatGateway
           .emit('delete-message', message);
       }
     } catch (error) {
-      console.error('Error fetching chat list:', error?.response?.message);
+      console.error(
+        'Error deleting message on chat list:',
+        error?.response?.message,
+      );
       client.emit('error', {
         message: `Failed to Delete message on chat list :${error?.response?.message}`,
       });
