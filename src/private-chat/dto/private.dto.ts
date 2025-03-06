@@ -110,6 +110,19 @@ export class CreateReactionDto {
   @IsEnum(ChatType)
   messageType: ChatType;
 }
+
+export class RemoveReactionDto {
+  @ApiProperty({ example: 1, description: 'Reaction Id' })
+  @IsInt()
+  id: number;
+
+  @ApiProperty({
+    example: 'GroupMessage | PrivateMessage',
+    description: 'Message Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
+}
 export class CommonForwardMessageDto {
   @ApiProperty({ example: 1, description: 'Message Id' })
   @IsInt()

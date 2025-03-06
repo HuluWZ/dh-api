@@ -16,6 +16,7 @@ import {
   CreatePinUnpinMessageDto,
   CreatePrivateMessageDto,
   CreateReactionDto,
+  RemoveReactionDto,
   SetMessageSeenDto,
 } from './dto/private.dto';
 import { UseGuards } from '@nestjs/common';
@@ -242,15 +243,23 @@ export class PrivateChatGateway
         senderId,
         payload.id,
       );
-      console.log({ reactions });
-      client.emit('remove-reactions', reactions);
+      if (reactions.groupMessageId) {
+        this.server
+          .to(`group:${reactions.groupMessage.groupId}`)
+          .emit('reactions', reactions);
+      } else {
+        this.server
+          .to(`user:${reactions.privateMessage.sender}`)
+          .to(`user:${reactions.privateMessage.receiverId}`)
+          .emit('remove-reactions', reactions);
+      }
     } catch (error) {
       console.error(
         'Error removing reaction chat list:',
         error?.response?.message,
       );
       client.emit('error', {
-        message: `Failed to remove react on chat list ${error?.response?.message}`,
+        message: `Failed to remove reaction on chat list ${error?.response?.message}`,
       });
     }
   }

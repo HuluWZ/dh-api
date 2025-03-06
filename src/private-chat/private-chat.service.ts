@@ -418,7 +418,13 @@ export class PrivateChatService {
     if (reaction.userId !== userId) {
       throw new Error('You are not authorized to remove this reaction');
     }
-    return this.prisma.reaction.delete({ where: { id: reaction.id } });
+    return this.prisma.reaction.delete({
+      where: { id: reaction.id },
+      include: {
+        groupMessage: { include: GroupInclude },
+        privateMessage: { include: PrivateInclude },
+      },
+    });
   }
   async forwardPrivateMessage(
     senderId: number,
