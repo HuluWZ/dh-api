@@ -249,7 +249,7 @@ export class PrivateChatGateway
           .emit('remove-reactions', reactions);
       } else {
         this.server
-          .to(`user:${reactions.privateMessage.sender}`)
+          .to(`user:${reactions.privateMessage.senderId}`)
           .to(`user:${reactions.privateMessage.receiverId}`)
           .emit('remove-reactions', reactions);
       }
