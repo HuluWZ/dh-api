@@ -12,6 +12,7 @@ import { PrivateChatService } from './private-chat.service';
 import {
   ChatType,
   CreateDeleteMessageDto,
+  CreateForwardMessageDto,
   CreateGroupMessageDto,
   CreatePinUnpinMessageDto,
   CreatePrivateMessageDto,
@@ -22,7 +23,7 @@ import {
 import { UseGuards } from '@nestjs/common';
 import { RedisService } from 'src/redis/redis.service';
 import { AuthService } from 'src/auth/auth.service';
-import { User } from '@prisma/client';
+import { MessageType, User } from '@prisma/client';
 import { PrivateChatGuard } from './private-chat.guard';
 import { OrgGroupService } from 'src/org-group/org-group.service';
 import { JwtService } from '@nestjs/jwt';
@@ -106,9 +107,18 @@ export class PrivateChatGateway
         sender.id,
         payload,
       );
-
-      // If the receiver is online, send the message to their socket
+      if (
+        payload.type !== MessageType.Image &&
+        payload.type !== MessageType.File &&
+        payload.caption
+      ) {
+        client.emit('error', {
+          message: 'Image caption is only required for type  Image',
+        });
+        return;
+      }
       if (payload.replyToId) {
+        // If the receiver is online, send the message to their socket
         this.server
           .to(`user:${payload.receiverId}`)
           .to(`user:${sender.id}`)
@@ -138,6 +148,16 @@ export class PrivateChatGateway
         sender.id,
         payload,
       );
+      if (
+        payload.type !== MessageType.Image &&
+        payload.type !== MessageType.File &&
+        payload.caption
+      ) {
+        client.emit('error', {
+          message: 'Image caption is only required for type  Image',
+        });
+        return;
+      }
       if (payload.replyToId) {
         this.server
           .to(`group:${payload.groupId}`)

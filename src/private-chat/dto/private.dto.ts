@@ -12,7 +12,7 @@ import {
 } from 'class-validator';
 import { ApiProperty, OmitType } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-enum MessageType {
+export enum MessageType {
   Text = 'Text',
   Image = 'Image',
   Video = 'Video',
@@ -50,6 +50,11 @@ export class CreatePrivateMessageDto {
   @IsInt()
   @IsOptional()
   replyToId?: number;
+
+  @ApiProperty({ example: 1, description: 'Image Caption' })
+  @IsString()
+  @IsOptional()
+  caption?: string;
 }
 
 export class CreateGroupMessageDto {
@@ -73,6 +78,11 @@ export class CreateGroupMessageDto {
   @IsInt()
   @IsOptional()
   replyToId?: number;
+
+  @ApiProperty({ example: 1, description: 'Image Caption' })
+  @IsString()
+  @IsOptional()
+  caption?: string;
 }
 export class CreateSavedMessageDto {
   @ApiProperty({
@@ -173,6 +183,23 @@ export class ForwardGroupMessageDto extends CommonForwardMessageDto {
   @IsInt()
   @IsNotEmpty()
   groupId: number;
+}
+
+export class CreateForwardMessageDto extends CommonForwardMessageDto {
+  @ApiProperty({ example: 1, description: 'Message Id' })
+  @IsInt()
+  @IsNotEmpty()
+  id: number;
+
+  @ApiProperty({ example: 1, description: 'Group Id' })
+  @IsInt()
+  @IsOptional()
+  groupId?: number;
+
+  @ApiProperty({ example: 2, description: 'Receiver Id' })
+  @IsInt()
+  @IsOptional()
+  receiverId?: number;
 }
 export class CreatePinUnpinMessageDto {
   @ApiProperty({ example: 1, description: 'Message Id' })

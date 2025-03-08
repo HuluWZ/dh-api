@@ -309,6 +309,7 @@ model PrivateMessage {
   receiverId        Int
   content           String
   type              MessageType @default(Text)
+  caption           String?
   is_seen           Boolean     @default(false)
   is_pinned         Boolean     @default(false)
   pinnedAt          DateTime?
@@ -338,6 +339,7 @@ model GroupMessage {
   content     String
   groupId     Int
   type        MessageType @default(Text)
+  caption     String?
   is_seen     Boolean     @default(false)
   is_pinned   Boolean     @default(false)
   is_archived Boolean     @default(false)
