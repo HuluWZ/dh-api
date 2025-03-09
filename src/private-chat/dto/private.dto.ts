@@ -145,6 +145,13 @@ export class ForwardPrivateMessageDto extends CommonForwardMessageDto {
   @IsInt()
   @IsNotEmpty()
   receiverId: number;
+
+  @ApiProperty({
+    example: 'GroupMessage | PrivateMessage',
+    description: 'Message Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
 }
 export class MutePrivateChatDto {
   @IsNotEmpty()
@@ -183,13 +190,22 @@ export class ForwardGroupMessageDto extends CommonForwardMessageDto {
   @IsInt()
   @IsNotEmpty()
   groupId: number;
+
+  @ApiProperty({
+    example: 'GroupMessage | PrivateMessage',
+    description: 'Message Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
 }
 
 export class CreateForwardMessageDto extends CommonForwardMessageDto {
-  @ApiProperty({ example: 1, description: 'Message Id' })
-  @IsInt()
-  @IsNotEmpty()
-  id: number;
+  @ApiProperty({
+    example: 'GroupMessage | PrivateMessage',
+    description: 'Message Type',
+  })
+  @IsEnum(ChatType)
+  messageType: ChatType;
 
   @ApiProperty({ example: 1, description: 'Group Id' })
   @IsInt()
@@ -259,7 +275,57 @@ export const GroupInclude = {
       phone: true,
     },
   },
+  forwardedFrom: {
+    select: {
+      id: true,
+      senderId: true,
+      content: true,
+      groupId: true,
+      type: true,
+      is_seen: true,
+      is_pinned: true,
+      is_archived: true,
+      pinnedAt: true,
+      createdAt: true,
+      group: { select: { name: true } },
+    },
+  },
+  forwardedFromPrivate: {
+    select: {
+      id: true,
+      senderId: true,
+      content: true,
+      receiverId: true,
+      type: true,
+      is_seen: true,
+      is_pinned: true,
+      is_archived: true,
+      pinnedAt: true,
+      createdAt: true,
+      sender: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          userName: true,
+          profile: true,
+          phone: true,
+        },
+      },
+      receiver: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          userName: true,
+          profile: true,
+          phone: true,
+        },
+      },
+    },
+  },
   replies: true,
+  forwards: true,
   Reaction: {
     include: {
       user: {
@@ -298,6 +364,66 @@ export const PrivateInclude = {
     },
   },
   replies: true,
+  forwardedFromGroup: {
+    select: {
+      id: true,
+      senderId: true,
+      content: true,
+      groupId: true,
+      type: true,
+      is_seen: true,
+      is_pinned: true,
+      is_archived: true,
+      pinnedAt: true,
+      createdAt: true,
+      group: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+          createdBy: true,
+          org: {
+            select: { ownerId: true },
+          },
+        },
+      },
+    },
+  },
+  forwardedFrom: {
+    select: {
+      id: true,
+      senderId: true,
+      content: true,
+      receiverId: true,
+      type: true,
+      is_seen: true,
+      is_pinned: true,
+      is_archived: true,
+      pinnedAt: true,
+      createdAt: true,
+      sender: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          userName: true,
+          profile: true,
+          phone: true,
+        },
+      },
+      receiver: {
+        select: {
+          id: true,
+          firstName: true,
+          middleName: true,
+          userName: true,
+          profile: true,
+          phone: true,
+        },
+      },
+    },
+  },
+  forwards: true,
   Reaction: {
     include: {
       user: {

@@ -327,10 +327,14 @@ model PrivateMessage {
   forwardedFrom   PrivateMessage?  @relation("Forwards", fields: [forwardedFromId], references: [id], onDelete: Cascade)
   forwards        PrivateMessage[] @relation("Forwards")
 
-  sender       User           @relation(name: "sender", fields: [senderId], references: [id])
-  receiver     User           @relation(name: "receiver", fields: [receiverId], references: [id])
-  SavedMessage SavedMessage[]
-  Reaction     Reaction[]
+  forwardedFromGroupId Int?
+  forwardedFromGroup   GroupMessage? @relation("ForwardedFromGroupToPrivate", fields: [forwardedFromGroupId], references: [id], onDelete: Cascade)
+
+  sender         User           @relation(name: "sender", fields: [senderId], references: [id])
+  receiver       User           @relation(name: "receiver", fields: [receiverId], references: [id])
+  SavedMessage   SavedMessage[]
+  Reaction       Reaction[]
+  forwardedToGroupMessages GroupMessage[] @relation("ForwardedFromPrivateToGroup")
 }
 
 model GroupMessage {
@@ -354,11 +358,16 @@ model GroupMessage {
   forwardedFrom   GroupMessage?  @relation("Forwards", fields: [forwardedFromId], references: [id])
   forwards        GroupMessage[] @relation("Forwards")
 
-  replyToId    Int?
-  replyTo      GroupMessage?  @relation("Replies", fields: [replyToId], references: [id], onDelete: Cascade)
-  replies      GroupMessage[] @relation("Replies")
-  SavedMessage SavedMessage[]
-  Reaction     Reaction[]
+  replyToId Int?
+  replyTo   GroupMessage?  @relation("Replies", fields: [replyToId], references: [id], onDelete: Cascade)
+  replies   GroupMessage[] @relation("Replies")
+
+  forwardedFromPrivateId Int?
+  forwardedFromPrivate   PrivateMessage? @relation("ForwardedFromPrivateToGroup", fields: [forwardedFromPrivateId], references: [id], onDelete: Cascade)
+
+  SavedMessage     SavedMessage[]
+  Reaction         Reaction[]
+  forwardedToPrivateMessages PrivateMessage[] @relation("ForwardedFromGroupToPrivate")
 }
 
 model Contact {

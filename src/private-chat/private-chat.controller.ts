@@ -301,7 +301,7 @@ export class PrivateChatController {
     @Body() forwardPrivateMessage: ForwardPrivateMessageDto,
   ) {
     const userId: number = req.user.id;
-    const reaction = await this.privateChatService.forwardPrivateMessage(
+    const reaction = await this.privateChatService.forwardToPrivateMessage(
       userId,
       forwardPrivateMessage,
     );
@@ -316,7 +316,7 @@ export class PrivateChatController {
     @Body() forwardGroupMessage: ForwardGroupMessageDto,
   ) {
     const userId: number = req.user.id;
-    const reaction = await this.privateChatService.forwardGroupMessage(
+    const reaction = await this.privateChatService.forwardToGroupMessage(
       userId,
       forwardGroupMessage,
     );
