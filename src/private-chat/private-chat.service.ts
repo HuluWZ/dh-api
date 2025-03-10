@@ -12,6 +12,7 @@ import {
   ForwardGroupMessageDto,
   ForwardPrivateMessageDto,
   GroupInclude,
+  MessageType,
   MuteGroupChatDto,
   MutePrivateChatDto,
   PrivateInclude,
@@ -87,6 +88,17 @@ export class PrivateChatService {
     senderId: number,
     createPrivateMessageDto: CreatePrivateMessageDto,
   ) {
+    //  check if the message type is Image or File, then the caption is required
+    if (
+      createPrivateMessageDto.type !== MessageType.Image &&
+      createPrivateMessageDto.type !== MessageType.File &&
+      createPrivateMessageDto.caption
+    ) {
+      throw new BadRequestException(
+        `Image caption is only required for type Image and File`,
+      );
+    }
+
     return this.prisma.privateMessage.create({
       data: {
         ...createPrivateMessageDto,

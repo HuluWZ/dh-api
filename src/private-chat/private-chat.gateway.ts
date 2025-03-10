@@ -103,10 +103,6 @@ export class PrivateChatGateway
     try {
       console.log(' Chat Payload ', payload, client['user']);
       const sender: User = client['user'];
-      const newMessage = await this.privateChatService.createPrivateMessage(
-        sender.id,
-        payload,
-      );
       if (
         payload.type !== MessageType.Image &&
         payload.type !== MessageType.File &&
@@ -117,6 +113,10 @@ export class PrivateChatGateway
         });
         return;
       }
+      const newMessage = await this.privateChatService.createPrivateMessage(
+        sender.id,
+        payload,
+      );
       if (payload.replyToId) {
         // If the receiver is online, send the message to their socket
         this.server
