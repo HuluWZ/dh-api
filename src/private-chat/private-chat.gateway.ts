@@ -70,10 +70,15 @@ export class PrivateChatGateway
       client['user'] = user;
       if (user) {
         client.join(`user:${user.id}`);
-        const groupIds = await this.orgGroupService.getMyGroups(user.id);
-        console.log({ groupIds });
-        for (const groupId of groupIds) {
-          await client.join(`group:${groupId}`);
+        const { groups, myGroups } =
+          await this.orgGroupService.getMyGroupMembers(user.id);
+        const allGroups = groups?.map((group) => group.id) || [];
+        const allMYGroups = myGroups.map((group) => group.id);
+        console.log('Fetching All Groups', { allGroups, allMYGroups });
+        const uniqueGroupIds = new Set([...allGroups, ...allMYGroups]);
+        console.log({ uniqueGroupIds, allGroups, allMYGroups });
+        for (const groupId of uniqueGroupIds) {
+          client.join(`group:${groupId}`);
           console.log(`User ${user.id} joined group ${groupId}`);
         }
         console.log(
