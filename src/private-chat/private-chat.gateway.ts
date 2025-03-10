@@ -69,21 +69,15 @@ export class PrivateChatGateway
       const user = await this.authService.getMe(+resp.sub);
       client['user'] = user;
       if (user) {
-        // Store socketId
         client.join(`user:${user.id}`);
-        const { groups, myGroups } =
-          await this.orgGroupService.getMyGroupMembers(user.id);
-        const allGroups = groups?.map((group) => group.id) || [];
-        const allMYGroups = myGroups.map((group) => group.id);
-
-        const uniqueGroupIds = new Set([...allGroups, ...allMYGroups]);
-        console.log({ uniqueGroupIds, allGroups, allMYGroups });
-        for (const groupId of uniqueGroupIds) {
+        const groupIds = await this.orgGroupService.getMyGroups(user.id);
+        console.log({ groupIds });
+        for (const groupId of groupIds) {
           await client.join(`group:${groupId}`);
           console.log(`User ${user.id} joined group ${groupId}`);
         }
         console.log(
-          `Client connected:  ${user.id}, SocketId: ${client.id} ${uniqueGroupIds}`,
+          `Client connected:  ${user.id}, SocketId: ${client.id} ${groupIds}`,
         );
       } else {
         console.log('Unauthorized user connected');

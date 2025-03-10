@@ -183,15 +183,18 @@ export class OrgGroupService {
     });
   }
   async getMyGroups(userId: number) {
-    const owners = await this.prisma.orgGroup.findMany({
-      where: { createdBy: userId },
+    const myOrgs = await this.orgService.getMyOrgs(userId);
+    const myOrgIds = myOrgs.map((org) => org.id);
+
+    const groups = await this.prisma.orgGroup.findMany({
+      where: { OR: [{ createdBy: userId, orgId: { in: myOrgIds } }] },
     });
-    const ownerGroup = owners.map((group) => group.id);
+    const groupIds = groups.map((group) => group.id);
     const members = await this.prisma.orgGroupMember.findMany({
       where: { memberId: userId },
     });
     const memberGroup = members.map((group) => group.groupId);
-    const myGroups = Array.from(new Set([...ownerGroup, ...memberGroup]));
+    const myGroups = Array.from(new Set([...groupIds, ...memberGroup]));
     return myGroups;
   }
   async createFirstTask(groupId: number, name: string, userId: number) {
