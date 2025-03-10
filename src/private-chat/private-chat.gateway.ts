@@ -75,7 +75,7 @@ export class PrivateChatGateway
           await this.orgGroupService.getMyGroupMembers(user.id);
         const allGroups = groups?.map((group) => group.id) || [];
         const allMYGroups = myGroups.map((group) => group.id);
-
+        console.log('Fetching All Groups', { allGroups, allMYGroups });
         const uniqueGroupIds = new Set([...allGroups, ...allMYGroups]);
         console.log({ uniqueGroupIds, allGroups, allMYGroups });
         for (const groupId of uniqueGroupIds) {
