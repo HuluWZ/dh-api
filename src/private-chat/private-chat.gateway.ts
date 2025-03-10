@@ -73,10 +73,10 @@ export class PrivateChatGateway
         client.join(`user:${user.id}`);
         const groupIds = await this.orgGroupService.getMyGroups(user.id);
         console.log({ groupIds });
-        groupIds.forEach((groupId) => {
-          client.join(`group:${groupId}`);
+        for (const groupId of groupIds) {
+          await client.join(`group:${groupId}`);
           console.log(`User ${user.id} joined group ${groupId}`);
-        });
+        }
         console.log(
           `Client connected:  ${user.id}, SocketId: ${client.id} ${groupIds}`,
         );
