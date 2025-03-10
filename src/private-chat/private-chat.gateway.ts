@@ -169,7 +169,7 @@ export class PrivateChatGateway
       this.server
         .to(`group:${payload.groupId}`)
         .emit('newGroupMessage', groupMessage);
-
+      console.log({ groupMessage });
       console.log(
         `Group message sent to group ${payload.groupId} from ${sender.firstName} ${sender.middleName}.`,
       );
