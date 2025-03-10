@@ -51,7 +51,7 @@ export class CreatePrivateMessageDto {
   @IsOptional()
   replyToId?: number;
 
-  @ApiProperty({ example: 1, description: 'Image Caption' })
+  @ApiProperty({ example: 'Another Caption', description: 'Image Caption' })
   @IsString()
   @IsOptional()
   caption?: string;

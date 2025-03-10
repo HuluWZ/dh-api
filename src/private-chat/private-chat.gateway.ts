@@ -71,12 +71,20 @@ export class PrivateChatGateway
       if (user) {
         // Store socketId
         client.join(`user:${user.id}`);
-        const groupIds = await this.orgGroupService.getMyGroups(user.id);
-        groupIds.forEach((groupId) => {
-          client.join(`group:${groupId}`);
+        const { groups, myGroups } =
+          await this.orgGroupService.getMyGroupMembers(user.id);
+        const allGroups = groups?.map((group) => group.id) || [];
+        const allMYGroups = myGroups.map((group) => group.id);
+
+        const uniqueGroupIds = new Set([...allGroups, ...allMYGroups]);
+        console.log({ uniqueGroupIds, allGroups, allMYGroups });
+        for (const groupId of uniqueGroupIds) {
+          await client.join(`group:${groupId}`);
           console.log(`User ${user.id} joined group ${groupId}`);
-        });
-        console.log(`Client connected:  ${user.id}, SocketId: ${client.id}`);
+        }
+        console.log(
+          `Client connected:  ${user.id}, SocketId: ${client.id} ${uniqueGroupIds}`,
+        );
       } else {
         console.log('Unauthorized user connected');
         client.emit('error', { message: 'Unauthorized Access' });
@@ -103,10 +111,6 @@ export class PrivateChatGateway
     try {
       console.log(' Chat Payload ', payload, client['user']);
       const sender: User = client['user'];
-      const newMessage = await this.privateChatService.createPrivateMessage(
-        sender.id,
-        payload,
-      );
       if (
         payload.type !== MessageType.Image &&
         payload.type !== MessageType.File &&
@@ -117,6 +121,10 @@ export class PrivateChatGateway
         });
         return;
       }
+      const newMessage = await this.privateChatService.createPrivateMessage(
+        sender.id,
+        payload,
+      );
       if (payload.replyToId) {
         // If the receiver is online, send the message to their socket
         this.server
@@ -166,7 +174,7 @@ export class PrivateChatGateway
       this.server
         .to(`group:${payload.groupId}`)
         .emit('newGroupMessage', groupMessage);
-
+      console.log({ groupMessage });
       console.log(
         `Group message sent to group ${payload.groupId} from ${sender.firstName} ${sender.middleName}.`,
       );
