@@ -82,7 +82,7 @@ export class PrivateChatGateway
           console.log(`User ${user.id} joined group ${groupId}`);
         }
         console.log(
-          `Client connected:  ${user.id}, SocketId: ${client.id} ${groupIds}`,
+          `Client connected:  ${user.id}, SocketId: ${client.id} `,
         );
       } else {
         console.log('Unauthorized user connected');
