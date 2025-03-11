@@ -182,6 +182,13 @@ export class OrgGroupService {
       where: { id },
     });
   }
+  async getMyCreatedGroups(userId: number) {
+    const groups = await this.prisma.orgGroup.findMany({
+      where: { createdBy: userId },
+    });
+    return groups;
+  }
+
   async getMyGroups(userId: number) {
     const myOrgs = await this.orgService.getMyOrgs(userId);
     const myOrgIds = myOrgs.map((org) => org.id);
