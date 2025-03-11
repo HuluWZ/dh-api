@@ -407,4 +407,52 @@ export class PrivateChatGateway
       });
     }
   }
+  @UseGuards(PrivateChatGuard)
+  @SubscribeMessage('forward-message')
+  async forwardMessage(client: Socket, payload: CreateForwardMessageDto) {
+    try {
+      const sender: User = client['user'];
+      const { messageId, messageType, groupId, receiverId } = payload;
+      const isGroupMessage = messageType == ChatType.GroupMessage;
+      const originalMessage = isGroupMessage
+        ? await this.privateChatService.getGroupMessage(messageId)
+        : await this.privateChatService.getMessage(messageId);
+
+      if (!originalMessage) {
+        client.emit('error', {
+          message: `Message  not find under ${messageType} Id : ${messageId}`,
+        });
+        return;
+      }
+      if (groupId) {
+        const groupMessage =
+          await this.privateChatService.forwardToGroupMessage(sender.id, {
+            messageId,
+            groupId,
+            messageType,
+          });
+        this.server
+          .to(`group:${groupId}`)
+          .emit('forward-messages', groupMessage);
+      }
+      if (receiverId) {
+        const privateMessage =
+          await this.privateChatService.forwardToPrivateMessage(sender.id, {
+            messageId,
+            receiverId,
+            messageType,
+          });
+
+        this.server
+          .to(`user:${receiverId}`)
+          .emit('forward-messages', privateMessage);
+      }
+      console.log(`message forwarded to`, payload);
+    } catch (error) {
+      console.error('Error forwarding  message:', error?.response?.message);
+      client.emit('error', {
+        message: `Failed to forward  message : ${error?.response?.message}`,
+      });
+    }
+  }
 }

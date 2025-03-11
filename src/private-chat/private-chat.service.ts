@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import {
+  ChatType,
   CreateGroupMessageDto,
   CreatePrivateMessageDto,
   CreateReactionDto,
@@ -438,47 +439,57 @@ export class PrivateChatService {
       },
     });
   }
-  async forwardPrivateMessage(
+  async forwardToPrivateMessage(
     senderId: number,
-    { messageId, receiverId }: ForwardPrivateMessageDto,
+    { messageType, messageId, receiverId }: ForwardPrivateMessageDto,
   ) {
-    const originalMessage = await this.prisma.privateMessage.findUnique({
-      where: { id: messageId },
-    });
-
+    const isPrivateMessage = messageType == ChatType.PrivateMessage;
+    const originalMessage = isPrivateMessage
+      ? await this.prisma.privateMessage.findUnique({
+          where: { id: messageId },
+        })
+      : await this.prisma.groupMessage.findUnique({ where: { id: messageId } });
     if (!originalMessage) {
       throw new NotFoundException('Original message not found');
     }
-
     return this.prisma.privateMessage.create({
       data: {
         senderId,
         receiverId,
         content: originalMessage.content,
         type: originalMessage.type,
-        forwardedFromId: messageId,
+        caption: originalMessage.caption,
+        forwardedFromId: isPrivateMessage ? messageId : null,
+        forwardedFromGroupId: isPrivateMessage ? null : messageId,
       },
     });
   }
-  async forwardGroupMessage(
+  async forwardToGroupMessage(
     senderId: number,
-    { messageId, groupId }: ForwardGroupMessageDto,
+    { messageId, groupId, messageType }: ForwardGroupMessageDto,
   ) {
-    const originalMessage = await this.prisma.groupMessage.findUnique({
-      where: { id: messageId },
-    });
-
+    const isGroupMessage = messageType == ChatType.GroupMessage;
+    const originalMessage = isGroupMessage
+      ? await this.prisma.groupMessage.findUnique({
+          where: { id: messageId },
+        })
+      : await this.prisma.privateMessage.findUnique({
+          where: { id: messageId },
+        });
     if (!originalMessage) {
-      throw new NotFoundException('Original message not found');
+      throw new NotFoundException(
+        `Original ${messageType}  with ${messageId} not found`,
+      );
     }
-
     return this.prisma.groupMessage.create({
       data: {
         senderId,
         groupId,
         content: originalMessage.content,
         type: originalMessage.type,
-        forwardedFromId: messageId,
+        caption: originalMessage.caption,
+        forwardedFromId: isGroupMessage ? messageId : null,
+        forwardedFromPrivateId: isGroupMessage ? null : messageId,
       },
     });
   }
