@@ -397,7 +397,6 @@ export const PrivateInclude = {
       type: true,
       is_seen: true,
       is_pinned: true,
-      is_archived: true,
       pinnedAt: true,
       createdAt: true,
       sender: {
