@@ -284,7 +284,6 @@ export const GroupInclude = {
       type: true,
       is_seen: true,
       is_pinned: true,
-      is_archived: true,
       pinnedAt: true,
       createdAt: true,
       group: { select: { name: true } },
@@ -299,7 +298,6 @@ export const GroupInclude = {
       type: true,
       is_seen: true,
       is_pinned: true,
-      is_archived: true,
       pinnedAt: true,
       createdAt: true,
       sender: {
@@ -373,7 +371,6 @@ export const PrivateInclude = {
       type: true,
       is_seen: true,
       is_pinned: true,
-      is_archived: true,
       pinnedAt: true,
       createdAt: true,
       group: {
@@ -398,7 +395,6 @@ export const PrivateInclude = {
       type: true,
       is_seen: true,
       is_pinned: true,
-      is_archived: true,
       pinnedAt: true,
       createdAt: true,
       sender: {
