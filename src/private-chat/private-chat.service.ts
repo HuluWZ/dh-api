@@ -21,6 +21,11 @@ import {
 import { Prisma } from '@prisma/client';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/dto/notification.dto';
+interface Conversation {
+  _max: { createdAt: Date };
+  senderId: number;
+  receiverId: number;
+}
 
 @Injectable()
 export class PrivateChatService {
@@ -40,29 +45,28 @@ export class PrivateChatService {
       },
     });
     console.log({ uniqueConversations });
-    const latestConversations = new Map();
-    uniqueConversations.forEach((group) => {
-      const {
-        senderId,
-        receiverId,
-        _max: { createdAt },
-      } = group;
-      const pair =
-        senderId < receiverId
-          ? `${senderId}-${receiverId}`
-          : `${receiverId}-${senderId}`;
-      if (latestConversations.has(pair)) {
-        if (
-          new Date(createdAt) >
-          new Date(latestConversations.get(pair).createdAt)
-        ) {
-          latestConversations.set(pair, group);
+    const conversationMap = new Map<string, Conversation>();
+
+    uniqueConversations.forEach((conversation) => {
+      const key1 = `${conversation.senderId}-${conversation.receiverId}`;
+      const key2 = `${conversation.receiverId}-${conversation.senderId}`;
+
+      if (conversationMap.has(key1)) {
+        const existingConversation = conversationMap.get(key1)!;
+        if (conversation._max.createdAt > existingConversation._max.createdAt) {
+          conversationMap.set(key1, conversation);
+        }
+      } else if (conversationMap.has(key2)) {
+        const existingConversation = conversationMap.get(key2)!;
+        if (conversation._max.createdAt > existingConversation._max.createdAt) {
+          conversationMap.set(key2, conversation);
         }
       } else {
-        latestConversations.set(pair, group);
+        conversationMap.set(key1, conversation);
       }
     });
-    const filteredConversations = Array.from(latestConversations.values());
+
+    const filteredConversations = Array.from(conversationMap.values());
     console.log({ filteredConversations });
     const privateMessages = await Promise.all(
       filteredConversations.map(async (group) => {
