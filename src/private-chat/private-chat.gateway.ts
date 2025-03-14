@@ -136,11 +136,11 @@ export class PrivateChatGateway
         payload,
       );
       if (payload.replyToId) {
-        // If the receiver is online, send the message to their socket
         this.server
           .to(`user:${payload.receiverId}`)
           .to(`user:${sender.id}`)
           .emit('replyMessage', newMessage);
+        return;
       }
       console.log(`Message sent to user: ${payload.receiverId}`);
       this.server
@@ -180,6 +180,7 @@ export class PrivateChatGateway
         this.server
           .to(`group:${payload.groupId}`)
           .emit('replyGroupMessage', groupMessage);
+        return;
       }
       this.server
         .to(`group:${payload.groupId}`)
@@ -434,6 +435,7 @@ export class PrivateChatGateway
         this.server
           .to(`group:${groupId}`)
           .emit('forward-messages', groupMessage);
+        return;
       }
       if (receiverId) {
         const privateMessage =
@@ -446,6 +448,7 @@ export class PrivateChatGateway
         this.server
           .to(`user:${receiverId}`)
           .emit('forward-messages', privateMessage);
+        return;
       }
       console.log(`message forwarded to`, payload);
     } catch (error) {
