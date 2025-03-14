@@ -40,20 +40,29 @@ export class PrivateChatService {
       },
     });
     console.log({ uniqueConversations });
-    const uniquePairs = new Set();
-    const filteredConversations = uniqueConversations.filter((group) => {
-      const { senderId, receiverId } = group;
+    const latestConversations = new Map();
+    uniqueConversations.forEach((group) => {
+      const {
+        senderId,
+        receiverId,
+        _max: { createdAt },
+      } = group;
       const pair =
         senderId < receiverId
           ? `${senderId}-${receiverId}`
           : `${receiverId}-${senderId}`;
-      if (uniquePairs.has(pair)) {
-        return false;
+      if (latestConversations.has(pair)) {
+        if (
+          new Date(createdAt) >
+          new Date(latestConversations.get(pair).createdAt)
+        ) {
+          latestConversations.set(pair, group);
+        }
       } else {
-        uniquePairs.add(pair);
-        return true;
+        latestConversations.set(pair, group);
       }
     });
+    const filteredConversations = Array.from(latestConversations.values());
     console.log({ filteredConversations });
     const privateMessages = await Promise.all(
       filteredConversations.map(async (group) => {
