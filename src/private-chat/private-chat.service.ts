@@ -32,7 +32,7 @@ export class PrivateChatService {
   async getMyRecentConversations(userId: number) {
     const uniqueConversations = await this.prisma.privateMessage.groupBy({
       by: ['senderId', 'receiverId'],
-      having: {
+      where: {
         OR: [{ senderId: userId }, { receiverId: userId }],
       },
       _max: {
