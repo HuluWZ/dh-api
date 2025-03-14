@@ -136,7 +136,6 @@ export class PrivateChatGateway
         payload,
       );
       if (payload.replyToId) {
-        // If the receiver is online, send the message to their socket
         this.server
           .to(`user:${payload.receiverId}`)
           .to(`user:${sender.id}`)
@@ -436,6 +435,7 @@ export class PrivateChatGateway
         this.server
           .to(`group:${groupId}`)
           .emit('forward-messages', groupMessage);
+        return;
       }
       if (receiverId) {
         const privateMessage =
@@ -448,6 +448,7 @@ export class PrivateChatGateway
         this.server
           .to(`user:${receiverId}`)
           .emit('forward-messages', privateMessage);
+        return;
       }
       console.log(`message forwarded to`, payload);
     } catch (error) {
