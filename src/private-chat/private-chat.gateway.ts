@@ -141,6 +141,7 @@ export class PrivateChatGateway
           .to(`user:${payload.receiverId}`)
           .to(`user:${sender.id}`)
           .emit('replyMessage', newMessage);
+        return;
       }
       console.log(`Message sent to user: ${payload.receiverId}`);
       this.server
@@ -180,6 +181,7 @@ export class PrivateChatGateway
         this.server
           .to(`group:${payload.groupId}`)
           .emit('replyGroupMessage', groupMessage);
+        return;
       }
       this.server
         .to(`group:${payload.groupId}`)
