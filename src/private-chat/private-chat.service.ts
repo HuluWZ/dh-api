@@ -44,7 +44,6 @@ export class PrivateChatService {
         createdAt: true,
       },
     });
-    console.log({ uniqueConversations });
     const conversationMap = new Map<string, Conversation>();
 
     uniqueConversations.forEach((conversation) => {
@@ -67,7 +66,6 @@ export class PrivateChatService {
     });
 
     const filteredConversations = Array.from(conversationMap.values());
-    console.log({ filteredConversations });
     const privateMessages = await Promise.all(
       filteredConversations.map(async (group) => {
         const { senderId, receiverId, _max } = group;
