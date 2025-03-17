@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 import { randomBytes } from 'node:crypto';
@@ -10,14 +10,17 @@ function generateShortSessionId(): string {
 }
 
 @Injectable()
-export class RedisService {
+export class RedisService implements OnModuleDestroy {
   private readonly redis: Redis;
   private readonly redisConfig;
   constructor(private configService: ConfigService) {
     this.redisConfig = this.configService.get<redisConfigType>('redis');
     this.redis = new Redis(this.redisConfig);
   }
-
+  onModuleDestroy(): void {
+    console.error('Closing redis connection');
+    this.redis.disconnect();
+  }
   async setUserSocket(userId: number, socketId: string) {
     return this.redis.set(`user:${userId}`, socketId);
   }
