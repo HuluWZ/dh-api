@@ -409,7 +409,7 @@ export class PrivateChatGateway
     }
   }
   @UseGuards(PrivateChatGuard)
-  @SubscribeMessage('forward-message')
+  @SubscribeMessage('forward')
   async forwardMessage(client: Socket, payload: CreateForwardMessageDto) {
     try {
       const sender: User = client['user'];
@@ -418,7 +418,7 @@ export class PrivateChatGateway
       const originalMessage = isGroupMessage
         ? await this.privateChatService.getGroupMessage(messageId)
         : await this.privateChatService.getMessage(messageId);
-
+      console.log({ messageId, groupId, isGroupMessage, originalMessage });
       if (!originalMessage) {
         client.emit('error', {
           message: `Message  not find under ${messageType} Id : ${messageId}`,
@@ -432,9 +432,10 @@ export class PrivateChatGateway
             groupId,
             messageType,
           });
+        console.log('Forward To Group Message', groupMessage);
         this.server
           .to(`group:${groupId}`)
-          .emit('forward-messages', groupMessage);
+          .emit('forward-message', groupMessage);
         return;
       }
       if (receiverId) {
@@ -444,10 +445,11 @@ export class PrivateChatGateway
             receiverId,
             messageType,
           });
-
+        console.log('Forward To Private Message', privateMessage);
         this.server
           .to(`user:${receiverId}`)
-          .emit('forward-messages', privateMessage);
+          .to(`user:${sender.id}`)
+          .emit('forward-message', privateMessage);
         return;
       }
       console.log(`message forwarded to`, payload);
