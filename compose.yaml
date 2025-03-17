@@ -49,6 +49,7 @@ services:
     environment:
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
 
     ports:
       - 6379:6379
