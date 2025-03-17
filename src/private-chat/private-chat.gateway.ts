@@ -78,7 +78,6 @@ export class PrivateChatGateway
         const myCreatedGroupIds = myCreatedGroups.map((group) => group.id);
         const allGroups = groups?.map((group) => group.id) || [];
         const allMYGroups = myGroups.map((group) => group.id);
-        console.log('Fetching All Groups', { allGroups, allMYGroups });
         const uniqueGroupIds = new Set([
           ...allGroups,
           ...allMYGroups,
@@ -86,9 +85,6 @@ export class PrivateChatGateway
         ]);
         console.log({
           uniqueGroupIds,
-          allGroups,
-          allMYGroups,
-          myCreatedGroupIds,
         });
         for (const groupId of uniqueGroupIds) {
           client.join(`group:${groupId}`);
@@ -185,7 +181,6 @@ export class PrivateChatGateway
       this.server
         .to(`group:${payload.groupId}`)
         .emit('newGroupMessage', groupMessage);
-      console.log({ groupMessage });
       console.log(
         `Group message sent to group ${payload.groupId} from ${sender.firstName} ${sender.middleName}.`,
       );

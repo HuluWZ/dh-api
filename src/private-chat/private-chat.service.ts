@@ -69,7 +69,6 @@ export class PrivateChatService {
     const privateMessages = await Promise.all(
       filteredConversations.map(async (group) => {
         const { senderId, receiverId, _max } = group;
-        console.log({ senderId, receiverId, _max });
         const latestMessage = await this.prisma.privateMessage.findFirst({
           where: {
             senderId,
@@ -78,7 +77,6 @@ export class PrivateChatService {
           },
           include: PrivateInclude,
         });
-        console.log({ latestMessage });
         return latestMessage;
       }),
     );
@@ -477,6 +475,7 @@ export class PrivateChatService {
         forwardedFromId: isPrivateMessage ? messageId : null,
         forwardedFromGroupId: isPrivateMessage ? null : messageId,
       },
+      include: PrivateInclude,
     });
   }
   async forwardToGroupMessage(
@@ -506,6 +505,7 @@ export class PrivateChatService {
         forwardedFromId: isGroupMessage ? messageId : null,
         forwardedFromPrivateId: isGroupMessage ? null : messageId,
       },
+      include: GroupInclude,
     });
   }
   async mutePrivateChat(userId: number, mutePrivate: MutePrivateChatDto) {
