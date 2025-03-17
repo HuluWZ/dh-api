@@ -444,7 +444,6 @@ export class PrivateChatGateway
         console.log('Forward To Private Message', privateMessage);
         this.server
           .to(`user:${receiverId}`)
-          .to(`user:${sender.id}`)
           .emit('forward-message', privateMessage);
         return;
       }
