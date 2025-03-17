@@ -413,7 +413,8 @@ export class PrivateChatGateway
       const originalMessage = isGroupMessage
         ? await this.privateChatService.getGroupMessage(messageId)
         : await this.privateChatService.getMessage(messageId);
-      console.log({ messageId, groupId, isGroupMessage, originalMessage });
+      console.log({ payload, isGroupMessage });
+      console.log({ originalMessage });
       if (!originalMessage) {
         client.emit('error', {
           message: `Message  not find under ${messageType} Id : ${messageId}`,
