@@ -409,6 +409,13 @@ export class PrivateChatGateway
     try {
       const sender: User = client['user'];
       const { messageId, messageType, groupId, receiverId } = payload;
+      if (groupId && receiverId) {
+        client.emit('error', {
+          message: `Invalid Data use only "receiverId" or "groupId"`,
+        });
+        return;
+      }
+
       const isGroupMessage = messageType == ChatType.GroupMessage;
       const originalMessage = isGroupMessage
         ? await this.privateChatService.getGroupMessage(messageId)
