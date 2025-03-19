@@ -62,7 +62,6 @@ export class MinioFileUploadController {
         disposition && disposition.toLocaleLowerCase() === 'inline'
           ? 'inline'
           : 'attachment';
-      console.log('Pipeline Trigger');
       res.set({
         'Accept-Ranges': 'bytes',
         'Content-Type': ContentType ?? 'application/octet-stream',
