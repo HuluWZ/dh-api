@@ -424,7 +424,7 @@ export class PrivateChatGateway
       console.log({ originalMessage });
       if (!originalMessage) {
         client.emit('error', {
-          message: `Message  not find under ${messageType} Id : ${messageId}`,
+          message: `Message not found under ${messageType} Id of #${messageId}`,
         });
         return;
       }
