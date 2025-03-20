@@ -376,7 +376,7 @@ export class PrivateChatController {
   }
   @Get('search/')
   @ApiOperation({ summary: 'Search My Conversations' })
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @ApiQuery({ name: 'groupId', required: false })
   @ApiQuery({ name: 'receiverId', required: false })
   async searchMessages(
