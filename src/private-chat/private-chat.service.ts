@@ -18,7 +18,6 @@ import {
   MutePrivateChatDto,
   PrivateInclude,
 } from './dto/private.dto';
-import { Prisma } from '@prisma/client';
 import { NotificationService } from 'src/notification/notification.service';
 import { NotificationType } from 'src/notification/dto/notification.dto';
 interface Conversation {
@@ -302,54 +301,46 @@ export class PrivateChatService {
   async searchMessagesByContent(
     userId: number,
     content: string,
-    type: 'private' | 'group' | 'all',
+    groupId?: number,
+    receiverId?: number,
   ) {
-    if (!content) {
-      throw new Error('Content parameter is required for searching messages.');
-    }
-
-    const privateFilters: Prisma.PrivateMessageWhereInput = {
-      AND: [
-        { content: { contains: content, mode: 'insensitive' } },
-        { OR: [{ senderId: userId }, { receiverId: userId }] },
-      ],
-    };
-
-    const groupFilters: Prisma.GroupMessageWhereInput = {
-      AND: [
-        { content: { contains: content, mode: 'insensitive' } },
-        { is_archived: false },
-        {
-          OR: [
-            { senderId: userId },
+    if (receiverId) {
+      return this.prisma.privateMessage.findMany({
+        where: {
+          AND: [
             {
-              group: {
-                OR: [
-                  { createdBy: userId },
-                  {
-                    OrgGroupMember: {
-                      some: { memberId: userId },
-                    },
-                  },
-                ],
-              },
+              OR: [{ senderId: userId }, { receiverId: userId }],
             },
+            { content: { contains: content, mode: 'insensitive' } },
           ],
         },
-      ],
-    };
-
-    if (type === 'private') {
-      return this.prisma.privateMessage.findMany({ where: privateFilters });
-    } else if (type === 'group') {
-      return this.prisma.groupMessage.findMany({ where: groupFilters });
-    } else {
-      const [privateMessages, groupMessages] = await Promise.all([
-        this.prisma.privateMessage.findMany({ where: privateFilters }),
-        this.prisma.groupMessage.findMany({ where: groupFilters }),
-      ]);
-
-      return { privateMessages, groupMessages };
+      });
+    }
+    if (groupId) {
+      return this.prisma.groupMessage.findMany({
+        where: {
+          AND: [
+            {
+              OR: [
+                { senderId: userId },
+                {
+                  group: {
+                    OR: [
+                      { createdBy: userId },
+                      {
+                        OrgGroupMember: {
+                          some: { memberId: userId },
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+            { content: { contains: content, mode: 'insensitive' } },
+          ],
+        },
+      });
     }
   }
   async saveMessage(
