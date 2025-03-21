@@ -361,6 +361,31 @@ export class PrivateChatService {
       data: { deletedByReceiver, deletedBySender },
     });
   }
+  async getReactionByMessageId(
+    userId: number,
+    type: string,
+    privateMessageId?: number,
+    groupMessageId?: number,
+  ) {
+    if (privateMessageId) {
+      return this.prisma.reaction.findFirst({
+        where: {
+          type,
+          privateMessageId,
+          userId,
+        },
+      });
+    }
+    if (groupMessageId) {
+      return this.prisma.reaction.findFirst({
+        where: {
+          type,
+          groupMessageId,
+          userId,
+        },
+      });
+    }
+  }
   async createReactions(userId: number, createReaction: CreateReactionDto) {
     const { messageType, messageId, type } = createReaction;
     if (['PrivateMessage', 'GroupMessage'].indexOf(messageType) === -1) {
