@@ -245,6 +245,18 @@ export class PrivateChatGateway
         senderId,
         payload,
       );
+      const messageType = payload.messageType;
+      const reaction = await this.privateChatService.getReactionByMessageId(
+        senderId,
+        payload.type,
+        messageType === 'PrivateMessage' ? payload.messageId : undefined,
+        messageType === 'GroupMessage' ? payload.messageId : undefined,
+      );
+      if (reaction) {
+        client.emit('error', {
+          message: `Reaction already exists for this message`,
+        });
+      }
       if (payload.messageType == ChatType.GroupMessage) {
         this.server
           .to(`group:${reactions.groupMessage.groupId}`)
