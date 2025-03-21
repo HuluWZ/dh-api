@@ -320,23 +320,7 @@ export class PrivateChatService {
       return this.prisma.groupMessage.findMany({
         where: {
           AND: [
-            {
-              OR: [
-                { senderId: userId },
-                {
-                  group: {
-                    OR: [
-                      { createdBy: userId },
-                      {
-                        OrgGroupMember: {
-                          some: { memberId: userId },
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
-            },
+            { groupId },
             { content: { contains: content, mode: 'insensitive' } },
           ],
         },
