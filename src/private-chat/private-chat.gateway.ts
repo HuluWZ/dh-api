@@ -421,6 +421,7 @@ export class PrivateChatGateway
     try {
       const sender: User = client['user'];
       const { messageId, messageType, groupId, receiverId } = payload;
+      console.log('Forward Message Starting', { payload });
       if (groupId && receiverId) {
         client.emit('error', {
           message: `Invalid Data use only "receiverId" or "groupId"`,
@@ -432,8 +433,7 @@ export class PrivateChatGateway
       const originalMessage = isGroupMessage
         ? await this.privateChatService.getGroupMessage(messageId)
         : await this.privateChatService.getMessage(messageId);
-      console.log({ payload, isGroupMessage });
-      console.log({ originalMessage });
+      console.log({ originalMessage, isGroupMessage });
       if (!originalMessage) {
         client.emit('error', {
           message: `Message not found under ${messageType} Id of #${messageId}`,
