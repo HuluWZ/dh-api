@@ -314,6 +314,7 @@ export class PrivateChatService {
             { content: { contains: content, mode: 'insensitive' } },
           ],
         },
+        orderBy: { createdAt: 'desc' },
       });
     }
     if (groupId) {
@@ -324,6 +325,7 @@ export class PrivateChatService {
             { content: { contains: content, mode: 'insensitive' } },
           ],
         },
+        orderBy: { createdAt: 'desc' },
       });
     }
   }
