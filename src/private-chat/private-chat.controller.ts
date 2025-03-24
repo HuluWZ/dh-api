@@ -14,7 +14,12 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { PrivateChatService } from './private-chat.service';
 import {
@@ -369,25 +374,42 @@ export class PrivateChatController {
     const chats = await this.privateChatService.getMyChats(userId);
     return { chats };
   }
-  @Get('search')
-  @ApiOperation({ summary: 'Search My Chat Messages' })
+  @Get('search/')
+  @ApiOperation({ summary: 'Search My Conversations' })
   @UseGuards(AuthGuard)
+  @ApiQuery({ name: 'groupId', required: false })
+  @ApiQuery({ name: 'receiverId', required: false })
   async searchMessages(
     @Req() req: any,
     @Query('content') content: string,
-    @Query('type?') type: 'private' | 'group' | 'all' = 'all',
+    @Query('groupId') groupId?: string,
+    @Query('receiverId') receiverId?: string,
   ) {
-    const userId = req.user.id; // Extract userId from JWT payload
+    console.log({ content, groupId, receiverId });
+    const userId = 5;
     if (!content) {
       throw new BadRequestException('The "content" parameter is required.');
     }
-    console.log(content, type);
-
-    return this.privateChatService.searchMessagesByContent(
-      userId,
-      content,
-      type,
-    );
+    if ((groupId && receiverId) || (!groupId && !receiverId)) {
+      throw new BadRequestException(
+        'Either "groupId" or "receiverId" must be provided, but not both.',
+      );
+    }
+    if (groupId) {
+      return this.privateChatService.searchMessagesByContent(
+        userId,
+        content,
+        +groupId,
+      );
+    }
+    if (receiverId) {
+      return this.privateChatService.searchMessagesByContent(
+        userId,
+        content,
+        undefined,
+        +receiverId,
+      );
+    }
   }
   @Post('group-chat-mention/:groupId')
   @ApiOperation({ summary: 'Mention in GroupChat Notification' })
