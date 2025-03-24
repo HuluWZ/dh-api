@@ -309,7 +309,10 @@ export class PrivateChatService {
         where: {
           AND: [
             {
-              OR: [{ senderId: userId }, { receiverId: userId }],
+              OR: [
+                { senderId: receiverId, receiverId: userId },
+                { senderId: userId, receiverId: receiverId },
+              ],
             },
             { content: { contains: content, mode: 'insensitive' } },
           ],
